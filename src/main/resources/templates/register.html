@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<main class="auth-page">
+    <section class="auth-card">
+        <a class="brand auth-brand" th:href="@{/index}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow">Join the garage</p>
+        <h1>Register</h1>
+        <p class="auth-copy">Create your account and start managing car service visits.</p>
+
+        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Registration error</p>
+
+        <form th:action="@{/register}" th:object="${registerRequest}" method="post" class="auth-form" novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                Please correct the highlighted fields.
+            </p>
+
+            <label for="username">Username</label>
+            <input id="username" type="text" th:field="*{username}" th:errorclass="input-error" placeholder="Choose username">
+            <small class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+
+            <label for="email">Email</label>
+            <input id="email" type="email" th:field="*{email}" th:errorclass="input-error" placeholder="you@example.com">
+            <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" th:field="*{password}" th:errorclass="input-error" placeholder="Choose password">
+            <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+
+            <button type="submit" class="button primary full-width">Create account</button>
+        </form>
+
+        <p class="footer-link">
+            Already have an account?
+            <a th:href="@{/login}">Login here</a>
+        </p>
+    </section>
+</main>
+</body>
+</html>

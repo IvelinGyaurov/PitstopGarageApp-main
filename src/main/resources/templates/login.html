@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<main class="auth-page">
+    <section class="auth-card">
+        <a class="brand auth-brand" th:href="@{/index}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow">Welcome back</p>
+        <h1>Login</h1>
+        <p class="auth-copy">Sign in to continue managing your garage visits.</p>
+
+        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Incorrect username or password</p>
+
+        <form th:action="@{/login}" th:object="${loginRequest}" method="post" class="auth-form">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <label for="username">Username</label>
+            <input id="username" type="text" th:field="*{username}" placeholder="Enter username">
+            <small class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" th:field="*{password}" placeholder="Enter password">
+            <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+
+            <button type="submit" class="button primary full-width">Login</button>
+        </form>
+
+        <p class="footer-link">
+            Do not have an account?
+            <a th:href="@{/register}">Register here</a>
+        </p>
+    </section>
+</main>
+</body>
+</html>

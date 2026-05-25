@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard">
+    <section class="welcome-panel">
+        <div>
+            <p class="eyebrow">Garage dashboard</p>
+            <h1>Welcome, <span th:text="${username}">driver</span>.</h1>
+            <p class="hero-text">
+                Your PitStop Garage account is ready. Car, repair and service history features will appear here.
+            </p>
+        </div>
+
+        <div class="profile-card">
+            <span class="status-pill">Logged in</span>
+            <h2 th:text="${username}">username</h2>
+            <p>Current role</p>
+            <strong th:text="${role}">USER</strong>
+        </div>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="dashboard-card">
+            <span class="icon">01</span>
+            <h3>My cars</h3>
+            <p>Register and manage your vehicles from one place.</p>
+        </article>
+
+        <article class="dashboard-card">
+            <span class="icon">02</span>
+            <h3>Repairs</h3>
+            <p>Follow repair status and completed service work.</p>
+        </article>
+
+        <article class="dashboard-card">
+            <span class="icon">03</span>
+            <h3>Service history</h3>
+            <p>Keep a clean record of every garage visit.</p>
+        </article>
+    </section>
+</main>
+</body>
+</html>

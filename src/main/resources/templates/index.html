@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="site-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/index}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/login}">Login</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">Professional auto service</p>
+            <h1>Your trusted garage for repairs and maintenance.</h1>
+            <p class="hero-text">
+                Manage visits, repairs and service history in one clean garage system.
+            </p>
+
+            <div class="hero-actions">
+                <a class="button primary" th:href="@{/login}">Open login menu</a>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <div class="status-pill">Auto service</div>
+            <h2>PitStop Garage</h2>
+            <p>Diagnostics, repairs, maintenance and clear service records for every car.</p>
+            <div class="card-grid">
+                <span>Cars</span>
+                <span>Repairs</span>
+                <span>Mechanics</span>
+                <span>Service history</span>
+            </div>
+        </div>
+    </section>
+</header>
+</body>
+</html>
