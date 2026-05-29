@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.UUID;
+
 @Controller
 public class IndexController {
 
@@ -62,8 +64,11 @@ public class IndexController {
         }
 
         ModelAndView modelAndView = new ModelAndView("home");
-        modelAndView.addObject("username", session.getAttribute("username"));
-        modelAndView.addObject("role", session.getAttribute("role"));
+        User user = userService.getById((UUID) session.getAttribute("userId"));
+        modelAndView.addObject("userId", user.getId());
+        modelAndView.addObject("username", user.getUsername());
+        modelAndView.addObject("role", user.getRole());
+        modelAndView.addObject("profilePicture", user.getProfilePicture());
 
         return modelAndView;
     }

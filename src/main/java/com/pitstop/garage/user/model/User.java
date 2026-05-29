@@ -46,6 +46,18 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(length = 50)
+    private String firstName;
+
+    @Column(length = 50)
+    private String lastName;
+
+    @Column(length = 20)
+    private String phoneNumber;
+
+    @Column(length = 500)
+    private String profilePicture;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;

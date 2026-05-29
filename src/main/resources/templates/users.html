@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .users-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .users-page-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .users-count {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .users-table-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead {
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem 1.15rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .users-table th {
+            color: #fdba74;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .users-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .users-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .role-badge.admin {
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            background: rgba(251, 191, 36, 0.12);
+        }
+
+        .role-badge.mechanic {
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            background: rgba(59, 130, 246, 0.12);
+        }
+
+        .role-badge.user {
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .status-badge.active {
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .status-badge.inactive {
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            background: rgba(127, 29, 29, 0.35);
+        }
+
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        @media (max-width: 900px) {
+            .users-table-wrap {
+                overflow-x: auto;
+            }
+
+            .users-table {
+                min-width: 720px;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/home}">Home</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard">
+    <section class="users-page-header">
+        <div>
+            <p class="eyebrow">Administration</p>
+            <h1>All users</h1>
+            <p class="users-count" th:text="${#lists.size(users)} + ' registered users'">0 registered users</p>
+        </div>
+    </section>
+
+    <section class="users-table-wrap" th:if="${users != null and !users.isEmpty()}">
+        <table class="users-table">
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created on</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.username}">username</td>
+                <td th:text="${user.email}">email@example.com</td>
+                <td>
+                    <span class="role-badge"
+                          th:classappend="${' ' + user.role.name().toLowerCase()}"
+                          th:text="${user.role}">
+                        USER
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge active"
+                          th:text="${user.active} ? 'Active' : 'Inactive'"
+                          th:classappend="${user.active} ? ' active' : ' inactive'">
+                        Active
+                    </span>
+                </td>
+                <td th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
+                    01.01.2026 12:00
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="users-table-wrap" th:if="${users == null or users.isEmpty()}">
+        <p class="empty-state">No users found.</p>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

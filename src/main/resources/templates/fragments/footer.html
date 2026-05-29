@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="footer">
+    <p>
+        &copy;
+        <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span>
+        PitStop Garage. All rights reserved.
+    </p>
+</footer>
+</body>
+</html>

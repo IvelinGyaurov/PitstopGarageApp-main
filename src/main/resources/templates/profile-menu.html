@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .profile-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .profile-summary,
+        .profile-form-card {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 1.75rem;
+        }
+
+        .profile-avatar-wrap {
+            margin-bottom: 1.25rem;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--line);
+            display: block;
+        }
+
+        .profile-avatar-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            font-weight: 800;
+            font-size: 2rem;
+            color: #fdba74;
+        }
+
+        .profile-summary .status-pill {
+            display: inline-block;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-summary h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-summary .subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.45);
+        }
+
+        .info-item span {
+            display: block;
+            color: #fdba74;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .info-item strong {
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .profile-form-card h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--line);
+        }
+
+        .form-section:first-of-type {
+            margin-top: 1rem;
+            padding-top: 0;
+            border-top: 0;
+        }
+
+        .form-section h3 {
+            margin-bottom: 0.35rem;
+            font-size: 1.1rem;
+        }
+
+        .form-section p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .readonly-hint {
+            margin-top: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            background: rgba(59, 130, 246, 0.1);
+            color: #bfdbfe;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .picture-preview {
+            margin-top: 0.75rem;
+        }
+
+        .picture-preview img {
+            width: 96px;
+            height: 96px;
+            border-radius: 0.75rem;
+            object-fit: cover;
+            border: 1px solid var(--line);
+        }
+
+        /* Extra space before selected form labels — tweak margin-top to taste */
+        .profile-form-card .auth-form label[for="lastName"],
+        .profile-form-card .auth-form label[for="phoneNumber"] {
+            margin-top: 0.9rem;
+        }
+
+        .profile-form-card .field-error {
+            display: block;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 900px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard">
+    <section class="users-page-header" style="margin-bottom: 2rem;">
+        <div>
+            <p class="eyebrow">Account settings</p>
+            <h1 style="font-size: clamp(2.2rem, 4vw, 3.4rem); margin-bottom: 0;">Profile menu</h1>
+        </div>
+    </section>
+
+    <section class="profile-layout">
+        <aside class="profile-summary">
+            <div class="profile-avatar-wrap">
+                <img th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                     th:src="${user.profilePicture}"
+                     alt="Profile picture"
+                     class="profile-avatar">
+                <div th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                     class="profile-avatar profile-avatar-placeholder"
+                     th:with="hasFullName=${user.firstName != null and !#strings.isEmpty(user.firstName)
+                        and user.lastName != null and !#strings.isEmpty(user.lastName)}"
+                     th:text="${hasFullName
+                        ? #strings.toUpperCase(#strings.substring(user.firstName, 0, 1)) + #strings.toUpperCase(#strings.substring(user.lastName, 0, 1))
+                        : (user.username != null ? #strings.toUpperCase(#strings.substring(user.username, 0, 1)) : 'U')}">
+                    U
+                </div>
+            </div>
+
+            <span class="status-pill">Your account</span>
+            <h2 th:with="hasFullName=${user.firstName != null and !#strings.isEmpty(user.firstName)
+                and user.lastName != null and !#strings.isEmpty(user.lastName)}"
+                th:text="${hasFullName ? user.firstName + ' ' + user.lastName : user.username}">
+                username
+            </h2>
+            <p class="subtitle" th:text="${user.email}">email@example.com</p>
+
+            <div class="info-list">
+                <div class="info-item">
+                    <span>Username</span>
+                    <strong th:text="${user.username}">username</strong>
+                </div>
+                <div class="info-item" th:if="${user.phoneNumber != null and !#strings.isEmpty(user.phoneNumber)}">
+                    <span>Phone</span>
+                    <strong th:text="${user.phoneNumber}">+359 888 123 456</strong>
+                </div>
+                <div class="info-item">
+                    <span>Role</span>
+                    <strong th:text="${user.role}">USER</strong>
+                </div>
+                <div class="info-item">
+                    <span>Status</span>
+                    <strong th:text="${user.active} ? 'Active' : 'Inactive'">Active</strong>
+                </div>
+                <div class="info-item">
+                    <span>Member since</span>
+                    <strong th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
+                        01.01.2026
+                    </strong>
+                </div>
+                <div class="info-item">
+                    <span>Last updated</span>
+                    <strong th:text="${user.updatedOn != null ? #temporals.format(user.updatedOn, 'dd.MM.yyyy HH:mm') : '-'}">
+                        01.01.2026
+                    </strong>
+                </div>
+            </div>
+
+            <p class="readonly-hint">
+                Username, email, role and account status cannot be changed here.
+            </p>
+        </aside>
+
+        <section class="profile-form-card">
+            <p class="eyebrow">Edit profile</p>
+            <h1>Update your details</h1>
+            <p class="auth-copy">Change your name, phone number and profile picture URL.</p>
+
+            <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+            <p class="alert success" th:if="${successMessage}" th:text="${successMessage}">Success message</p>
+
+            <form th:action="@{/users/{id}/profile(id=${user.id})}"
+                  method="post"
+                  class="auth-form"
+                  novalidate>
+                <input type="hidden" name="_method" value="put">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div th:if="${editProfileRequest != null}" th:object="${editProfileRequest}">
+                    <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                        Please correct the highlighted fields.
+                    </p>
+
+                    <div class="form-section">
+                        <h3>Personal information</h3>
+                        <p>Your public name and contact phone number.</p>
+
+                        <label for="firstName">First name</label>
+                        <input id="firstName" type="text" th:field="*{firstName}" th:errorclass="input-error" placeholder="Georgi">
+                        <small class="field-error" th:if="${#fields.hasErrors('firstName')}"
+                               th:text="${#strings.listJoin(#fields.errors('firstName'), ' and ')}"></small>
+
+                        <label for="lastName">Last name</label>
+                        <input id="lastName" type="text" th:field="*{lastName}" th:errorclass="input-error" placeholder="Ivanov">
+                        <small class="field-error" th:if="${#fields.hasErrors('lastName')}"
+                               th:text="${#strings.listJoin(#fields.errors('lastName'), ' and ')}"></small>
+
+                        <label for="phoneNumber">Phone number</label>
+                        <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" th:errorclass="input-error" placeholder="+359888123456">
+                        <small class="field-error" th:if="${#fields.hasErrors('phoneNumber')}"
+                               th:text="${#strings.listJoin(#fields.errors('phoneNumber'), ' and ')}"></small>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Profile picture</h3>
+                        <p>Paste a direct link to an image on the internet (jpg, png, webp).</p>
+
+                        <label for="profilePictureURL">Picture URL</label>
+                        <input id="profilePictureURL" type="url" th:field="*{profilePictureURL}" th:errorclass="input-error"
+                               placeholder="https://example.com/photo.jpg">
+                        <small class="field-error" th:if="${#fields.hasErrors('profilePictureURL')}"
+                               th:text="${#strings.listJoin(#fields.errors('profilePictureURL'), ' and ')}"></small>
+
+                        <div class="picture-preview"
+                             th:if="*{profilePictureURL != null and !#strings.isEmpty(profilePictureURL)}">
+                            <img th:src="*{profilePictureURL}" alt="Picture preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${editProfileRequest == null}">
+                    <div class="form-section">
+                        <h3>Personal information</h3>
+                        <p>Your public name and contact phone number.</p>
+
+                        <label for="firstName">First name</label>
+                        <input id="firstName" type="text" name="firstName" th:value="${user.firstName}" placeholder="Georgi">
+
+                        <label for="lastName">Last name</label>
+                        <input id="lastName" type="text" name="lastName" th:value="${user.lastName}" placeholder="Ivanov">
+
+                        <label for="phoneNumber">Phone number</label>
+                        <input id="phoneNumber" type="tel" name="phoneNumber" th:value="${user.phoneNumber}" placeholder="+359888123456">
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Profile picture</h3>
+                        <p>Paste a direct link to an image on the internet (jpg, png, webp).</p>
+
+                        <label for="profilePictureURL">Picture URL</label>
+                        <input id="profilePictureURL" type="url" name="profilePictureURL" th:value="${user.profilePicture}"
+                               placeholder="https://example.com/photo.jpg">
+
+                        <div class="picture-preview"
+                             th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}">
+                            <img th:src="${user.profilePicture}" alt="Picture preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="button primary">Save changes</button>
+                    <a class="button secondary" th:href="@{/home}">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

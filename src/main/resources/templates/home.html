@@ -15,6 +15,7 @@
         </a>
 
         <div class="nav-links">
+            <a class="button secondary" th:if="${role.name() == 'ADMIN'}" th:href="@{/users}">All users</a>
             <a th:href="@{/logout}">Logout</a>
         </div>
     </nav>
@@ -32,9 +33,17 @@
 
         <div class="profile-card">
             <span class="status-pill">Logged in</span>
-            <h2 th:text="${username}">username</h2>
+            <div class="profile-card-user">
+                <img class="home-user-avatar"
+                     alt="Profile picture"
+                     th:src="${profilePicture != null and !#strings.isEmpty(profilePicture)
+                        ? profilePicture
+                        : 'https://ui-avatars.com/api/?name=' + #uris.escapeQueryParam(username) + '&background=fdba74&color=0f172a&size=128&bold=true'}">
+                <h2 th:text="${username}">username</h2>
+            </div>
             <p>Current role</p>
             <strong th:text="${role}">USER</strong>
+            <a class="button primary full-width" th:href="@{/users/{id}/profile(id=${userId})}">Edit profile</a>
         </div>
     </section>
 
@@ -58,5 +67,7 @@
         </article>
     </section>
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

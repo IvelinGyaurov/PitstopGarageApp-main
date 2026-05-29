@@ -1,13 +1,13 @@
 package com.pitstop.garage.user.service;
 
-import com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordException;
-import com.pitstop.garage.exceptions.UserAlreadyExistException;
-import com.pitstop.garage.exceptions.UserAlreadyExistExceptionMessage;
+import com.pitstop.garage.exceptions.*;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.repository.UserRepository;
+import com.pitstop.garage.web.dto.EditProfileRequest;
 import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.pitstop.garage.exceptions.UserAlreadyExistExceptionMessage.*;
 import static com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordExceptionMessage.*;
@@ -84,4 +86,26 @@ public class UserService {
     }
 
 
+    public List<User> getAll() {
+
+        return userRepository.findAll();
+    }
+
+    public User getById(UUID id) {
+
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(UserNotFoundExceptionMessage.USER_NOT_FOUND));
+    }
+
+    public void updateProfile(UUID id, EditProfileRequest editProfileRequest) {
+
+        User user = getById(id);
+
+        user.setFirstName(editProfileRequest.getFirstName());
+        user.setLastName(editProfileRequest.getLastName());
+        user.setPhoneNumber(editProfileRequest.getPhoneNumber());
+        user.setProfilePicture(editProfileRequest.getProfilePictureURL());
+        user.setUpdatedOn(LocalDateTime.now());
+
+        userRepository.save(user);
+    }
 }
