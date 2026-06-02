@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My cars - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .cars-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .cars-page-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .cars-count {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .cars-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 720px) {
+            .cars-grid {
+                grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+            }
+        }
+
+        .car-card {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        @media (min-width: 720px) {
+            .car-card {
+                flex-direction: row;
+                min-height: 240px;
+            }
+        }
+
+        .car-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(249, 115, 22, 0.35);
+        }
+
+        .car-card-media {
+            position: relative;
+            aspect-ratio: 16 / 10;
+            background:
+                    radial-gradient(circle at 30% 20%, rgba(249, 115, 22, 0.22), transparent 55%),
+                    rgba(15, 23, 42, 0.65);
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 720px) {
+            .car-card-media {
+                width: 38%;
+                min-width: 220px;
+                max-width: 320px;
+                aspect-ratio: auto;
+                border-bottom: 0;
+                border-right: 1px solid var(--line);
+            }
+        }
+
+        .car-card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .car-card-media-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            color: #fdba74;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .car-card-media-placeholder .car-icon {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            opacity: 0.9;
+        }
+
+        .car-card-media-placeholder span {
+            font-size: 0.82rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .car-card-body {
+            padding: 1.25rem 1.35rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .car-card-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .car-card-head h2 {
+            margin: 0;
+            font-size: 1.45rem;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+        }
+
+        .car-card-head p {
+            margin: 0.35rem 0 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .car-badge {
+            display: inline-flex;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #fdba74;
+            border: 1px solid rgba(249, 115, 22, 0.35);
+            background: rgba(249, 115, 22, 0.12);
+            white-space: nowrap;
+        }
+
+        .car-card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem 1rem;
+        }
+
+        .car-detail {
+            min-width: 0;
+        }
+
+        .car-detail span {
+            display: block;
+            color: #fdba74;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .car-detail strong {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .car-detail.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .car-card-vin {
+            margin: 0;
+            padding-top: 0.85rem;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.78rem;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .car-card-actions {
+            margin-top: auto;
+            padding-top: 0.5rem;
+        }
+
+        .car-repair-btn {
+            width: 100%;
+            border: 0;
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .car-repair-btn:not(:disabled) {
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .cars-empty-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state p {
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard">
+    <section class="cars-page-header">
+        <div>
+            <p class="eyebrow">Garage fleet</p>
+            <h1>My cars</h1>
+            <p class="cars-count" th:text="${cars != null ? #lists.size(cars) : 0} + ' registered vehicles'">0 registered vehicles</p>
+        </div>
+        <a class="button primary" th:href="@{/cars/add}">Add car</a>
+    </section>
+
+    <section class="cars-grid" th:if="${cars != null and !cars.isEmpty()}">
+        <article class="car-card" th:each="car : ${cars}">
+            <div class="car-card-media">
+                <!-- Future: when Car has imageUrl, show img and hide placeholder -->
+                <!--
+                <img th:if="${car.imageUrl != null and !#strings.isEmpty(car.imageUrl)}"
+                     th:src="${car.imageUrl}"
+                     th:alt="${car.brand + ' ' + car.model}">
+                -->
+                <div class="car-card-media-placeholder">
+                    <div class="car-icon" th:text="${car.brand != null ? #strings.toUpperCase(#strings.substring(car.brand, 0, 1)) : 'C'}">B</div>
+                    <span th:text="${car.brand + ' ' + car.model}">BMW 320d</span>
+                </div>
+            </div>
+
+            <div class="car-card-body">
+                <div class="car-card-head">
+                    <div>
+                        <h2 th:text="${car.brand + ' ' + car.model}">BMW 320d</h2>
+                        <p th:text="${car.year != null ? car.year : 'Year not set'}">2019</p>
+                    </div>
+                    <span class="car-badge" th:text="${car.plateNumber}">CB1234AB</span>
+                </div>
+
+                <div class="car-card-details">
+                    <div class="car-detail">
+                        <span>Engine</span>
+                        <strong th:text="${car.engineType}">DIESEL</strong>
+                    </div>
+                    <div class="car-detail">
+                        <span>Transmission</span>
+                        <strong th:text="${car.transmission}">AUTOMATIC</strong>
+                    </div>
+                    <div class="car-detail">
+                        <span>Mileage</span>
+                        <strong th:text="${car.mileage != null ? car.mileage + ' km' : '-'}">120000 km</strong>
+                    </div>
+                    <div class="car-detail">
+                        <span>Year</span>
+                        <strong th:text="${car.year != null ? car.year : '-'}">2019</strong>
+                    </div>
+                </div>
+
+                <p class="car-card-vin">
+                    VIN: <span th:text="${car.vin}">WBA00000000000000</span>
+                </p>
+
+                <div class="car-card-actions">
+                    <!-- Future: th:href="@{/repairs/request(carId=${car.id})}" -->
+                    <button type="button" class="button primary car-repair-btn" disabled>
+                        Request repair
+                    </button>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="cars-empty-wrap" th:if="${cars == null or cars.isEmpty()}">
+        <div class="empty-state">
+            <p>You have not registered any cars yet. Add your first vehicle to start tracking service visits.</p>
+            <a class="button primary" th:href="@{/cars/add}">Add your first car</a>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

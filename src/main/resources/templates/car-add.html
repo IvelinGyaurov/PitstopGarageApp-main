@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add car - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .add-car-page {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .add-car-card {
+            border: 1px solid var(--line);
+            border-radius: 1.8rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .add-car-card h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .add-car-card .auth-copy {
+            margin-bottom: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-actions .button {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            color: var(--text);
+            background: rgba(15, 23, 42, 0.88);
+            outline: none;
+        }
+
+        select:focus {
+            border-color: rgba(249, 115, 22, 0.72);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+        }
+
+        select.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .auth-form input.input-error,
+        .auth-form select.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .field-error {
+            display: block;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/cars}">My cars</a>
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="add-car-page">
+    <section class="add-car-card">
+        <a class="brand auth-brand" th:href="@{/cars}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow">Garage fleet</p>
+        <h1>Add car</h1>
+        <p class="auth-copy">Register a new vehicle to your account.</p>
+
+        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+
+        <form th:action="@{/cars/add}"
+              th:object="${addCarRequest}"
+              method="post"
+              class="auth-form"
+              novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                Please correct the highlighted fields.
+            </p>
+
+            <div class="form-grid">
+                <div class="full-width">
+                    <label for="vin">VIN</label>
+                    <input id="vin" type="text" th:field="*{vin}" th:errorclass="input-error"
+                           placeholder="17-character VIN" maxlength="17">
+                    <small class="field-error" th:if="${#fields.hasErrors('vin')}"
+                           th:text="${#strings.listJoin(#fields.errors('vin'), ' and ')}"></small>
+                </div>
+
+                <div class="full-width">
+                    <label for="plateNumber">Plate number</label>
+                    <input id="plateNumber" type="text" th:field="*{plateNumber}" th:errorclass="input-error"
+                           placeholder="CB1234AB" maxlength="20">
+                    <small class="field-error" th:if="${#fields.hasErrors('plateNumber')}"
+                           th:text="${#strings.listJoin(#fields.errors('plateNumber'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="brand">Brand</label>
+                    <input id="brand" type="text" th:field="*{brand}" th:errorclass="input-error" placeholder="BMW">
+                    <small class="field-error" th:if="${#fields.hasErrors('brand')}"
+                           th:text="${#strings.listJoin(#fields.errors('brand'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="model">Model</label>
+                    <input id="model" type="text" th:field="*{model}" th:errorclass="input-error" placeholder="320d">
+                    <small class="field-error" th:if="${#fields.hasErrors('model')}"
+                           th:text="${#strings.listJoin(#fields.errors('model'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="year">Year</label>
+                    <input id="year" type="number" th:field="*{year}" th:errorclass="input-error"
+                           placeholder="2019" min="1900" max="2030" step="1">
+                    <small class="field-error" th:if="${#fields.hasErrors('year')}"
+                           th:text="${#strings.listJoin(#fields.errors('year'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="mileage">Mileage (km)</label>
+                    <input id="mileage" type="number" th:field="*{mileage}" th:errorclass="input-error"
+                           placeholder="120000" min="0" step="1">
+                    <small class="field-error" th:if="${#fields.hasErrors('mileage')}"
+                           th:text="${#strings.listJoin(#fields.errors('mileage'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="engineType">Engine type</label>
+                    <select id="engineType" th:field="*{engineType}" th:errorclass="input-error">
+                        <option value="">Select engine</option>
+                        <option value="PETROL">PETROL</option>
+                        <option value="DIESEL">DIESEL</option>
+                        <option value="ELECTRIC">ELECTRIC</option>
+                        <option value="HYBRID">HYBRID</option>
+                        <option value="LPG">LPG</option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('engineType')}"
+                           th:text="${#strings.listJoin(#fields.errors('engineType'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="transmission">Transmission</label>
+                    <select id="transmission" th:field="*{transmission}" th:errorclass="input-error">
+                        <option value="">Select transmission</option>
+                        <option value="MANUAL">MANUAL</option>
+                        <option value="AUTOMATIC">AUTOMATIC</option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('transmission')}"
+                           th:text="${#strings.listJoin(#fields.errors('transmission'), ' and ')}"></small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button primary">Save car</button>
+                <a class="button secondary" th:href="@{/cars}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
