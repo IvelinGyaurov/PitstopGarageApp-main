@@ -2,6 +2,8 @@ package com.pitstop.garage.car.service;
 
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.repository.CarRepository;
+import com.pitstop.garage.exceptions.CarNotFoundException;
+import com.pitstop.garage.exceptions.CarNotFoundExceptionMessage;
 import com.pitstop.garage.exceptions.VinAlreadyExistsException;
 import com.pitstop.garage.exceptions.VinAlreadyExistsExceptionMessage;
 import com.pitstop.garage.user.model.User;
@@ -11,6 +13,7 @@ import com.pitstop.garage.web.dto.AddCarRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,5 +57,21 @@ public class CarService {
         return carRepository.findAllByOwnerAndDeletedAtIsNull(owner);
     }
 
+    public Car getMyCar(UUID ownerId, UUID carId) {
+        User owner = userService.getById(ownerId);
+        return carRepository.findByIdAndOwnerAndDeletedAtIsNull(carId, owner)
+                .orElseThrow(() -> new CarNotFoundException(CarNotFoundExceptionMessage.CAR_NOT_FOUND));
+    }
 
+
+    public void deleteCar(UUID userId, UUID id) {
+
+        User owner = userService.getById(userId);
+
+        Car car = carRepository.findByIdAndOwnerAndDeletedAtIsNull(id,owner)
+                .orElseThrow(() -> new CarNotFoundException(CarNotFoundExceptionMessage.CAR_NOT_FOUND));
+
+        car.setDeletedAt(LocalDateTime.now());
+        carRepository.save(car);
+    }
 }

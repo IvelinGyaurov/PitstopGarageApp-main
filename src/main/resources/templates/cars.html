@@ -202,20 +202,37 @@
         }
 
         .car-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
             margin-top: auto;
             padding-top: 0.5rem;
         }
 
-        .car-repair-btn {
-            width: 100%;
-            border: 0;
-            cursor: not-allowed;
-            opacity: 0.55;
+        .car-card-actions .button,
+        .car-card-actions .car-delete-form {
+            flex: 1;
+            min-width: 120px;
         }
 
-        .car-repair-btn:not(:disabled) {
-            cursor: pointer;
-            opacity: 1;
+        .car-delete-form {
+            display: flex;
+            margin: 0;
+        }
+
+        .car-delete-form .button {
+            width: 100%;
+        }
+
+        .car-delete-btn {
+            color: #fca5a5;
+            border-color: rgba(248, 113, 113, 0.45);
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .car-delete-btn:hover {
+            border-color: rgba(248, 113, 113, 0.65);
+            background: rgba(248, 113, 113, 0.14);
         }
 
         .cars-empty-wrap {
@@ -263,6 +280,9 @@
         </div>
         <a class="button primary" th:href="@{/cars/add}">Add car</a>
     </section>
+
+    <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+    <p class="alert success" th:if="${successMessage}" th:text="${successMessage}">Success message</p>
 
     <section class="cars-grid" th:if="${cars != null and !cars.isEmpty()}">
         <article class="car-card" th:each="car : ${cars}">
@@ -312,10 +332,23 @@
                 </p>
 
                 <div class="car-card-actions">
-                    <!-- Future: th:href="@{/repairs/request(carId=${car.id})}" -->
-                    <button type="button" class="button primary car-repair-btn" disabled>
+                    <a class="button primary"
+                       th:href="@{/repairs/request(carId=${car.id})}">
                         Request repair
-                    </button>
+                    </a>
+                    <form th:action="@{/cars/{id}(id=${car.id})}"
+                          method="post"
+                          class="car-delete-form"
+                          th:attr="data-car-label=${car.brand + ' ' + car.model}"
+                          onsubmit="return confirm('Delete ' + this.dataset.carLabel + '?');">
+                        <input type="hidden" name="_method" value="delete">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit"
+                                class="button secondary car-delete-btn"
+                                th:attr="aria-label=${'Delete ' + car.brand + ' ' + car.model}">
+                            Delete
+                        </button>
+                    </form>
                 </div>
             </div>
         </article>

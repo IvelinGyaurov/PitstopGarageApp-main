@@ -6,10 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
@@ -66,6 +63,18 @@ public class CarController {
 
         UUID userId = (UUID) session.getAttribute("userId");
         carService.addCar(userId, addCarRequest);
+        return new ModelAndView("redirect:/cars");
+    }
+
+    @DeleteMapping("/{id}")
+    public ModelAndView deleteCar(@PathVariable UUID id, HttpSession session) {
+        if (session.getAttribute("userId") == null) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        UUID userId = (UUID) session.getAttribute("userId");
+        carService.deleteCar(userId, id);
+
         return new ModelAndView("redirect:/cars");
     }
 

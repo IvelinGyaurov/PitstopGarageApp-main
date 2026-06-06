@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request repair - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .repair-request-page {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .repair-request-card {
+            border: 1px solid var(--line);
+            border-radius: 1.8rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .repair-request-card h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .car-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem 1rem;
+            margin: 1.5rem 0;
+            padding: 1.15rem 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 1.1rem;
+            background: rgba(15, 23, 42, 0.45);
+        }
+
+        .car-summary .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .car-summary span {
+            display: block;
+            color: #fdba74;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .car-summary strong {
+            font-size: 0.95rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 9rem;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            color: var(--text);
+            background: rgba(15, 23, 42, 0.88);
+            outline: none;
+            resize: vertical;
+            font: inherit;
+            line-height: 1.55;
+        }
+
+        textarea:focus {
+            border-color: rgba(249, 115, 22, 0.72);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+        }
+
+        textarea.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .field-hint {
+            margin-top: 0.35rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .field-error {
+            display: block;
+            line-height: 1.4;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-actions .button {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .car-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/cars}">My cars</a>
+            <a th:href="@{/repairs}">My repairs</a>
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="repair-request-page">
+    <section class="repair-request-card">
+        <a class="brand auth-brand" th:href="@{/cars}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow">New service request</p>
+        <h1>Request repair</h1>
+        <p class="auth-copy">Describe the problem for the selected vehicle. A mechanic will review your request.</p>
+
+        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+
+        <p class="alert error" th:if="${car == null}">
+            No vehicle selected. Choose a car from My cars and use Request repair.
+        </p>
+
+        <div class="car-summary" th:if="${car != null}">
+            <div>
+                <span>Vehicle</span>
+                <strong th:text="${car.brand + ' ' + car.model}">-</strong>
+            </div>
+            <div>
+                <span>Year</span>
+                <strong th:text="${car.year != null ? car.year : '-'}">-</strong>
+            </div>
+            <div>
+                <span>Plate number</span>
+                <strong th:text="${car.plateNumber}">-</strong>
+            </div>
+            <div>
+                <span>Engine</span>
+                <strong th:text="${car.engineType + ' · ' + car.transmission}">-</strong>
+            </div>
+            <div class="full-width">
+                <span>VIN</span>
+                <strong th:text="${car.vin}">-</strong>
+            </div>
+        </div>
+
+        <form th:if="${car != null}"
+              th:action="@{/repairs/request}"
+              th:object="${requestRepairRequest}"
+              method="post"
+              class="auth-form"
+              novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="carId" th:value="${car.id}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                Please correct the highlighted field.
+            </p>
+
+            <label for="problemDescription">What needs to be repaired?</label>
+            <textarea id="problemDescription"
+                      th:field="*{problemDescription}"
+                      th:errorclass="input-error"
+                      placeholder="Example: Brakes squeak when stopping. Please check front pads and discs."
+                      maxlength="2000"></textarea>
+            <small class="field-error" th:if="${#fields.hasErrors('problemDescription')}"
+                   th:text="${#strings.listJoin(#fields.errors('problemDescription'), ' and ')}"></small>
+            <small class="field-hint">Be as specific as you can — noise, warning lights, when it happens, etc.</small>
+
+            <div class="form-actions">
+                <button type="submit" class="button primary">Submit request</button>
+                <a class="button secondary" th:href="@{/cars}">Back to my cars</a>
+            </div>
+        </form>
+
+        <div class="form-actions" th:if="${car == null}">
+            <a class="button primary" th:href="@{/cars}">Go to my cars</a>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
