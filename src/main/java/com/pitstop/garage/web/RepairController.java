@@ -2,6 +2,7 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 import jakarta.servlet.http.HttpSession;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
@@ -63,7 +65,7 @@ public class RepairController {
                                             @Valid @ModelAttribute("requestRepairRequest")
                                             RequestRepairRequest requestRepairRequest,
                                             BindingResult bindingResult,
-                                            HttpSession session) {
+                                            HttpSession session, RedirectAttributes redirectAttributes) {
 
         if (session.getAttribute("userId") == null) {
             return new ModelAndView("redirect:/login");
@@ -79,6 +81,21 @@ public class RepairController {
 
         repairService.requestRepair(userId, carId, requestRepairRequest);
 
+        redirectAttributes.addFlashAttribute("successMessage", "Repair request submitted.");
         return new ModelAndView("redirect:/repairs");
+    }
+
+    @GetMapping("/{id}")
+    public ModelAndView viewRepairDetails(@PathVariable UUID id, HttpSession session) {
+        if (session.getAttribute("userId") == null) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        UUID userId = (UUID) session.getAttribute("userId");
+        ServiceRepair repair = repairService.getRepairForClient(userId, id);
+
+        ModelAndView modelAndView = new ModelAndView("repair-details");
+        modelAndView.addObject("repair", repair);
+        return modelAndView;
     }
 }

@@ -205,8 +205,7 @@
         <a class="button secondary" th:href="@{/cars}">Request from my cars</a>
     </section>
 
-    <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
-    <p class="alert success" th:if="${successMessage}" th:text="${successMessage}">Success message</p>
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
 
     <section class="repairs-list" th:if="${repairs != null and !repairs.isEmpty()}">
         <article class="repair-card" th:each="repair : ${repairs}">

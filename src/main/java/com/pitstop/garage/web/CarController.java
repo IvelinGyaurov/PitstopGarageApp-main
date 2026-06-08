@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
@@ -51,7 +52,8 @@ public class CarController {
     @PostMapping("/add")
     public ModelAndView addCar(@Valid @ModelAttribute("addCarRequest") AddCarRequest addCarRequest,
                                BindingResult bindingResult,
-                               HttpSession session) {
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes) {
 
         if (session.getAttribute("userId") == null) {
             return new ModelAndView("redirect:/login");
@@ -63,11 +65,15 @@ public class CarController {
 
         UUID userId = (UUID) session.getAttribute("userId");
         carService.addCar(userId, addCarRequest);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Car added successfully.");
         return new ModelAndView("redirect:/cars");
     }
 
     @DeleteMapping("/{id}")
-    public ModelAndView deleteCar(@PathVariable UUID id, HttpSession session) {
+    public ModelAndView deleteCar(@PathVariable UUID id,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
         if (session.getAttribute("userId") == null) {
             return new ModelAndView("redirect:/login");
         }
@@ -75,6 +81,7 @@ public class CarController {
         UUID userId = (UUID) session.getAttribute("userId");
         carService.deleteCar(userId, id);
 
+        redirectAttributes.addFlashAttribute("successMessage", "Car removed.");
         return new ModelAndView("redirect:/cars");
     }
 

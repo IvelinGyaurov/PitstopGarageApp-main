@@ -1,6 +1,8 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.exceptions.CarNotFoundException;
 import com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordException;
+import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.UserAlreadyExistException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,5 +25,21 @@ public class ExceptionAdvice {
 
         redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         return "redirect:/register";
+    }
+
+    @ExceptionHandler(CarNotFoundException.class)
+    public String handleCarNotFound(RedirectAttributes redirectAttributes,
+                                    CarNotFoundException exception) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/cars";
+    }
+
+    @ExceptionHandler(RepairNotFoundException.class)
+    public String handleRepairNotFound(RedirectAttributes redirectAttributes,
+                                       RepairNotFoundException exception) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/repairs";
     }
 }

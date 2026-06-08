@@ -142,7 +142,7 @@
         <h1>Add car</h1>
         <p class="auth-copy">Register a new vehicle to your account.</p>
 
-        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
         <form th:action="@{/cars/add}"
               th:object="${addCarRequest}"

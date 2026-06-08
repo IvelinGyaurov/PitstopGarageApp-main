@@ -142,7 +142,7 @@
         <h1>Request repair</h1>
         <p class="auth-copy">Describe the problem for the selected vehicle. A mechanic will review your request.</p>
 
-        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
         <p class="alert error" th:if="${car == null}">
             No vehicle selected. Choose a car from My cars and use Request repair.

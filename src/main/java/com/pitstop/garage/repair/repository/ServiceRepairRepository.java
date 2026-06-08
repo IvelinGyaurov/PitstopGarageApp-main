@@ -7,12 +7,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UUID> {
 
     List<ServiceRepair> findAllByClientOrderByCreatedOnDesc(User client);
+
+    Optional<ServiceRepair> findByIdAndClient(UUID id, User client);
 
     List<ServiceRepair> findAllByMechanicOrderByCreatedOnDesc(User mechanic);
 

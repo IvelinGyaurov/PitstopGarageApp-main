@@ -281,8 +281,7 @@
         <a class="button primary" th:href="@{/cars/add}">Add car</a>
     </section>
 
-    <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
-    <p class="alert success" th:if="${successMessage}" th:text="${successMessage}">Success message</p>
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
 
     <section class="cars-grid" th:if="${cars != null and !cars.isEmpty()}">
         <article class="car-card" th:each="car : ${cars}">
