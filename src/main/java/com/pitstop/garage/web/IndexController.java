@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 
@@ -90,15 +91,16 @@ public class IndexController {
 
     @PostMapping("/register")
     public ModelAndView registerNewUser(@Valid @ModelAttribute("registerRequest") RegisterRequest registerRequest,
-                                        BindingResult bindingResult) {
+                                        BindingResult bindingResult,
+                                        RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            ModelAndView modelAndView = new ModelAndView("register");
-            modelAndView.addAllObjects(bindingResult.getModel());
+            ModelAndView modelAndView = new ModelAndView("register", bindingResult.getModel());
             return modelAndView;
         }
 
         userService.registerUser(registerRequest);
+        redirectAttributes.addFlashAttribute("successMessage", "Successfully registered.");
         return new ModelAndView("redirect:/login");
     }
 }

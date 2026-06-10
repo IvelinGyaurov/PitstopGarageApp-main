@@ -18,7 +18,7 @@
         <h1>Login</h1>
         <p class="auth-copy">Sign in to continue managing your garage visits.</p>
 
-        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Incorrect username or password</p>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
         <form th:action="@{/login}" th:object="${loginRequest}" method="post" class="auth-form">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

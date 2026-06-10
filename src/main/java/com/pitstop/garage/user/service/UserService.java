@@ -57,20 +57,23 @@ public class UserService {
 
     public void registerUser(RegisterRequest registerRequest) {
 
-        if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            log.error("Username {} already exist", registerRequest.getUsername());
+        String username = registerRequest.getUsername().trim();
+        String email = registerRequest.getEmail().trim().toLowerCase();
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            log.error("Username {} already exist", username);
             throw new UserAlreadyExistException(USERNAME_ALREADY_EXIST);
         }
 
-        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
-            log.error("Email {} already exist", registerRequest.getEmail());
+        if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
+            log.error("Email {} already exist", email);
             throw new UserAlreadyExistException(EMAIL_ALREADY_EXIST);
         }
 
         User user = User.builder()
-                .username(registerRequest.getUsername())
+                .username(username)
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .email(registerRequest.getEmail())
+                .email(email)
                 .role(UserRole.USER)
                 .isActive(Boolean.TRUE)
                 .createdOn(LocalDateTime.now())

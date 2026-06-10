@@ -13,8 +13,6 @@ import java.util.UUID;
 @Repository
 public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UUID> {
 
-    List<ServiceRepair> findAllByClientOrderByCreatedOnDesc(User client);
-
     Optional<ServiceRepair> findByIdAndClient(UUID id, User client);
 
     List<ServiceRepair> findAllByMechanicOrderByCreatedOnDesc(User mechanic);
@@ -25,4 +23,10 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
             User mechanic,
             List<RepairStatus> statuses
     );
+    List<ServiceRepair> findAllByClientAndStatusInOrderByCreatedOnDesc(
+            User client,
+            List<RepairStatus> statuses
+    );
+
+    List<ServiceRepair> findAllByClientAndStatusIn(User client, List<RepairStatus> statuses);
 }

@@ -60,6 +60,36 @@ public class RepairController {
         return modelAndView;
     }
 
+    @PostMapping("/{id}/cancel")
+    public ModelAndView cancelRepair(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
+
+        if (session.getAttribute("userId") == null) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        UUID  userId = (UUID) session.getAttribute("userId");
+        repairService.cancelRepairByClient(userId,id);
+
+        redirectAttributes.addFlashAttribute("successMessage","Repair request cancelled.");
+        return new ModelAndView("redirect:/repairs");
+    }
+
+    @PostMapping("/{id}/accept")
+    public ModelAndView acceptRepair(@PathVariable UUID id,
+                                     HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+
+        if (session.getAttribute("userId") == null) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        UUID userId = (UUID) session.getAttribute("userId");
+        repairService.acceptRepair(userId, id);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Repair request accepted.");
+        return new ModelAndView("redirect:/repairs");
+    }
+
     @PostMapping("/request")
     public ModelAndView submitRepairRequest(@RequestParam UUID carId,
                                             @Valid @ModelAttribute("requestRepairRequest")

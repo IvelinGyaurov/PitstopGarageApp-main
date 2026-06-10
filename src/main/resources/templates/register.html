@@ -18,7 +18,7 @@
         <h1>Register</h1>
         <p class="auth-copy">Create your account and start managing car service visits.</p>
 
-        <p class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">Registration error</p>
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
 
         <form th:action="@{/register}" th:object="${registerRequest}" method="post" class="auth-form" novalidate>
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
