@@ -115,6 +115,20 @@ public class RepairController {
         return new ModelAndView("redirect:/repairs");
     }
 
+    @GetMapping("/history")
+    public ModelAndView repairHistory(HttpSession session){
+
+        if (session.getAttribute("userId") == null) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        UUID userId = (UUID) session.getAttribute("userId");
+        ModelAndView modelAndView = new ModelAndView("repairs-history");
+        modelAndView.addObject("repairs", repairService.getMyRepairHistory(userId));
+
+        return modelAndView;
+    }
+
     @GetMapping("/{id}")
     public ModelAndView viewRepairDetails(@PathVariable UUID id, HttpSession session) {
         if (session.getAttribute("userId") == null) {

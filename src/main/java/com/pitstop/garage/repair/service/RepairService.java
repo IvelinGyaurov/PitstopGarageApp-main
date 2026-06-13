@@ -89,6 +89,27 @@ public class RepairService {
                 .toList();
     }
 
+    public List<ServiceRepair> getMyRepairHistory(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(
+                client,
+                List.of(RepairStatus.COMPLETED,
+                        RepairStatus.USER_CANCELLED,
+                        RepairStatus.CANCELLED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::historyDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    private LocalDateTime historyDate(ServiceRepair repair) {
+        if (repair.getCompletedAt() != null) {
+            return repair.getCompletedAt();
+        }
+        return repair.getCreatedOn();
+    }
+
     private int statusPriority(RepairStatus status) {
         return switch (status) {
             case IN_PROGRESS -> 0;

@@ -506,6 +506,15 @@ h3 {
     font-size: 1.2rem;
 }
 
+.profile-card-id {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.5;
+    word-break: break-all;
+    margin-bottom: 1rem;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -516,11 +525,17 @@ h3 {
 .dashboard-card {
     padding: 1.5rem;
     border-radius: 1.4rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .dashboard-card p {
     color: var(--muted);
     line-height: 1.7;
+}
+
+.dashboard-card .button.full-width {
+    margin-top: auto;
 }
 
 @media (max-width: 850px) {

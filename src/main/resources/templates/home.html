@@ -43,6 +43,8 @@
             </div>
             <p>Current role</p>
             <strong th:text="${role}">USER</strong>
+            <p>ID</p>
+            <strong class="profile-card-id" th:text="${userId}">00000000-0000-0000-0000-000000000000</strong>
             <a class="button primary full-width" th:href="@{/users/{id}/profile(id=${userId})}">Edit profile</a>
         </div>
     </section>
@@ -63,6 +65,7 @@
         <article class="dashboard-card">
             <h3>Service history</h3>
             <p>Keep a clean record of every garage visit.</p>
+            <a class="button primary full-width" th:href="@{/repairs/history}">View service history</a>
         </article>
     </section>
 </main>
