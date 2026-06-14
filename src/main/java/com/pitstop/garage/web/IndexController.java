@@ -60,10 +60,6 @@ public class IndexController {
     @GetMapping("/home")
     public ModelAndView getHomePage(HttpSession session) {
 
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
-
         ModelAndView modelAndView = new ModelAndView("home");
         User user = userService.getById((UUID) session.getAttribute("userId"));
         modelAndView.addObject("userId", user.getId());
@@ -100,7 +96,7 @@ public class IndexController {
         }
 
         userService.registerUser(registerRequest);
-        redirectAttributes.addFlashAttribute("successMessage", "Successfully registered.");
+        redirectAttributes.addFlashAttribute("successMessage", "You have registered successfully!");
         return new ModelAndView("redirect:/login");
     }
 }

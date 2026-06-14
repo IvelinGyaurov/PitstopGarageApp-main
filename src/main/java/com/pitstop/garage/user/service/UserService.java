@@ -7,13 +7,11 @@ import com.pitstop.garage.user.repository.UserRepository;
 import com.pitstop.garage.web.dto.EditProfileRequest;
 import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

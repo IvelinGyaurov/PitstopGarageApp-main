@@ -25,10 +25,6 @@ public class CarController {
     @GetMapping
     public ModelAndView myCars(HttpSession session) {
 
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
-
         UUID userId = (UUID) session.getAttribute("userId");
 
         ModelAndView modelAndView = new ModelAndView("cars");
@@ -38,11 +34,7 @@ public class CarController {
     }
 
     @GetMapping("/add")
-    public ModelAndView addCarForm(HttpSession session) {
-
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
+    public ModelAndView addCarForm() {
 
         ModelAndView modelAndView = new ModelAndView("car-add");
         modelAndView.addObject("addCarRequest", new AddCarRequest());
@@ -55,9 +47,6 @@ public class CarController {
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
 
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         if (bindingResult.hasErrors()) {
             return new ModelAndView("car-add", bindingResult.getModel());
@@ -74,9 +63,6 @@ public class CarController {
     public ModelAndView deleteCar(@PathVariable UUID id,
                                   HttpSession session,
                                   RedirectAttributes redirectAttributes) {
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         UUID userId = (UUID) session.getAttribute("userId");
         carService.deleteCar(userId, id);

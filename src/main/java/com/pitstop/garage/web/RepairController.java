@@ -29,9 +29,6 @@ public class RepairController {
 
     @GetMapping
     public ModelAndView repairsPreview(HttpSession session) {
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         UUID userId = (UUID) session.getAttribute("userId");
 
@@ -44,9 +41,6 @@ public class RepairController {
     public ModelAndView repairRequestForm(@RequestParam(required = false)
                                               UUID carId,
                                               HttpSession session) {
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         ModelAndView modelAndView = new ModelAndView("repair-request");
         modelAndView.addObject("requestRepairRequest", new RequestRepairRequest());
@@ -63,10 +57,6 @@ public class RepairController {
     @PostMapping("/{id}/cancel")
     public ModelAndView cancelRepair(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
 
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
-
         UUID  userId = (UUID) session.getAttribute("userId");
         repairService.cancelRepairByClient(userId,id);
 
@@ -78,10 +68,6 @@ public class RepairController {
     public ModelAndView acceptRepair(@PathVariable UUID id,
                                      HttpSession session,
                                      RedirectAttributes redirectAttributes) {
-
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         UUID userId = (UUID) session.getAttribute("userId");
         repairService.acceptRepair(userId, id);
@@ -96,10 +82,6 @@ public class RepairController {
                                             RequestRepairRequest requestRepairRequest,
                                             BindingResult bindingResult,
                                             HttpSession session, RedirectAttributes redirectAttributes) {
-
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         UUID userId = (UUID) session.getAttribute("userId");
 
@@ -118,10 +100,6 @@ public class RepairController {
     @GetMapping("/history")
     public ModelAndView repairHistory(HttpSession session){
 
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
-
         UUID userId = (UUID) session.getAttribute("userId");
         ModelAndView modelAndView = new ModelAndView("repairs-history");
         modelAndView.addObject("repairs", repairService.getMyRepairHistory(userId));
@@ -131,9 +109,6 @@ public class RepairController {
 
     @GetMapping("/{id}")
     public ModelAndView viewRepairDetails(@PathVariable UUID id, HttpSession session) {
-        if (session.getAttribute("userId") == null) {
-            return new ModelAndView("redirect:/login");
-        }
 
         UUID userId = (UUID) session.getAttribute("userId");
         ServiceRepair repair = repairService.getRepairForClient(userId, id);
