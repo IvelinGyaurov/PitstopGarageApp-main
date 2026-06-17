@@ -6,6 +6,7 @@ import com.pitstop.garage.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +27,11 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
     List<ServiceRepair> findAllByClientAndStatusInOrderByCreatedOnDesc(
             User client,
             List<RepairStatus> statuses
+    );
+
+    List<ServiceRepair> findAllByStatusAndCreatedOnBefore(
+            RepairStatus status,
+            LocalDateTime createdOn
     );
 
     List<ServiceRepair> findAllByClientAndStatusIn(User client, List<RepairStatus> statuses);

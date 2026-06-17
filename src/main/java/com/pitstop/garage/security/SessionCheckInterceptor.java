@@ -15,7 +15,6 @@ import java.util.UUID;
 @Component
 public class SessionCheckInterceptor implements HandlerInterceptor {
 
-    public static final Set<String> UNAUTHENTICATED_ENDPOINTS = Set.of("/login","/register","/","/index");
     private final UserService userService;
 
     @Autowired
@@ -26,17 +25,12 @@ public class SessionCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handle) throws Exception {
 
-        if (UNAUTHENTICATED_ENDPOINTS.contains(request.getServletPath())) {
-            return true;
-        }
-
         HttpSession session = request.getSession(false);
         if (session == null) {
             response.sendRedirect("/login");
             return false;
         }
-
-        Object userId  =session.getAttribute("userId");
+        Object userId = session.getAttribute("userId");
         if (userId == null) {
             session.invalidate();
             response.sendRedirect("/login");

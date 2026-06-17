@@ -9,6 +9,8 @@ import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +55,7 @@ public class UserService {
 
     }
 
+    @CacheEvict(value = "users", allEntries = true)
     public void registerUser(RegisterRequest registerRequest) {
 
         String username = registerRequest.getUsername().trim();
@@ -86,7 +89,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-
+    @Cacheable(value = "users")
     public List<User> getAll() {
 
         return userRepository.findAll();
@@ -97,6 +100,7 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(UserNotFoundExceptionMessage.USER_NOT_FOUND));
     }
 
+    @CacheEvict(value = "users", allEntries = true)
     public void updateProfile(UUID id, EditProfileRequest editProfileRequest) {
 
         User user = getById(id);

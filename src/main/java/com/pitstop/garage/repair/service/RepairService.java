@@ -12,8 +12,10 @@ import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -72,6 +74,21 @@ public class RepairService {
         repair.setStatus(RepairStatus.ACCEPTED);
         repair.setAcceptedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
+    }
+
+    @Transactional
+    public int expireStalePendingRepairs(int olderThanDays) {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(olderThanDays);
+
+        List<ServiceRepair> staleRepairs = serviceRepairRepository
+                .findAllByStatusAndCreatedOnBefore(RepairStatus.PENDING, cutoff);
+
+        for (ServiceRepair repair : staleRepairs) {
+            repair.setStatus(RepairStatus.CANCELLED);
+        }
+
+        serviceRepairRepository.saveAll(staleRepairs);
+        return staleRepairs.size();
     }
 
 

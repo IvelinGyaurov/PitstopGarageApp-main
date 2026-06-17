@@ -16,7 +16,14 @@ public class WebConfiguration implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(interceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/css/**","/images/**");
+                .excludePathPatterns(
+                        "/",
+                        "/index",
+                        "/login",
+                        "/register",
+                        "/css/**",
+                        "/images/**"
+                );
     }
 
 }
