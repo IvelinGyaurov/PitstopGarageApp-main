@@ -120,13 +120,87 @@
             color: var(--muted);
         }
 
+        .role-actions-cell {
+            width: 18.5rem;
+            vertical-align: middle;
+        }
+
+        .role-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.55rem;
+            align-items: stretch;
+        }
+
+        .role-action-form {
+            margin: 0;
+            display: flex;
+            min-width: 0;
+        }
+
+        .role-switch-btn {
+            width: 100%;
+            min-height: 2.35rem;
+            padding: 0.45rem 0.65rem;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .role-switch-btn.role-switch-user {
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.45);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .role-switch-btn.role-switch-user:hover {
+            background: rgba(34, 197, 94, 0.22);
+        }
+
+        .role-switch-btn.role-switch-mechanic {
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.45);
+            background: rgba(59, 130, 246, 0.12);
+        }
+
+        .role-switch-btn.role-switch-mechanic:hover {
+            background: rgba(59, 130, 246, 0.22);
+        }
+
+        .role-switch-btn.role-switch-admin {
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.45);
+            background: rgba(251, 191, 36, 0.12);
+        }
+
+        .role-switch-btn.role-switch-admin:hover {
+            background: rgba(251, 191, 36, 0.22);
+        }
+
+        .role-switch-btn:disabled,
+        .role-switch-btn.role-switch-disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            filter: grayscale(0.9);
+            color: #94a3b8 !important;
+            border-color: rgba(148, 163, 184, 0.35) !important;
+            background: rgba(148, 163, 184, 0.1) !important;
+        }
+
+        .role-switch-btn:disabled:hover,
+        .role-switch-btn.role-switch-disabled:hover {
+            background: rgba(148, 163, 184, 0.1) !important;
+        }
+
         @media (max-width: 900px) {
             .users-table-wrap {
                 overflow-x: auto;
             }
 
             .users-table {
-                min-width: 720px;
+                min-width: 920px;
             }
         }
     </style>
@@ -154,6 +228,8 @@
         </div>
     </section>
 
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
     <section class="users-table-wrap" th:if="${users != null and !users.isEmpty()}">
         <table class="users-table">
             <thead>
@@ -163,6 +239,7 @@
                 <th>Role</th>
                 <th>Status</th>
                 <th>Created on</th>
+                <th>Switch role</th>
             </tr>
             </thead>
             <tbody>
@@ -185,6 +262,28 @@
                 </td>
                 <td th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
                     01.01.2026 12:00
+                </td>
+                <td class="role-actions-cell">
+                    <div class="role-actions">
+                        <form th:each="roleOption : ${T(com.pitstop.garage.user.model.UserRole).values()}"
+                              th:if="${roleOption != user.role}"
+                              th:action="@{/users/{id}/role(id=${user.id})}"
+                              method="post"
+                              class="role-action-form"
+                              th:attr="data-username=${user.username}, data-role=${roleOption.name()}"
+                              th:onsubmit="${user.active} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="role" th:value="${roleOption}">
+                            <button type="submit"
+                                    class="button role-switch-btn"
+                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + (!user.active ? ' role-switch-disabled' : '')}"
+                                    th:disabled="${!user.active}"
+                                    th:title="${!user.active ? 'Inactive users cannot change role' : null}"
+                                    th:text="'Make ' + ${roleOption}">
+                                Make USER
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             </tbody>

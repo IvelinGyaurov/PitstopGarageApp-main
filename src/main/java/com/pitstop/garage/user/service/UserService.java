@@ -89,6 +89,19 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @CacheEvict(value = "users", allEntries = true)
+    public void changeRole(UUID id, UserRole newRole) {
+        User user = getById(id);
+
+        if (!user.isActive()) {
+            throw new UserInactiveException(UserInactiveExceptionMessage.USER_INACTIVE);
+        }
+
+        user.setRole(newRole);
+        user.setUpdatedOn(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
     @Cacheable(value = "users")
     public List<User> getAll() {
 

@@ -15,6 +15,7 @@ public class ScheduledTasks {
         this.repairService = repairService;
     }
 
+    //TODO implement fixedDelay
     @Scheduled(cron = "0 0 0 1 * *")
     public void expirePendingRepairs() {
         log.info("Monthly cron started: cancelling PENDING repairs older than 30 days");
