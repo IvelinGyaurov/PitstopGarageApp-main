@@ -5,7 +5,6 @@ import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.repository.UserRepository;
 import com.pitstop.garage.web.dto.EditProfileRequest;
-import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.pitstop.garage.security.PitstopUserDetails;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,11 +23,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.pitstop.garage.exceptions.UserAlreadyExistExceptionMessage.*;
-import static com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordExceptionMessage.*;
 
 @Slf4j
 @Service
-public class UserService {
+public class UserService implements UserDetailsService  {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -35,31 +37,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User login (LoginRequest loginRequest) {
-
-        Optional<User> optionalUser = userRepository.findByUsername(loginRequest.getUsername());
-        if (optionalUser.isEmpty()) {
-            log.error("Incorrect username or password.");
-            throw new IncorrectUsernameOrPasswordException(INCORRECT_USERNAME_OR_PASSWORD);
-        }
-
-        String rawPassword = loginRequest.getPassword();
-        String hashedPassword = optionalUser.get().getPassword();
-
-        if(!passwordEncoder.matches(rawPassword, hashedPassword)) {
-            log.error("Incorrect username or password.");
-            throw new IncorrectUsernameOrPasswordException(INCORRECT_USERNAME_OR_PASSWORD);
-        }
-
-        User user = optionalUser.get();
-        if (!user.isActive()) {
-            log.error("Inactive account login attempt for username {}", user.getUsername());
-            throw new InactiveAccountException(InactiveAccountExceptionMessage.ACCOUNT_INACTIVE);
-        }
-
-        return user;
-
-    }
 
     @CacheEvict(value = "users", allEntries = true)
     public void registerUser(RegisterRequest registerRequest) {
@@ -159,5 +136,18 @@ public class UserService {
         user.setUpdatedOn(LocalDateTime.now());
 
         userRepository.save(user);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new PitstopUserDetails(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getRole(),
+                user.isActive()
+        );
     }
 }

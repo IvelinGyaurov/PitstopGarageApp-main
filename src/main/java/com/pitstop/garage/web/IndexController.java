@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -31,31 +32,20 @@ public class IndexController {
     }
 
     @GetMapping("/login")
-    public ModelAndView getLoginPage() {
+    public ModelAndView getLoginPage(@RequestParam(value = "error", required = false) String error,
+                                     @RequestParam(value = "inactive", required = false) String inactive) {
         ModelAndView modelAndView = new ModelAndView("login");
         modelAndView.addObject("loginRequest", new LoginRequest());
+
+        if (inactive != null) {
+            modelAndView.addObject("errorMessage", "Your account is inactive.");
+        } else if (error != null) {
+            modelAndView.addObject("errorMessage", "Incorrect username or password.");
+        }
 
         return modelAndView;
     }
 
-    @PostMapping("/login")
-    public ModelAndView loginUser(@Valid @ModelAttribute("loginRequest") LoginRequest loginRequest,
-                                  BindingResult bindingResult,
-                                  HttpSession session) {
-
-        if (bindingResult.hasErrors()) {
-            ModelAndView modelAndView = new ModelAndView("login");
-            modelAndView.addAllObjects(bindingResult.getModel());
-            return modelAndView;
-        }
-
-        User user = userService.login(loginRequest);
-        session.setAttribute("userId", user.getId());
-        session.setAttribute("username", user.getUsername());
-        session.setAttribute("role", user.getRole());
-
-        return new ModelAndView("redirect:/home");
-    }
 
     @GetMapping("/home")
     public ModelAndView getHomePage(HttpSession session) {
@@ -70,12 +60,6 @@ public class IndexController {
         return modelAndView;
     }
 
-    @GetMapping("/logout")
-    public ModelAndView logoutUser(HttpSession session) {
-        session.invalidate();
-
-        return new ModelAndView("redirect:/index");
-    }
 
     @GetMapping("/register")
     public ModelAndView getRegisterPage() {

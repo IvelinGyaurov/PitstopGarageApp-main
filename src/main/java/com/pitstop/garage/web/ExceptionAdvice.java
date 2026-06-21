@@ -2,7 +2,6 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.exceptions.CarNotFoundException;
 import com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordException;
-import com.pitstop.garage.exceptions.InactiveAccountException;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.PrimaryUserException;
 import com.pitstop.garage.exceptions.RepairStatusException;
@@ -19,14 +18,6 @@ public class ExceptionAdvice {
     @ExceptionHandler(IncorrectUsernameOrPasswordException.class)
     public String handleIncorrectUsernameOrPassword(RedirectAttributes redirectAttributes,
                                                    IncorrectUsernameOrPasswordException exception) {
-
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
-        return "redirect:/login";
-    }
-
-    @ExceptionHandler(InactiveAccountException.class)
-    public String handleInactiveAccount(RedirectAttributes redirectAttributes,
-                                        InactiveAccountException exception) {
 
         redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         return "redirect:/login";
