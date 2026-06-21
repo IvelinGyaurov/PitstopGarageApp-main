@@ -114,39 +114,87 @@
             background: rgba(127, 29, 29, 0.35);
         }
 
-        .empty-state {
-            padding: 3rem 1.5rem;
-            text-align: center;
-            color: var(--muted);
+        .status-cell {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .status-action-cell {
+            width: 8.75rem;
+            vertical-align: middle;
         }
 
         .role-actions-cell {
-            width: 18.5rem;
+            width: 17.5rem;
             vertical-align: middle;
         }
 
         .role-actions {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.55rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
             align-items: stretch;
         }
 
+        .status-action-form,
         .role-action-form {
             margin: 0;
             display: flex;
             min-width: 0;
         }
 
+        .status-switch-btn,
         .role-switch-btn {
             width: 100%;
             min-height: 2.35rem;
-            padding: 0.45rem 0.65rem;
+            padding: 0.45rem 0.5rem;
             font-size: 0.76rem;
             font-weight: 800;
             letter-spacing: 0.02em;
             white-space: nowrap;
             text-align: center;
+            box-sizing: border-box;
+        }
+
+        .status-switch-btn.status-deactivate {
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.45);
+            background: rgba(127, 29, 29, 0.35);
+        }
+
+        .status-switch-btn.status-deactivate:hover {
+            background: rgba(127, 29, 29, 0.5);
+        }
+
+        .status-switch-btn.status-activate {
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.45);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .status-switch-btn.status-activate:hover {
+            background: rgba(34, 197, 94, 0.22);
+        }
+
+        .status-switch-btn:disabled,
+        .status-switch-btn.status-switch-disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            filter: grayscale(0.9);
+            color: #94a3b8 !important;
+            border-color: rgba(148, 163, 184, 0.35) !important;
+            background: rgba(148, 163, 184, 0.1) !important;
+        }
+
+        .status-switch-btn:disabled:hover,
+        .status-switch-btn.status-switch-disabled:hover {
+            background: rgba(148, 163, 184, 0.1) !important;
+        }
+
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: var(--muted);
         }
 
         .role-switch-btn.role-switch-user {
@@ -200,7 +248,7 @@
             }
 
             .users-table {
-                min-width: 920px;
+                min-width: 980px;
             }
         }
     </style>
@@ -239,6 +287,7 @@
                 <th>Role</th>
                 <th>Status</th>
                 <th>Created on</th>
+                <th>Action</th>
                 <th>Switch role</th>
             </tr>
             </thead>
@@ -253,7 +302,7 @@
                         USER
                     </span>
                 </td>
-                <td>
+                <td class="status-cell">
                     <span class="status-badge active"
                           th:text="${user.active} ? 'Active' : 'Inactive'"
                           th:classappend="${user.active} ? ' active' : ' inactive'">
@@ -263,6 +312,24 @@
                 <td th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
                     01.01.2026 12:00
                 </td>
+                <td class="status-action-cell">
+                    <form th:action="@{/users/{id}/status(id=${user.id})}"
+                          method="post"
+                          class="status-action-form"
+                          th:attr="data-username=${user.username}"
+                          th:onsubmit="${firstUserId == null or firstUserId != user.id} ? |return confirm('Change status for ' + this.dataset.username + '?');| : 'return false;'">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="active" th:value="${!user.active}">
+                        <button type="submit"
+                                class="button status-switch-btn"
+                                th:classappend="${firstUserId != null and firstUserId == user.id ? ' status-switch-disabled' : (user.active ? ' status-deactivate' : ' status-activate')}"
+                                th:disabled="${firstUserId != null and firstUserId == user.id}"
+                                th:title="${firstUserId != null and firstUserId == user.id ? 'The first registered user status cannot be changed' : null}"
+                                th:text="${user.active} ? 'Deactivate' : 'Activate'">
+                            Deactivate
+                        </button>
+                    </form>
+                </td>
                 <td class="role-actions-cell">
                     <div class="role-actions">
                         <form th:each="roleOption : ${T(com.pitstop.garage.user.model.UserRole).values()}"
@@ -271,14 +338,14 @@
                               method="post"
                               class="role-action-form"
                               th:attr="data-username=${user.username}, data-role=${roleOption.name()}"
-                              th:onsubmit="${user.active} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
+                              th:onsubmit="${user.active and (firstUserId == null or firstUserId != user.id)} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="role" th:value="${roleOption}">
                             <button type="submit"
                                     class="button role-switch-btn"
-                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + (!user.active ? ' role-switch-disabled' : '')}"
-                                    th:disabled="${!user.active}"
-                                    th:title="${!user.active ? 'Inactive users cannot change role' : null}"
+                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + ((!user.active or (firstUserId != null and firstUserId == user.id)) ? ' role-switch-disabled' : '')}"
+                                    th:disabled="${!user.active or (firstUserId != null and firstUserId == user.id)}"
+                                    th:title="${firstUserId != null and firstUserId == user.id ? 'The first registered user role cannot be changed' : (!user.active ? 'Inactive users cannot change role' : null)}"
                                     th:text="'Make ' + ${roleOption}">
                                 Make USER
                             </button>

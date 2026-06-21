@@ -67,17 +67,23 @@ public class UserController {
         return new ModelAndView("redirect:/users");
     }
 
+    @PostMapping("/{id}/status")
+    public ModelAndView changeStatus(@PathVariable UUID id,
+                                     @RequestParam boolean active,
+                                     RedirectAttributes redirectAttributes) {
+        userService.changeActiveStatus(id, active);
+        redirectAttributes.addFlashAttribute("successMessage", "User status updated successfully.");
+        return new ModelAndView("redirect:/users");
+    }
     @GetMapping
     public ModelAndView getUsers() {
-
         List<User> users = userService.getAll();
-
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("users");
         modelAndView.addObject("users", users);
-
+        modelAndView.addObject("firstUserId",
+                userService.getFirstRegisteredUserId().orElse(null));
         return modelAndView;
-
     }
 
 

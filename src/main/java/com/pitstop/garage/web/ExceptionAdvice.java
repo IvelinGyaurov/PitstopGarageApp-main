@@ -2,9 +2,12 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.exceptions.CarNotFoundException;
 import com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordException;
+import com.pitstop.garage.exceptions.InactiveAccountException;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
+import com.pitstop.garage.exceptions.PrimaryUserException;
 import com.pitstop.garage.exceptions.RepairStatusException;
 import com.pitstop.garage.exceptions.UserAlreadyExistException;
+import com.pitstop.garage.exceptions.UserInactiveException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +19,14 @@ public class ExceptionAdvice {
     @ExceptionHandler(IncorrectUsernameOrPasswordException.class)
     public String handleIncorrectUsernameOrPassword(RedirectAttributes redirectAttributes,
                                                    IncorrectUsernameOrPasswordException exception) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/login";
+    }
+
+    @ExceptionHandler(InactiveAccountException.class)
+    public String handleInactiveAccount(RedirectAttributes redirectAttributes,
+                                        InactiveAccountException exception) {
 
         redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         return "redirect:/login";
@@ -58,5 +69,21 @@ public class ExceptionAdvice {
 
         redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         return "redirect:/repairs";
+    }
+
+    @ExceptionHandler(UserInactiveException.class)
+    public String handleUserInactive(RedirectAttributes redirectAttributes,
+                                     UserInactiveException exception) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/users";
+    }
+
+    @ExceptionHandler(PrimaryUserException.class)
+    public String handlePrimaryUser(RedirectAttributes redirectAttributes,
+                                    PrimaryUserException exception) {
+
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/users";
     }
 }

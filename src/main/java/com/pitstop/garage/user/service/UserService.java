@@ -51,7 +51,13 @@ public class UserService {
             throw new IncorrectUsernameOrPasswordException(INCORRECT_USERNAME_OR_PASSWORD);
         }
 
-        return optionalUser.get();
+        User user = optionalUser.get();
+        if (!user.isActive()) {
+            log.error("Inactive account login attempt for username {}", user.getUsername());
+            throw new InactiveAccountException(InactiveAccountExceptionMessage.ACCOUNT_INACTIVE);
+        }
+
+        return user;
 
     }
 
@@ -97,7 +103,35 @@ public class UserService {
             throw new UserInactiveException(UserInactiveExceptionMessage.USER_INACTIVE);
         }
 
+        if (isFirstRegisteredUser(id)) {
+            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_PRIMARY_USER_ROLE);
+        }
+
         user.setRole(newRole);
+        user.setUpdatedOn(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    public Optional<UUID> getFirstRegisteredUserId() {
+        return userRepository.findTopByOrderByCreatedOnAsc()
+                .map(User::getId);
+    }
+
+    public boolean isFirstRegisteredUser(UUID id) {
+        return getFirstRegisteredUserId()
+                .map(firstId -> firstId.equals(id))
+                .orElse(false);
+    }
+
+    @CacheEvict(value = "users", allEntries = true)
+    public void changeActiveStatus(UUID id, boolean active) {
+        User user = getById(id);
+
+        if (isFirstRegisteredUser(id)) {
+            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_PRIMARY_USER_STATUS);
+        }
+
+        user.setActive(active);
         user.setUpdatedOn(LocalDateTime.now());
         userRepository.save(user);
     }
