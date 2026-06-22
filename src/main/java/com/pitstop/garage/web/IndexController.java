@@ -1,11 +1,12 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.UUID;
 
 @Controller
 public class IndexController {
@@ -48,10 +48,10 @@ public class IndexController {
 
 
     @GetMapping("/home")
-    public ModelAndView getHomePage(HttpSession session) {
+    public ModelAndView getHomePage(@AuthenticationPrincipal PitstopUserDetails userData) {
 
         ModelAndView modelAndView = new ModelAndView("home");
-        User user = userService.getById((UUID) session.getAttribute("userId"));
+        User user = userService.getById(userData.getUserId());
         modelAndView.addObject("userId", user.getId());
         modelAndView.addObject("username", user.getUsername());
         modelAndView.addObject("role", user.getRole());

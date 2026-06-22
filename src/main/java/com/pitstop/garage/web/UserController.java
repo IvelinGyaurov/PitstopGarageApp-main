@@ -6,8 +6,8 @@ import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.EditProfileRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -27,8 +27,9 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PreAuthorize("#id == authentication.principal.userId")
     @GetMapping("/{id}/profile")
-    public ModelAndView getProfilePage(@PathVariable UUID id, Model model) {
+    public ModelAndView getProfilePage(@PathVariable UUID id) {
 
         User user = userService.getById(id);
 
@@ -39,10 +40,13 @@ public class UserController {
         return modelAndView;
     }
 
+    @PreAuthorize("#id == authentication.principal.userId")
     @PutMapping("/{id}/profile")
-    public ModelAndView updateProfile(@Valid EditProfileRequest editProfileRequest, BindingResult bindingResult, @PathVariable UUID id) {
+    public ModelAndView updateProfile(@Valid EditProfileRequest editProfileRequest,
+                                      BindingResult bindingResult,
+                                      @PathVariable UUID id) {
 
-        if(bindingResult.hasErrors()) {
+        if (bindingResult.hasErrors()) {
             User user = userService.getById(id);
             ModelAndView modelAndView = new ModelAndView();
             modelAndView.setViewName("profile-menu");
@@ -54,10 +58,10 @@ public class UserController {
         userService.updateProfile(id, editProfileRequest);
 
         return new ModelAndView("redirect:/home");
-
     }
 
     @PostMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView changeRole(@PathVariable UUID id,
                                    @RequestParam UserRole role,
                                    RedirectAttributes redirectAttributes) {
@@ -68,6 +72,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView changeStatus(@PathVariable UUID id,
                                      @RequestParam boolean active,
                                      RedirectAttributes redirectAttributes) {
@@ -76,6 +81,7 @@ public class UserController {
         return new ModelAndView("redirect:/users");
     }
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView getUsers() {
         List<User> users = userService.getAll();
         ModelAndView modelAndView = new ModelAndView();

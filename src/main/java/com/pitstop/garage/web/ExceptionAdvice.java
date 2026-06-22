@@ -1,7 +1,6 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.exceptions.CarNotFoundException;
-import com.pitstop.garage.exceptions.IncorrectUsernameOrPasswordException;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.PrimaryUserException;
 import com.pitstop.garage.exceptions.RepairStatusException;
@@ -15,13 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @ControllerAdvice
 public class ExceptionAdvice {
 
-    @ExceptionHandler(IncorrectUsernameOrPasswordException.class)
-    public String handleIncorrectUsernameOrPassword(RedirectAttributes redirectAttributes,
-                                                   IncorrectUsernameOrPasswordException exception) {
-
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
-        return "redirect:/login";
-    }
 
     @ExceptionHandler(UserAlreadyExistException.class)
     public String handleUserAlreadyExist(RedirectAttributes redirectAttributes,

@@ -4,9 +4,10 @@ import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.service.CarService;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
+import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -28,26 +29,22 @@ public class RepairController {
     }
 
     @GetMapping
-    public ModelAndView repairsPreview(HttpSession session) {
-
-        UUID userId = (UUID) session.getAttribute("userId");
+    public ModelAndView repairsPreview(@AuthenticationPrincipal PitstopUserDetails userData) {
 
         ModelAndView modelAndView = new ModelAndView("repairs");
-        modelAndView.addObject("repairs", repairService.getMyRepairs(userId));
+        modelAndView.addObject("repairs", repairService.getMyRepairs(userData.getUserId()));
         return modelAndView;
     }
 
     @GetMapping("/request")
-    public ModelAndView repairRequestForm(@RequestParam(required = false)
-                                              UUID carId,
-                                              HttpSession session) {
+    public ModelAndView repairRequestForm(@RequestParam(required = false) UUID carId,
+                                          @AuthenticationPrincipal PitstopUserDetails userData) {
 
         ModelAndView modelAndView = new ModelAndView("repair-request");
         modelAndView.addObject("requestRepairRequest", new RequestRepairRequest());
 
         if (carId != null) {
-            UUID userId = (UUID) session.getAttribute("userId");
-            Car car = carService.getMyCar(userId, carId);
+            Car car = carService.getMyCar(userData.getUserId(), carId);
             modelAndView.addObject("car", car);
         }
 
@@ -55,22 +52,22 @@ public class RepairController {
     }
 
     @PostMapping("/{id}/cancel")
-    public ModelAndView cancelRepair(@PathVariable UUID id, HttpSession session, RedirectAttributes redirectAttributes) {
+    public ModelAndView cancelRepair(@PathVariable UUID id,
+                                     @AuthenticationPrincipal PitstopUserDetails userData,
+                                     RedirectAttributes redirectAttributes) {
 
-        UUID  userId = (UUID) session.getAttribute("userId");
-        repairService.cancelRepairByClient(userId,id);
+        repairService.cancelRepairByClient(userData.getUserId(), id);
 
-        redirectAttributes.addFlashAttribute("successMessage","Repair request cancelled.");
+        redirectAttributes.addFlashAttribute("successMessage", "Repair request cancelled.");
         return new ModelAndView("redirect:/repairs");
     }
 
     @PostMapping("/{id}/accept")
     public ModelAndView acceptRepair(@PathVariable UUID id,
-                                     HttpSession session,
+                                     @AuthenticationPrincipal PitstopUserDetails userData,
                                      RedirectAttributes redirectAttributes) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
-        repairService.acceptRepair(userId, id);
+        repairService.acceptRepair(userData.getUserId(), id);
 
         redirectAttributes.addFlashAttribute("successMessage", "Repair request accepted.");
         return new ModelAndView("redirect:/repairs");
@@ -81,9 +78,10 @@ public class RepairController {
                                             @Valid @ModelAttribute("requestRepairRequest")
                                             RequestRepairRequest requestRepairRequest,
                                             BindingResult bindingResult,
-                                            HttpSession session, RedirectAttributes redirectAttributes) {
+                                            @AuthenticationPrincipal PitstopUserDetails userData,
+                                            RedirectAttributes redirectAttributes) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
+        UUID userId = userData.getUserId();
 
         if (bindingResult.hasErrors()) {
             ModelAndView modelAndView = new ModelAndView("repair-request", bindingResult.getModel());
@@ -98,20 +96,19 @@ public class RepairController {
     }
 
     @GetMapping("/history")
-    public ModelAndView repairHistory(HttpSession session){
+    public ModelAndView repairHistory(@AuthenticationPrincipal PitstopUserDetails userData) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
         ModelAndView modelAndView = new ModelAndView("repairs-history");
-        modelAndView.addObject("repairs", repairService.getMyRepairHistory(userId));
+        modelAndView.addObject("repairs", repairService.getMyRepairHistory(userData.getUserId()));
 
         return modelAndView;
     }
 
     @GetMapping("/{id}")
-    public ModelAndView viewRepairDetails(@PathVariable UUID id, HttpSession session) {
+    public ModelAndView viewRepairDetails(@PathVariable UUID id,
+                                          @AuthenticationPrincipal PitstopUserDetails userData) {
 
-        UUID userId = (UUID) session.getAttribute("userId");
-        ServiceRepair repair = repairService.getRepairForClient(userId, id);
+        ServiceRepair repair = repairService.getRepairForClient(userData.getUserId(), id);
 
         ModelAndView modelAndView = new ModelAndView("repair-details");
         modelAndView.addObject("repair", repair);

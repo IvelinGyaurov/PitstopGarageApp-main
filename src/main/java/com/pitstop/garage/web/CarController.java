@@ -1,9 +1,10 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.AddCarRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +24,9 @@ public class CarController {
     }
 
     @GetMapping
-    public ModelAndView myCars(HttpSession session) {
-
-        UUID userId = (UUID) session.getAttribute("userId");
-
+    public ModelAndView myCars(@AuthenticationPrincipal PitstopUserDetails userData) {
         ModelAndView modelAndView = new ModelAndView("cars");
-        modelAndView.addObject("cars", carService.getMyCars(userId));
-
+        modelAndView.addObject("cars", carService.getMyCars(userData.getUserId()));
         return modelAndView;
     }
 
@@ -44,29 +41,20 @@ public class CarController {
     @PostMapping("/add")
     public ModelAndView addCar(@Valid @ModelAttribute("addCarRequest") AddCarRequest addCarRequest,
                                BindingResult bindingResult,
-                               HttpSession session,
+                               @AuthenticationPrincipal PitstopUserDetails userData,
                                RedirectAttributes redirectAttributes) {
-
-
         if (bindingResult.hasErrors()) {
             return new ModelAndView("car-add", bindingResult.getModel());
         }
-
-        UUID userId = (UUID) session.getAttribute("userId");
-        carService.addCar(userId, addCarRequest);
-
+        carService.addCar(userData.getUserId(), addCarRequest);
         redirectAttributes.addFlashAttribute("successMessage", "Car added successfully.");
         return new ModelAndView("redirect:/cars");
     }
-
     @DeleteMapping("/{id}")
     public ModelAndView deleteCar(@PathVariable UUID id,
-                                  HttpSession session,
+                                  @AuthenticationPrincipal PitstopUserDetails userData,
                                   RedirectAttributes redirectAttributes) {
-
-        UUID userId = (UUID) session.getAttribute("userId");
-        carService.deleteCar(userId, id);
-
+        carService.deleteCar(userData.getUserId(), id);
         redirectAttributes.addFlashAttribute("successMessage", "Car removed.");
         return new ModelAndView("redirect:/cars");
     }
