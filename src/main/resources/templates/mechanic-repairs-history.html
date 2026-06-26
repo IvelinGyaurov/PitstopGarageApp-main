@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repair history - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .repairs-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .repairs-page-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .repairs-count {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .repairs-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .repairs-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .repairs-section-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .repairs-section-header h2 {
+            margin: 0;
+            font-size: 1.45rem;
+            letter-spacing: -0.02em;
+        }
+
+        .repairs-section-count {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .repairs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .repair-card {
+            border: 1px solid var(--line);
+            border-radius: 1.4rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 1.35rem 1.5rem;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .repair-card:hover {
+            border-color: rgba(249, 115, 22, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .repair-card-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .repair-car-title {
+            margin: 0;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .repair-car-meta {
+            margin: 0.3rem 0 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .repair-status {
+            display: inline-flex;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .repair-status.cancelled {
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .repair-status.completed {
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: rgba(34, 197, 94, 0.12);
+        }
+
+        .repair-description-label {
+            display: block;
+            color: #fdba74;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .repair-description {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .repair-card-footer {
+            margin-top: 1.1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
+        }
+
+        .repair-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .repair-meta strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .repairs-empty-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state p {
+            margin: 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/mechanic/repairs}">Repair queue</a>
+            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a th:href="@{/mechanic/repairs/history}">Repair history</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard">
+    <section class="repairs-page-header">
+        <div>
+            <p class="eyebrow">Past work</p>
+            <h1>Repair history</h1>
+            <p class="repairs-count"
+               th:text="${(rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0) + (completedRepairs != null ? #lists.size(completedRepairs) : 0)} + ' past repair(s)'">0 past repair(s)</p>
+        </div>
+        <div class="repairs-header-actions">
+            <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs}">Back to queue</a>
+            <a class="button secondary" th:href="@{/home}">Back to home</a>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <section class="repairs-section">
+        <div class="repairs-section-header">
+            <h2>Rejected requests</h2>
+            <span class="repairs-section-count"
+                  th:text="${rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0} + ' rejected'">0 rejected</span>
+        </div>
+
+        <section class="repairs-list" th:if="${rejectedRepairs != null and !rejectedRepairs.isEmpty()}">
+            <article class="repair-card" th:each="repair : ${rejectedRepairs}">
+                <div class="repair-card-head">
+                    <div>
+                        <h3 class="repair-car-title"
+                            th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h3>
+                        <p class="repair-car-meta"
+                           th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
+                    </div>
+                    <span class="repair-status cancelled"
+                          th:text="${repair.status.displayName}">Cancelled</span>
+                </div>
+
+                <span class="repair-description-label">Problem description</span>
+                <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
+
+                <div class="repair-card-footer">
+                    <div class="repair-meta">
+                        <span>
+                            Client <strong th:text="${repair.client.username}">client</strong>
+                        </span>
+                        <span>
+                            Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        </span>
+                        <span th:if="${repair.rejectedAt != null}">
+                            Rejected <strong th:text="${#temporals.format(repair.rejectedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        </span>
+                        <span th:if="${repair.mechanic != null}">
+                            Rejected by <strong th:text="${repair.mechanic.username}">mechanic</strong>
+                        </span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="repairs-empty-wrap" th:if="${rejectedRepairs == null or rejectedRepairs.isEmpty()}">
+            <div class="empty-state">
+                <p>No rejected repair requests yet.</p>
+            </div>
+        </section>
+    </section>
+
+    <section class="repairs-section">
+        <div class="repairs-section-header">
+            <h2>Completed repairs</h2>
+            <span class="repairs-section-count"
+                  th:text="${completedRepairs != null ? #lists.size(completedRepairs) : 0} + ' completed'">0 completed</span>
+        </div>
+
+        <section class="repairs-list" th:if="${completedRepairs != null and !completedRepairs.isEmpty()}">
+            <article class="repair-card" th:each="repair : ${completedRepairs}">
+                <div class="repair-card-head">
+                    <div>
+                        <h3 class="repair-car-title"
+                            th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h3>
+                        <p class="repair-car-meta"
+                           th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
+                    </div>
+                    <span class="repair-status completed"
+                          th:text="${repair.status.displayName}">Completed</span>
+                </div>
+
+                <span class="repair-description-label">Problem description</span>
+                <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
+
+                <div class="repair-card-footer">
+                    <div class="repair-meta">
+                        <span>
+                            Client <strong th:text="${repair.client.username}">client</strong>
+                        </span>
+                        <span th:if="${repair.completedAt != null}">
+                            Completed <strong th:text="${#temporals.format(repair.completedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        </span>
+                        <span th:if="${repair.mechanic != null}">
+                            Mechanic <strong th:text="${repair.mechanic.username}">mechanic</strong>
+                        </span>
+                        <span th:if="${repair.laborCost != null}">
+                            Labor cost <strong th:text="${repair.laborCost + ' BGN'}">-</strong>
+                        </span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="repairs-empty-wrap" th:if="${completedRepairs == null or completedRepairs.isEmpty()}">
+            <div class="empty-state">
+                <p>No completed repairs yet. Finish accepted jobs to see them here.</p>
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

@@ -62,17 +62,6 @@ public class RepairController {
         return new ModelAndView("redirect:/repairs");
     }
 
-    @PostMapping("/{id}/accept")
-    public ModelAndView acceptRepair(@PathVariable UUID id,
-                                     @AuthenticationPrincipal PitstopUserDetails userData,
-                                     RedirectAttributes redirectAttributes) {
-
-        repairService.acceptRepair(userData.getUserId(), id);
-
-        redirectAttributes.addFlashAttribute("successMessage", "Repair request accepted.");
-        return new ModelAndView("redirect:/repairs");
-    }
-
     @PostMapping("/request")
     public ModelAndView submitRepairRequest(@RequestParam UUID carId,
                                             @Valid @ModelAttribute("requestRepairRequest")

@@ -16,6 +16,9 @@
 
         <div class="nav-links">
             <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/users}">All users</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs}">Repair queue</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/history}">Repair history</a>
             <a th:href="@{/logout}">Logout</a>
         </div>
     </nav>
@@ -26,7 +29,10 @@
         <div>
             <p class="eyebrow">Garage dashboard</p>
             <h1>Welcome, <span th:text="${username}">driver</span>.</h1>
-            <p class="hero-text">
+            <p class="hero-text" sec:authorize="hasRole('MECHANIC')">
+                Review pending requests, manage accepted jobs, and track rejected and completed repairs in your history.
+            </p>
+            <p class="hero-text" sec:authorize="!hasRole('MECHANIC')">
                 Your PitStop Garage account is ready. Car, repair and service history features will appear here.
             </p>
         </div>
@@ -50,19 +56,37 @@
     </section>
 
     <section class="dashboard-grid">
-        <article class="dashboard-card">
+        <article class="dashboard-card" sec:authorize="hasRole('MECHANIC')">
+            <h3>Repair queue</h3>
+            <p>All pending repair requests from clients across the garage.</p>
+            <a class="button primary full-width" th:href="@{/mechanic/repairs}">Open repair queue</a>
+        </article>
+
+        <article class="dashboard-card" sec:authorize="hasRole('MECHANIC')">
+            <h3>Accepted repairs</h3>
+            <p>Repairs you have accepted. Start work and mark them completed when done.</p>
+            <a class="button primary full-width" th:href="@{/mechanic/repairs/accepted}">View accepted repairs</a>
+        </article>
+
+        <article class="dashboard-card" sec:authorize="hasRole('MECHANIC')">
+            <h3>Repair history</h3>
+            <p>Rejected requests and completed repairs from your work.</p>
+            <a class="button primary full-width" th:href="@{/mechanic/repairs/history}">View repair history</a>
+        </article>
+
+        <article class="dashboard-card" sec:authorize="hasAnyRole('USER', 'ADMIN')">
             <h3>My cars</h3>
             <p>Register and manage your vehicles from one place.</p>
             <a class="button primary full-width" th:href="@{/cars}">View my cars</a>
         </article>
 
-        <article class="dashboard-card">
+        <article class="dashboard-card" sec:authorize="hasAnyRole('USER', 'ADMIN')">
             <h3>Repairs</h3>
             <p>Follow repair status and completed service work.</p>
             <a class="button primary full-width" th:href="@{/repairs}">View my repairs</a>
         </article>
 
-        <article class="dashboard-card">
+        <article class="dashboard-card" sec:authorize="hasAnyRole('USER', 'ADMIN')">
             <h3>Service history</h3>
             <p>Keep a clean record of every garage visit.</p>
             <a class="button primary full-width" th:href="@{/repairs/history}">View service history</a>

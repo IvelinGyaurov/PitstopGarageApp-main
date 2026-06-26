@@ -63,16 +63,73 @@ public class RepairService {
         serviceRepairRepository.save(repair);
     }
 
-    public void acceptRepair(UUID userId, UUID id) {
+    public void acceptRepairByMechanic(UUID mechanicId, UUID repairId) {
+        User mechanic = userService.getById(mechanicId);
+        ServiceRepair repair = getPendingUnassignedRepair(repairId);
 
-        User client = userService.getById(userId);
-        ServiceRepair repair = serviceRepairRepository.findByIdAndClient(id, client)
-                .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
-        if (repair.getStatus() != RepairStatus.PENDING) {
-            throw new RepairStatusException("Only pending repairs can be accepted.");
-        }
+        repair.setMechanic(mechanic);
         repair.setStatus(RepairStatus.ACCEPTED);
         repair.setAcceptedAt(LocalDateTime.now());
+        serviceRepairRepository.save(repair);
+    }
+
+    public void rejectRepairByMechanic(UUID mechanicId, UUID repairId) {
+        User mechanic = userService.getById(mechanicId);
+        ServiceRepair repair = getPendingUnassignedRepair(repairId);
+
+        repair.setMechanic(mechanic);
+        repair.setStatus(RepairStatus.CANCELLED);
+        repair.setRejectedAt(LocalDateTime.now());
+        serviceRepairRepository.save(repair);
+    }
+
+    private ServiceRepair getPendingUnassignedRepair(UUID repairId) {
+        ServiceRepair repair = serviceRepairRepository.findById(repairId)
+                .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+
+        if (repair.getStatus() != RepairStatus.PENDING) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_PENDING);
+        }
+        if (repair.getMechanic() != null) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_ALREADY_TAKEN);
+        }
+
+        return repair;
+    }
+
+    private ServiceRepair getRepairAssignedToMechanic(UUID mechanicId, UUID repairId) {
+
+        ServiceRepair repair = serviceRepairRepository.findById(repairId)
+                .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+
+        if (repair.getMechanic() == null || !repair.getMechanic().getId().equals(mechanicId)) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_ASSIGNED_TO_MECHANIC);
+        }
+
+        return repair;
+    }
+
+    public void startRepairByMechanic(UUID mechanicId, UUID repairId) {
+        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+
+        if (repair.getStatus() != RepairStatus.ACCEPTED) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_ACCEPTED);
+        }
+
+        repair.setStatus(RepairStatus.IN_PROGRESS);
+        repair.setStartedAt(LocalDateTime.now());
+        serviceRepairRepository.save(repair);
+    }
+
+    public void completeRepairByMechanic(UUID mechanicId, UUID repairId) {
+        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+
+        if (repair.getStatus() != RepairStatus.IN_PROGRESS) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_IN_PROGRESS);
+        }
+
+        repair.setStatus(RepairStatus.COMPLETED);
+        repair.setCompletedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
     }
 
@@ -89,6 +146,46 @@ public class RepairService {
 
         serviceRepairRepository.saveAll(staleRepairs);
         return staleRepairs.size();
+    }
+
+    public List<ServiceRepair> getAcceptedRepairsForMechanic(UUID mechanicId) {
+        User mechanic = userService.getById(mechanicId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                mechanic,
+                List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator
+                        .comparingInt((ServiceRepair repair) -> statusPriority(repair.getStatus()))
+                        .thenComparing(this::mechanicActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getRejectedRepairsForMechanic(UUID mechanicId) {
+        User mechanic = userService.getById(mechanicId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                mechanic,
+                List.of(RepairStatus.CANCELLED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::mechanicRejectedDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getCompletedRepairsForMechanic(UUID mechanicId) {
+        User mechanic = userService.getById(mechanicId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                mechanic,
+                List.of(RepairStatus.COMPLETED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(
+                        ServiceRepair::getCompletedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 
 
@@ -127,6 +224,23 @@ public class RepairService {
         return repair.getCreatedOn();
     }
 
+    private LocalDateTime mechanicActiveRepairDate(ServiceRepair repair) {
+        if (repair.getStatus() == RepairStatus.IN_PROGRESS && repair.getStartedAt() != null) {
+            return repair.getStartedAt();
+        }
+        if (repair.getAcceptedAt() != null) {
+            return repair.getAcceptedAt();
+        }
+        return repair.getCreatedOn();
+    }
+
+    private LocalDateTime mechanicRejectedDate(ServiceRepair repair) {
+        if (repair.getRejectedAt() != null) {
+            return repair.getRejectedAt();
+        }
+        return repair.getCreatedOn();
+    }
+
     private int statusPriority(RepairStatus status) {
         return switch (status) {
             case IN_PROGRESS -> 0;
@@ -140,5 +254,10 @@ public class RepairService {
         User client = userService.getById(userId);
         return serviceRepairRepository.findByIdAndClient(id, client)
                 .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+    }
+
+    public List<ServiceRepair> getPendingRepairsForMechanics() {
+        return serviceRepairRepository
+                .findAllByStatusAndMechanicIsNullOrderByCreatedOnDesc(RepairStatus.PENDING);
     }
 }

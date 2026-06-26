@@ -232,7 +232,16 @@
                         <span th:if="${repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'CANCELLED'}">
                             Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
                         </span>
-                        <span>
+                        <span th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic != null}">
+                            Rejected by <strong th:text="${repair.mechanic.username}">-</strong>
+                        </span>
+                        <span th:if="${repair.status.name() == 'USER_CANCELLED'}">
+                            Cancelled by <strong>client</strong>
+                        </span>
+                        <span th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
+                            Mechanic <strong>Not assigned</strong>
+                        </span>
+                        <span th:if="${repair.status.name() == 'COMPLETED'}">
                             Mechanic <strong th:text="${repair.mechanic != null ? repair.mechanic.username : 'Not assigned'}">-</strong>
                         </span>
                         <span th:if="${repair.status.name() == 'COMPLETED' and repair.laborCost != null}">

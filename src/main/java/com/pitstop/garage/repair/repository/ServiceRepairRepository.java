@@ -16,16 +16,10 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
 
     Optional<ServiceRepair> findByIdAndClient(UUID id, User client);
 
-    List<ServiceRepair> findAllByMechanicOrderByCreatedOnDesc(User mechanic);
-
-    List<ServiceRepair> findAllByStatusOrderByCreatedOnAsc(RepairStatus status);
+    List<ServiceRepair> findAllByStatusAndMechanicIsNullOrderByCreatedOnDesc(RepairStatus status);
 
     List<ServiceRepair> findAllByMechanicAndStatusInOrderByCreatedOnDesc(
             User mechanic,
-            List<RepairStatus> statuses
-    );
-    List<ServiceRepair> findAllByClientAndStatusInOrderByCreatedOnDesc(
-            User client,
             List<RepairStatus> statuses
     );
 

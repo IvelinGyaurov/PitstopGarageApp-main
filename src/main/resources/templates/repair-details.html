@@ -248,7 +248,19 @@
                     <span>Submitted</span>
                     <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy HH:mm')}">-</strong>
                 </div>
-                <div class="timeline-item">
+                <div class="timeline-item" th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic != null}">
+                    <span>Rejected by</span>
+                    <strong th:text="${repair.mechanic.username}">-</strong>
+                </div>
+                <div class="timeline-item" th:if="${repair.status.name() == 'USER_CANCELLED'}">
+                    <span>Cancelled by</span>
+                    <strong>Client</strong>
+                </div>
+                <div class="timeline-item" th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
+                    <span>Mechanic</span>
+                    <strong>Not assigned</strong>
+                </div>
+                <div class="timeline-item" th:if="${repair.status.name() != 'CANCELLED' and repair.status.name() != 'USER_CANCELLED'}">
                     <span>Mechanic</span>
                     <strong th:text="${repair.mechanic != null ? repair.mechanic.username : 'Not assigned yet'}">-</strong>
                 </div>

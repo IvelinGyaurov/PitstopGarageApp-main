@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My repairs - PitStop Garage</title>
+    <title>Repair queue - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <style>
         .repairs-page-header {
@@ -91,26 +91,6 @@
             background: rgba(250, 204, 21, 0.12);
         }
 
-        .repair-status.accepted,
-        .repair-status.in-progress {
-            color: #93c5fd;
-            border: 1px solid rgba(59, 130, 246, 0.35);
-            background: rgba(59, 130, 246, 0.12);
-        }
-
-        .repair-status.completed {
-            color: #86efac;
-            border: 1px solid rgba(34, 197, 94, 0.35);
-            background: rgba(34, 197, 94, 0.12);
-        }
-
-        .repair-status.cancelled,
-        .repair-status.user-cancelled {
-            color: #fca5a5;
-            border: 1px solid rgba(248, 113, 113, 0.35);
-            background: rgba(248, 113, 113, 0.12);
-        }
-
         .repair-description-label {
             display: block;
             color: #fdba74;
@@ -152,12 +132,6 @@
             gap: 1rem 1.5rem;
             color: var(--muted);
             font-size: 0.85rem;
-        }
-
-        .repair-details-btn {
-            min-height: 2.5rem;
-            padding: 0.6rem 1rem;
-            font-size: 0.88rem;
         }
 
         .repair-meta strong {
@@ -240,8 +214,10 @@
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/cars}">My cars</a>
             <a th:href="@{/home}">Home</a>
+            <a th:href="@{/mechanic/repairs}">Repair queue</a>
+            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a th:href="@{/mechanic/repairs/history}">Repair history</a>
             <a th:href="@{/logout}">Logout</a>
         </div>
     </nav>
@@ -250,14 +226,15 @@
 <main class="dashboard">
     <section class="repairs-page-header">
         <div>
-            <p class="eyebrow">Service requests</p>
-            <h1>My repairs</h1>
+            <p class="eyebrow">Mechanic workspace</p>
+            <h1>Repair queue</h1>
             <p class="repairs-count"
-               th:text="${repairs != null ? #lists.size(repairs) : 0} + ' repair requests'">0 repair requests</p>
+               th:text="${repairs != null ? #lists.size(repairs) : 0} + ' pending requests'">0 pending requests</p>
         </div>
         <div class="repairs-header-actions">
-            <a class="button secondary" th:href="@{/repairs/history}">Service history</a>
-            <a class="button secondary" th:href="@{/cars}">Request from my cars</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs/history}">Repair history</a>
+            <a class="button secondary" th:href="@{/home}">Back to home</a>
         </div>
     </section>
 
@@ -272,8 +249,7 @@
                     <p class="repair-car-meta"
                        th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                 </div>
-                <span class="repair-status"
-                      th:classappend="${' ' + #strings.toLowerCase(#strings.replace(repair.status.name(), '_', '-'))}"
+                <span class="repair-status pending"
                       th:text="${repair.status.displayName}">Pending</span>
             </div>
 
@@ -283,27 +259,28 @@
             <div class="repair-card-footer">
                 <div class="repair-footer-left">
                     <div class="repair-meta">
-                        <span th:if="${repair.status.name() != 'COMPLETED'}">
+                        <span>
+                            Client <strong th:text="${repair.client.username}">client</strong>
+                        </span>
+                        <span>
                             Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
                         </span>
-                        <span th:if="${repair.status.name() == 'COMPLETED' and repair.completedAt != null}">
-                            Completed <strong th:text="${#temporals.format(repair.completedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
-                        </span>
-                        <span th:if="${repair.status.name() != 'COMPLETED'}">
-                            Mechanic <strong th:text="${repair.mechanic != null ? repair.mechanic.username : 'Not assigned yet'}">-</strong>
-                        </span>
                     </div>
-                    <a class="button secondary repair-details-btn"
-                       th:href="@{/repairs/{id}(id=${repair.id})}">View details</a>
                 </div>
-                <div class="repair-card-actions" th:if="${repair.status.name() == 'PENDING'}">
-                    <form th:action="@{/repairs/{id}/cancel(id=${repair.id})}"
+                <div class="repair-card-actions">
+                    <form th:action="@{/mechanic/repairs/{id}/accept(id=${repair.id})}"
+                          method="post"
+                          class="repair-action-form">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="button repair-accept-btn">Accept</button>
+                    </form>
+                    <form th:action="@{/mechanic/repairs/{id}/reject(id=${repair.id})}"
                           method="post"
                           class="repair-action-form"
                           th:attr="data-car-label=${repair.car.brand + ' ' + repair.car.model}"
-                          onsubmit="return confirm('Cancel the repair request for ' + this.dataset.carLabel + '?');">
+                          onsubmit="return confirm('Reject the repair request for ' + this.dataset.carLabel + '?');">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" class="button secondary repair-cancel-btn">Cancel request</button>
+                        <button type="submit" class="button secondary repair-cancel-btn">Reject</button>
                     </form>
                 </div>
             </div>
@@ -312,8 +289,8 @@
 
     <section class="repairs-empty-wrap" th:if="${repairs == null or repairs.isEmpty()}">
         <div class="empty-state">
-            <p>You have not requested any repairs yet. Open My cars and use Request repair on a vehicle.</p>
-            <a class="button primary" th:href="@{/cars}">Go to my cars</a>
+            <p>There are no pending repair requests waiting in the queue.</p>
+            <a class="button primary" th:href="@{/home}">Back to home</a>
         </div>
     </section>
 </main>

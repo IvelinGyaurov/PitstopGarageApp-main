@@ -60,6 +60,8 @@ public class ServiceRepair {
 
     private LocalDateTime completedAt;
 
+    private LocalDateTime rejectedAt;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false)
     private Car car;

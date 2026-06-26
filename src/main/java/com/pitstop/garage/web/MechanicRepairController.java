@@ -1,0 +1,92 @@
+package com.pitstop.garage.web;
+
+import com.pitstop.garage.repair.service.RepairService;
+import com.pitstop.garage.security.PitstopUserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.UUID;
+
+@Controller
+@RequestMapping("/mechanic/repairs")
+public class MechanicRepairController {
+
+    private final RepairService repairService;
+
+    public MechanicRepairController(RepairService repairService) {
+        this.repairService = repairService;
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @GetMapping
+    public ModelAndView repairQueue() {
+        ModelAndView modelAndView = new ModelAndView("mechanic-repairs");
+        modelAndView.addObject("repairs", repairService.getPendingRepairsForMechanics());
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @GetMapping("/accepted")
+    public ModelAndView acceptedRepairs(@AuthenticationPrincipal PitstopUserDetails userData) {
+        ModelAndView modelAndView = new ModelAndView("mechanic-repairs-accepted");
+        modelAndView.addObject("repairs", repairService.getAcceptedRepairsForMechanic(userData.getUserId()));
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @GetMapping("/history")
+    public ModelAndView repairHistory(@AuthenticationPrincipal PitstopUserDetails userData) {
+        UUID mechanicId = userData.getUserId();
+        ModelAndView modelAndView = new ModelAndView("mechanic-repairs-history");
+        modelAndView.addObject("rejectedRepairs", repairService.getRejectedRepairsForMechanic(mechanicId));
+        modelAndView.addObject("completedRepairs", repairService.getCompletedRepairsForMechanic(mechanicId));
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @PostMapping("/{id}/accept")
+    public ModelAndView acceptRepair(@PathVariable UUID id,
+                                     @AuthenticationPrincipal PitstopUserDetails userData,
+                                     RedirectAttributes redirectAttributes) {
+        repairService.acceptRepairByMechanic(userData.getUserId(), id);
+        redirectAttributes.addFlashAttribute("successMessage", "Repair accepted.");
+        return new ModelAndView("redirect:/mechanic/repairs");
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @PostMapping("/{id}/reject")
+    public ModelAndView rejectRepair(@PathVariable UUID id,
+                                     @AuthenticationPrincipal PitstopUserDetails userData,
+                                     RedirectAttributes redirectAttributes) {
+        repairService.rejectRepairByMechanic(userData.getUserId(), id);
+        redirectAttributes.addFlashAttribute("successMessage", "Repair rejected.");
+        return new ModelAndView("redirect:/mechanic/repairs");
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @PostMapping("/{id}/start")
+    public ModelAndView startRepair(@PathVariable UUID id,
+                                    @AuthenticationPrincipal PitstopUserDetails userData,
+                                    RedirectAttributes redirectAttributes) {
+        repairService.startRepairByMechanic(userData.getUserId(), id);
+        redirectAttributes.addFlashAttribute("successMessage", "Repair started.");
+        return new ModelAndView("redirect:/mechanic/repairs/accepted");
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @PostMapping("/{id}/complete")
+    public ModelAndView completeRepair(@PathVariable UUID id,
+                                       @AuthenticationPrincipal PitstopUserDetails userData,
+                                       RedirectAttributes redirectAttributes) {
+        repairService.completeRepairByMechanic(userData.getUserId(), id);
+        redirectAttributes.addFlashAttribute("successMessage", "Repair completed.");
+        return new ModelAndView("redirect:/mechanic/repairs/accepted");
+    }
+}
