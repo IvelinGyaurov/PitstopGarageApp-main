@@ -13,6 +13,7 @@ import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class RepairService {
 
@@ -47,6 +49,7 @@ public class RepairService {
                 .build();
 
         serviceRepairRepository.save(repair);
+        log.info("Repair requested by client {} for car {}", clientId, carId);
     }
 
     public void cancelRepairByClient(UUID userId, UUID repairId){
@@ -61,6 +64,7 @@ public class RepairService {
 
         repair.setStatus(RepairStatus.USER_CANCELLED);
         serviceRepairRepository.save(repair);
+        log.info("Repair {} cancelled by client {}", repairId, userId);
     }
 
     public void acceptRepairByMechanic(UUID mechanicId, UUID repairId) {
@@ -71,6 +75,7 @@ public class RepairService {
         repair.setStatus(RepairStatus.ACCEPTED);
         repair.setAcceptedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
+        log.info("Repair {} accepted by mechanic {}", repairId, mechanicId);
     }
 
     public void rejectRepairByMechanic(UUID mechanicId, UUID repairId) {
@@ -81,6 +86,7 @@ public class RepairService {
         repair.setStatus(RepairStatus.CANCELLED);
         repair.setRejectedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
+        log.info("Repair {} rejected by mechanic {}", repairId, mechanicId);
     }
 
     private ServiceRepair getPendingUnassignedRepair(UUID repairId) {
@@ -119,6 +125,7 @@ public class RepairService {
         repair.setStatus(RepairStatus.IN_PROGRESS);
         repair.setStartedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
+        log.info("Repair {} started by mechanic {}", repairId, mechanicId);
     }
 
     public void completeRepairByMechanic(UUID mechanicId, UUID repairId) {
@@ -131,6 +138,7 @@ public class RepairService {
         repair.setStatus(RepairStatus.COMPLETED);
         repair.setCompletedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
+        log.info("Repair {} completed by mechanic {}", repairId, mechanicId);
     }
 
     @Transactional

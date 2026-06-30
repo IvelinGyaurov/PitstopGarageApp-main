@@ -10,6 +10,7 @@ import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.repository.UserRepository;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.AddCarRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class CarService {
 
@@ -50,6 +52,7 @@ public class CarService {
                 .build();
 
         carRepository.save(car);
+        log.info("Car added with VIN {} for user {}", carRequest.getVin(), id);
     }
 
     public List<Car> getMyCars(UUID ownerId) {
@@ -73,5 +76,6 @@ public class CarService {
 
         car.setDeletedAt(LocalDateTime.now());
         carRepository.save(car);
+        log.info("Car {} soft-deleted for user {}", id, userId);
     }
 }

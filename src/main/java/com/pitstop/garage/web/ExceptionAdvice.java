@@ -1,11 +1,6 @@
 package com.pitstop.garage.web;
 
-import com.pitstop.garage.exceptions.CarNotFoundException;
-import com.pitstop.garage.exceptions.RepairNotFoundException;
-import com.pitstop.garage.exceptions.PrimaryUserException;
-import com.pitstop.garage.exceptions.RepairStatusException;
-import com.pitstop.garage.exceptions.UserAlreadyExistException;
-import com.pitstop.garage.exceptions.UserInactiveException;
+import com.pitstop.garage.exceptions.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -60,6 +55,13 @@ public class ExceptionAdvice {
 
         redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         return "redirect:/users";
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public String handleUserNotFound(RedirectAttributes redirectAttributes,
+                                     UserNotFoundException exception) {
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/home";
     }
 
     @ExceptionHandler(PrimaryUserException.class)

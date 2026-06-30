@@ -13,6 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,27 +41,38 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @NotBlank
+    @Size(min = 3, max = 20)
+    @Column(nullable = false, unique = true, length = 20)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @NotBlank
+    @Email
+    @Size(max = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Column(nullable = false, length = 60)
     private String password;
 
+    @Size(max = 50)
     @Column(length = 50)
     private String firstName;
 
+    @Size(max = 50)
     @Column(length = 50)
     private String lastName;
 
+    @Size(max = 20)
     @Column(length = 20)
     private String phoneNumber;
 
+    @Size(max = 500)
     @Column(length = 500)
     private String profilePicture;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;

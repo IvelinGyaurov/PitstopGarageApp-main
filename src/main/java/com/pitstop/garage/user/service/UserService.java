@@ -118,6 +118,7 @@ public class UserService implements UserDetailsService  {
         return userRepository.findAll();
     }
 
+    @Cacheable(value = "users")
     public User getById(UUID id) {
 
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(UserNotFoundExceptionMessage.USER_NOT_FOUND));

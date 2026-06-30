@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,27 +37,44 @@ public class Car {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-
+    @NotBlank
+    @Size(min = 17, max = 17)
     @Column(nullable = false, unique = true, length = 17)
     private String vin;
 
-    @Column(nullable = false, length = 20)
+    @NotBlank
+    @Size(max = 10)
+    @Column(nullable = false, length = 10)
     private String plateNumber;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Size(min = 2, max = 50)
+    @Column(nullable = false, length = 50)
     private String brand;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Size(min = 1, max = 50)
+    @Column(nullable = false, length = 50)
     private String model;
 
+    @NotNull
+    @Min(1900)
+    @Max(2030)
     private Integer year;
 
+    @NotBlank
+    @Size(max = 30)
     @Column(nullable = false, length = 30)
     private String engineType;
 
+    @NotBlank
+    @Size(max = 30)
     @Column(nullable = false, length = 30)
     private String transmission;
 
+    @NotNull
+    @Min(0)
+    @Max(2000000)
     private Integer mileage;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
