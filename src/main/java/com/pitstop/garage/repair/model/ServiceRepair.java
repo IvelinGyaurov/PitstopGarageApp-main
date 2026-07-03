@@ -16,9 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,12 +41,9 @@ public class ServiceRepair {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank
-    @Size(min = 10, max = 2000)
     @Column(nullable = false, length = 2000)
     private String problemDescription;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RepairStatus status;
