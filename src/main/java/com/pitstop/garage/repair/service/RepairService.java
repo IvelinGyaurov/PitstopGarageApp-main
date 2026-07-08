@@ -2,15 +2,21 @@ package com.pitstop.garage.repair.service;
 
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.client.PartsClient;
+import com.pitstop.garage.client.dto.DeductPartItemRequest;
+import com.pitstop.garage.client.dto.DeductPartsRequest;
+import com.pitstop.garage.client.dto.DeductedPartResponse;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairNotFoundExceptionMessage;
 import com.pitstop.garage.exceptions.RepairStatusException;
 import com.pitstop.garage.exceptions.RepairStatusExceptionMessage;
 import com.pitstop.garage.repair.model.RepairStatus;
 import com.pitstop.garage.repair.model.ServiceRepair;
+import com.pitstop.garage.repair.model.UsedPart;
 import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.service.UserService;
+import com.pitstop.garage.web.dto.CompleteRepairRequest;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -30,12 +37,14 @@ public class RepairService {
     private final ServiceRepairRepository serviceRepairRepository;
     private final UserService userService;
     private final CarService carService;
+    private final PartsClient partsClient;
 
     @Autowired
-    public RepairService(ServiceRepairRepository serviceRepairRepository, UserService userService, CarService carService) {
+    public RepairService(ServiceRepairRepository serviceRepairRepository, UserService userService, CarService carService, PartsClient partsClient) {
         this.serviceRepairRepository = serviceRepairRepository;
         this.userService = userService;
         this.carService = carService;
+        this.partsClient = partsClient;
     }
 
     public void requestRepair(UUID clientId, UUID carId, RequestRepairRequest requestRepair) {
@@ -128,17 +137,47 @@ public class RepairService {
         log.info("Repair {} started by mechanic {}", repairId, mechanicId);
     }
 
-    public void completeRepairByMechanic(UUID mechanicId, UUID repairId) {
-        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+    @Transactional
+    public void completeRepairByMechanic(UUID mechanicId, UUID repairId,
+                                         BigDecimal laborCost,
+                                         CompleteRepairRequest completeRepairRequest) {
+        ServiceRepair repair = getInProgressRepairForMechanic(mechanicId, repairId);
 
-        if (repair.getStatus() != RepairStatus.IN_PROGRESS) {
-            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_IN_PROGRESS);
+        List<DeductPartItemRequest> deductItems = completeRepairRequest.getParts().stream()
+                .filter(CompleteRepairRequest.PartUsageForm::isSelected)
+                .filter(item -> item.getQuantity() > 0)
+                .map(item -> {
+                    DeductPartItemRequest deductItem = new DeductPartItemRequest();
+                    deductItem.setPartId(item.getPartId());
+                    deductItem.setQuantity(item.getQuantity());
+                    return deductItem;
+                })
+                .toList();
+
+        if (!deductItems.isEmpty()) {
+            DeductPartsRequest deductRequest = new DeductPartsRequest();
+            deductRequest.setItems(deductItems);
+
+            List<DeductedPartResponse> deducted = partsClient.deductParts(deductRequest);
+
+            for (DeductedPartResponse d : deducted) {
+                UsedPart usedPart = UsedPart.builder()
+                        .partId(d.getPartId())
+                        .partName(d.getPartName())
+                        .quantity(d.getQuantity())
+                        .unitPrice(d.getUnitPrice())
+                        .serviceRepair(repair)
+                        .build();
+                repair.getUsedParts().add(usedPart);
+            }
         }
 
+        repair.setLaborCost(laborCost);
         repair.setStatus(RepairStatus.COMPLETED);
         repair.setCompletedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
-        log.info("Repair {} completed by mechanic {}", repairId, mechanicId);
+        log.info("Repair {} completed by mechanic {} with {} part(s)",
+                repairId, mechanicId, deductItems.size());
     }
 
     @Transactional
@@ -194,6 +233,14 @@ public class RepairService {
                         ServiceRepair::getCompletedAt,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
+    }
+
+    public ServiceRepair getInProgressRepairForMechanic(UUID mechanicId, UUID repairId) {
+        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+        if (repair.getStatus() != RepairStatus.IN_PROGRESS) {
+            throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_IN_PROGRESS);
+        }
+        return repair;
     }
 
 

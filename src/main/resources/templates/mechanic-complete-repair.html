@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete repair - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .complete-repair-page {
+            padding-bottom: 3rem;
+        }
+
+        .complete-repair-header {
+            margin-bottom: 2rem;
+        }
+
+        .complete-repair-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .complete-repair-card {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .repair-summary h2 {
+            margin: 0 0 0.35rem;
+            font-size: 1.35rem;
+        }
+
+        .repair-summary p {
+            margin: 0.25rem 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .repair-summary .problem {
+            margin-top: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .labor-field {
+            max-width: 280px;
+            margin-bottom: 1.5rem;
+        }
+
+        .parts-table-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.2rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .parts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .parts-table th,
+        .parts-table td {
+            padding: 0.9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .parts-table th {
+            color: #fdba74;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .parts-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .parts-table input[type="number"] {
+            width: 5rem;
+            padding: 0.55rem 0.65rem;
+            border: 1px solid var(--line);
+            border-radius: 0.65rem;
+            color: var(--text);
+            background: rgba(15, 23, 42, 0.88);
+        }
+
+        .parts-table input[type="checkbox"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: #f97316;
+        }
+
+        .parts-empty-note {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .form-actions .button {
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .auth-form input.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .field-error {
+            display: block;
+            margin-top: 0.35rem;
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard complete-repair-page">
+    <section class="complete-repair-header">
+        <p class="eyebrow">Mechanic</p>
+        <h1>Complete repair</h1>
+        <p class="auth-copy">Add labor cost and select parts used for this job.</p>
+    </section>
+
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <section class="complete-repair-card repair-summary">
+        <h2 th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h2>
+        <p th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB</p>
+        <p>Client: <strong th:text="${repair.client.username}">client</strong></p>
+        <p class="problem" th:text="${repair.problemDescription}">Problem description</p>
+    </section>
+
+    <section class="complete-repair-card">
+        <form th:action="@{/mechanic/repairs/{id}/complete(id=${repair.id})}"
+              th:object="${completeRepairRequest}"
+              method="post"
+              class="auth-form"
+              novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                Please correct the highlighted fields.
+            </p>
+
+            <div class="labor-field">
+                <label for="laborCost">Labor cost</label>
+                <input id="laborCost" type="number" th:field="*{laborCost}" th:errorclass="input-error"
+                       min="0" step="0.01" placeholder="0.00">
+                <small class="field-error" th:if="${#fields.hasErrors('laborCost')}"
+                       th:text="${#strings.listJoin(#fields.errors('laborCost'), ' and ')}"></small>
+            </div>
+
+            <p class="parts-empty-note" th:if="${#lists.isEmpty(catalogParts)}">
+                No parts available in inventory. You can still complete the repair with labor cost only.
+            </p>
+
+            <div class="parts-table-wrap" th:if="${!#lists.isEmpty(catalogParts)}">
+                <table class="parts-table">
+                    <thead>
+                    <tr>
+                        <th>Use</th>
+                        <th>Part</th>
+                        <th>SKU</th>
+                        <th>In stock</th>
+                        <th>Qty</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="part, stat : ${catalogParts}">
+                        <td>
+                            <input type="checkbox" th:field="*{parts[__${stat.index}__].selected}">
+                        </td>
+                        <td th:text="${part.name}">Part name</td>
+                        <td th:text="${part.sku}">SKU</td>
+                        <td th:text="${part.quantityInStock}">0</td>
+                        <td>
+                            <input type="hidden" th:field="*{parts[__${stat.index}__].partId}">
+                            <input type="number" th:field="*{parts[__${stat.index}__].quantity}"
+                                   min="1" th:attr="max=${part.quantityInStock}">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button primary">Complete repair</button>
+                <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

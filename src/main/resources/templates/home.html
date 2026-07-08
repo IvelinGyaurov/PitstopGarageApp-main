@@ -16,6 +16,7 @@
 
         <div class="nav-links">
             <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/users}">All users</a>
+            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/parts}">Parts inventory</a>
             <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs}">Repair queue</a>
             <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
             <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/history}">Repair history</a>
@@ -90,6 +91,12 @@
             <h3>Service history</h3>
             <p>Keep a clean record of every garage visit.</p>
             <a class="button primary full-width" th:href="@{/repairs/history}">View service history</a>
+        </article>
+
+        <article class="dashboard-card" sec:authorize="hasRole('ADMIN')">
+            <h3>Parts inventory</h3>
+            <p>Manage spare parts stock in the parts shop microservice.</p>
+            <a class="button primary full-width" th:href="@{/admin/parts}">Manage parts</a>
         </article>
     </section>
 </main>

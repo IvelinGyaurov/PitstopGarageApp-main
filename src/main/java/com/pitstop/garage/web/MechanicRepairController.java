@@ -1,17 +1,21 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.client.PartsClient;
+import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
+import com.pitstop.garage.web.dto.CompleteRepairRequest;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -19,9 +23,11 @@ import java.util.UUID;
 public class MechanicRepairController {
 
     private final RepairService repairService;
+    private final PartsClient partsClient;
 
-    public MechanicRepairController(RepairService repairService) {
+    public MechanicRepairController(RepairService repairService, PartsClient partsClient) {
         this.repairService = repairService;
+        this.partsClient = partsClient;
     }
 
     @PreAuthorize("hasRole('MECHANIC')")
@@ -84,9 +90,47 @@ public class MechanicRepairController {
     @PostMapping("/{id}/complete")
     public ModelAndView completeRepair(@PathVariable UUID id,
                                        @AuthenticationPrincipal PitstopUserDetails userData,
+                                       @Valid @ModelAttribute("completeRepairRequest") CompleteRepairRequest completeRepairRequest,
+                                       BindingResult bindingResult,
                                        RedirectAttributes redirectAttributes) {
-        repairService.completeRepairByMechanic(userData.getUserId(), id);
+        if (bindingResult.hasErrors()) {
+            ServiceRepair repair = repairService.getInProgressRepairForMechanic(userData.getUserId(), id);
+            ModelAndView modelAndView = new ModelAndView("mechanic-complete-repair");
+            modelAndView.addObject("repair", repair);
+            modelAndView.addObject("catalogParts", partsClient.getAllParts());
+            modelAndView.addObject("completeRepairRequest", completeRepairRequest);
+            return modelAndView;
+        }
+
+        repairService.completeRepairByMechanic(
+                userData.getUserId(), id,
+                completeRepairRequest.getLaborCost(),
+                completeRepairRequest);
         redirectAttributes.addFlashAttribute("successMessage", "Repair completed.");
         return new ModelAndView("redirect:/mechanic/repairs/accepted");
+    }
+
+    @PreAuthorize("hasRole('MECHANIC')")
+    @GetMapping("/{id}/complete")
+    public ModelAndView completeRepairForm(@PathVariable UUID id,
+                                           @AuthenticationPrincipal PitstopUserDetails userData) {
+        ServiceRepair repair = repairService.getInProgressRepairForMechanic(userData.getUserId(), id);
+        List<PartResponse> catalogParts = partsClient.getAllParts();
+
+        CompleteRepairRequest completeRepairRequest = new CompleteRepairRequest();
+        completeRepairRequest.setLaborCost(java.math.BigDecimal.ZERO);
+        completeRepairRequest.setParts(catalogParts.stream().map(part -> {
+            CompleteRepairRequest.PartUsageForm form = new CompleteRepairRequest.PartUsageForm();
+            form.setPartId(part.getId());
+            form.setQuantity(1);
+            form.setSelected(false);
+            return form;
+        }).toList());
+
+        ModelAndView modelAndView = new ModelAndView("mechanic-complete-repair");
+        modelAndView.addObject("repair", repair);
+        modelAndView.addObject("catalogParts", catalogParts);
+        modelAndView.addObject("completeRepairRequest", completeRepairRequest);
+        return modelAndView;
     }
 }

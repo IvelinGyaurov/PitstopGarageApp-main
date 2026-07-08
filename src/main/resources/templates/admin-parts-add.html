@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add part - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .add-part-page {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .add-part-card {
+            border: 1px solid var(--line);
+            border-radius: 1.8rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .add-part-card h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .add-part-card .auth-copy {
+            margin-bottom: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-actions .button {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .auth-form input.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .field-error {
+            display: block;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/admin/parts}">Parts inventory</a>
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="add-part-page">
+    <section class="add-part-card">
+        <a class="brand auth-brand" th:href="@{/admin/parts}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow">Admin</p>
+        <h1>Add part</h1>
+        <p class="auth-copy">Add a new spare part to the parts shop inventory.</p>
+
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <form th:action="@{/admin/parts}"
+              th:object="${addPartRequest}"
+              method="post"
+              class="auth-form"
+              novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                Please correct the highlighted fields.
+            </p>
+
+            <div class="form-grid">
+                <div class="full-width">
+                    <label for="name">Part name</label>
+                    <input id="name" type="text" th:field="*{name}" th:errorclass="input-error"
+                           placeholder="Oil filter" maxlength="100">
+                    <small class="field-error" th:if="${#fields.hasErrors('name')}"
+                           th:text="${#strings.listJoin(#fields.errors('name'), ' and ')}"></small>
+                </div>
+
+                <div class="full-width">
+                    <label for="sku">SKU</label>
+                    <input id="sku" type="text" th:field="*{sku}" th:errorclass="input-error"
+                           placeholder="OF-001" maxlength="50">
+                    <small class="field-error" th:if="${#fields.hasErrors('sku')}"
+                           th:text="${#strings.listJoin(#fields.errors('sku'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="unitPrice">Unit price</label>
+                    <input id="unitPrice" type="number" th:field="*{unitPrice}" th:errorclass="input-error"
+                           placeholder="25.00" min="0.01" step="0.01">
+                    <small class="field-error" th:if="${#fields.hasErrors('unitPrice')}"
+                           th:text="${#strings.listJoin(#fields.errors('unitPrice'), ' and ')}"></small>
+                </div>
+
+                <div>
+                    <label for="quantityInStock">Quantity in stock</label>
+                    <input id="quantityInStock" type="number" th:field="*{quantityInStock}" th:errorclass="input-error"
+                           placeholder="40" min="0" step="1">
+                    <small class="field-error" th:if="${#fields.hasErrors('quantityInStock')}"
+                           th:text="${#strings.listJoin(#fields.errors('quantityInStock'), ' and ')}"></small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button primary">Save part</button>
+                <a class="button secondary" th:href="@{/admin/parts}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

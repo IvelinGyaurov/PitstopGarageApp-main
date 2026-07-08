@@ -214,55 +214,6 @@
 
     <section class="repairs-section">
         <div class="repairs-section-header">
-            <h2>Rejected requests</h2>
-            <span class="repairs-section-count"
-                  th:text="${rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0} + ' rejected'">0 rejected</span>
-        </div>
-
-        <section class="repairs-list" th:if="${rejectedRepairs != null and !rejectedRepairs.isEmpty()}">
-            <article class="repair-card" th:each="repair : ${rejectedRepairs}">
-                <div class="repair-card-head">
-                    <div>
-                        <h3 class="repair-car-title"
-                            th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h3>
-                        <p class="repair-car-meta"
-                           th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
-                    </div>
-                    <span class="repair-status cancelled"
-                          th:text="${repair.status.displayName}">Cancelled</span>
-                </div>
-
-                <span class="repair-description-label">Problem description</span>
-                <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
-
-                <div class="repair-card-footer">
-                    <div class="repair-meta">
-                        <span>
-                            Client <strong th:text="${repair.client.username}">client</strong>
-                        </span>
-                        <span>
-                            Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
-                        </span>
-                        <span th:if="${repair.rejectedAt != null}">
-                            Rejected <strong th:text="${#temporals.format(repair.rejectedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
-                        </span>
-                        <span th:if="${repair.mechanic != null}">
-                            Rejected by <strong th:text="${repair.mechanic.username}">mechanic</strong>
-                        </span>
-                    </div>
-                </div>
-            </article>
-        </section>
-
-        <section class="repairs-empty-wrap" th:if="${rejectedRepairs == null or rejectedRepairs.isEmpty()}">
-            <div class="empty-state">
-                <p>No rejected repair requests yet.</p>
-            </div>
-        </section>
-    </section>
-
-    <section class="repairs-section">
-        <div class="repairs-section-header">
             <h2>Completed repairs</h2>
             <span class="repairs-section-count"
                   th:text="${completedRepairs != null ? #lists.size(completedRepairs) : 0} + ' completed'">0 completed</span>
@@ -306,6 +257,55 @@
         <section class="repairs-empty-wrap" th:if="${completedRepairs == null or completedRepairs.isEmpty()}">
             <div class="empty-state">
                 <p>No completed repairs yet. Finish accepted jobs to see them here.</p>
+            </div>
+        </section>
+    </section>
+
+    <section class="repairs-section">
+        <div class="repairs-section-header">
+            <h2>Rejected requests</h2>
+            <span class="repairs-section-count"
+                  th:text="${rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0} + ' rejected'">0 rejected</span>
+        </div>
+
+        <section class="repairs-list" th:if="${rejectedRepairs != null and !rejectedRepairs.isEmpty()}">
+            <article class="repair-card" th:each="repair : ${rejectedRepairs}">
+                <div class="repair-card-head">
+                    <div>
+                        <h3 class="repair-car-title"
+                            th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h3>
+                        <p class="repair-car-meta"
+                           th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
+                    </div>
+                    <span class="repair-status cancelled"
+                          th:text="${repair.status.displayName}">Cancelled</span>
+                </div>
+
+                <span class="repair-description-label">Problem description</span>
+                <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
+
+                <div class="repair-card-footer">
+                    <div class="repair-meta">
+                        <span>
+                            Client <strong th:text="${repair.client.username}">client</strong>
+                        </span>
+                        <span>
+                            Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        </span>
+                        <span th:if="${repair.rejectedAt != null}">
+                            Rejected <strong th:text="${#temporals.format(repair.rejectedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                        </span>
+                        <span th:if="${repair.mechanic != null}">
+                            Rejected by <strong th:text="${repair.mechanic.username}">mechanic</strong>
+                        </span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="repairs-empty-wrap" th:if="${rejectedRepairs == null or rejectedRepairs.isEmpty()}">
+            <div class="empty-state">
+                <p>No rejected repair requests yet.</p>
             </div>
         </section>
     </section>

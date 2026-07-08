@@ -274,15 +274,9 @@
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="button repair-start-btn">Start</button>
                     </form>
-                    <form th:if="${repair.status.name() == 'IN_PROGRESS'}"
-                          th:action="@{/mechanic/repairs/{id}/complete(id=${repair.id})}"
-                          method="post"
-                          class="repair-action-form"
-                          th:attr="data-car-label=${repair.car.brand + ' ' + repair.car.model}"
-                          onsubmit="return confirm('Mark the repair for ' + this.dataset.carLabel + ' as completed?');">
-                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" class="button repair-complete-btn">Complete</button>
-                    </form>
+                    <a th:if="${repair.status.name() == 'IN_PROGRESS'}"
+                       class="button repair-complete-btn"
+                       th:href="@{/mechanic/repairs/{id}/complete(id=${repair.id})}">Complete</a>
                 </div>
             </div>
         </article>

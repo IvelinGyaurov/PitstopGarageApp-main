@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parts inventory - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .parts-page {
+            padding-bottom: 3rem;
+        }
+
+        .parts-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .parts-page-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .parts-count {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .parts-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .parts-table-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .parts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .parts-table thead {
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .parts-table th,
+        .parts-table td {
+            padding: 1rem 1.15rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .parts-table th {
+            color: #fdba74;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .parts-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .parts-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .parts-delete-form {
+            margin: 0;
+        }
+
+        .parts-empty {
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.08), transparent 42%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+        }
+
+        .parts-empty p {
+            color: var(--muted);
+            margin-bottom: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+        <div class="nav-links">
+            <a class="button secondary" th:href="@{/home}">Home</a>
+            <a class="button primary" th:href="@{/admin/parts/add}">Add part</a>
+        </div>
+    </nav>
+</header>
+
+<main class="dashboard parts-page">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <section class="parts-page-header">
+        <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Parts inventory</h1>
+            <p class="parts-count" th:text="${#lists.size(parts)} + ' part(s) in stock'">0 parts</p>
+        </div>
+        <div class="parts-header-actions">
+            <a class="button primary" th:href="@{/admin/parts/add}">Add part</a>
+        </div>
+    </section>
+
+    <section class="parts-table-wrap" th:if="${!#lists.isEmpty(parts)}">
+        <table class="parts-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>SKU</th>
+                <th>Unit price</th>
+                <th>In stock</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="part : ${parts}">
+                <td th:text="${part.name}">Name</td>
+                <td th:text="${part.sku}">SKU</td>
+                <td th:text="${part.unitPrice}">0.00</td>
+                <td th:text="${part.quantityInStock}">0</td>
+                <td>
+                    <form class="parts-delete-form"
+                          th:action="@{/admin/parts/{id}/delete(id=${part.id})}"
+                          method="post"
+                          onsubmit="return confirm('Delete this part?');">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="button secondary">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="parts-empty" th:if="${#lists.isEmpty(parts)}">
+        <p>No parts in inventory yet.</p>
+        <a class="button primary" th:href="@{/admin/parts/add}">Add first part</a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
