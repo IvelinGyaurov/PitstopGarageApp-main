@@ -18,6 +18,13 @@ public class ExceptionAdvice {
         return "redirect:/register";
     }
 
+    @ExceptionHandler(VinAlreadyExistsException.class)
+    public String handleVinAlreadyExists(RedirectAttributes redirectAttributes,
+                                         VinAlreadyExistsException exception) {
+        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        return "redirect:/cars/add";
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String handleDataIntegrityViolation(RedirectAttributes redirectAttributes) {
 

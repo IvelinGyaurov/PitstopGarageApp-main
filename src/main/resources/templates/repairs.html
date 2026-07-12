@@ -199,15 +199,17 @@
             background: #6ee7b7;
         }
 
-        .repair-cancel-btn {
-            color: #fca5a5;
-            border-color: rgba(248, 113, 113, 0.45);
-            background: rgba(248, 113, 113, 0.08);
+        .repair-card-actions .button.repair-cancel-btn {
+            color: #fecaca;
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            background: rgba(185, 28, 28, 0.22);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.12);
         }
 
-        .repair-cancel-btn:hover {
-            border-color: rgba(248, 113, 113, 0.65);
-            background: rgba(248, 113, 113, 0.14);
+        .repair-card-actions .button.repair-cancel-btn:hover {
+            color: #fff;
+            border-color: rgba(248, 113, 113, 0.75);
+            background: rgba(220, 38, 38, 0.42);
         }
 
         .repairs-empty-wrap {
@@ -293,11 +295,10 @@
                             Mechanic <strong th:text="${repair.mechanic != null ? repair.mechanic.username : 'Not assigned yet'}">-</strong>
                         </span>
                     </div>
-                    <a class="button secondary repair-details-btn"
-                       th:href="@{/repairs/{id}(id=${repair.id})}">View details</a>
                 </div>
-                <div class="repair-card-actions" th:if="${repair.status.name() == 'PENDING'}">
-                    <form th:action="@{/repairs/{id}/cancel(id=${repair.id})}"
+                <div class="repair-card-actions">
+                    <form th:if="${repair.status.name() == 'PENDING'}"
+                          th:action="@{/repairs/{id}/cancel(id=${repair.id})}"
                           method="post"
                           class="repair-action-form"
                           th:attr="data-car-label=${repair.car.brand + ' ' + repair.car.model}"
@@ -305,6 +306,8 @@
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="button secondary repair-cancel-btn">Cancel request</button>
                     </form>
+                    <a class="button secondary repair-details-btn"
+                       th:href="@{/repairs/{id}(id=${repair.id})}">View details</a>
                 </div>
             </div>
         </article>

@@ -160,6 +160,7 @@
             flex-wrap: wrap;
             gap: 0.75rem;
             margin-top: 1.75rem;
+            padding-top: 1.75rem;
         }
 
         .details-actions .button {
@@ -168,10 +169,54 @@
             text-align: center;
         }
 
+        .parts-used-wrap {
+            border: 1px solid var(--line);
+            border-radius: 1.1rem;
+            overflow: hidden;
+        }
+
+        .parts-used-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .parts-used-table th,
+        .parts-used-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .parts-used-table th {
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #fdba74;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .parts-used-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .parts-used-table td:last-child,
+        .parts-used-table th:last-child {
+            text-align: right;
+        }
+
         @media (max-width: 640px) {
             .car-summary,
             .timeline {
                 grid-template-columns: 1fr;
+            }
+
+            .parts-used-wrap {
+                overflow-x: auto;
+            }
+
+            .parts-used-table {
+                min-width: 28rem;
             }
         }
     </style>
@@ -283,8 +328,46 @@
             </div>
         </div>
 
+        <div class="details-section"
+             th:if="${repair.status.name() == 'COMPLETED' and repair.usedParts != null and !repair.usedParts.isEmpty()}">
+            <h2>Parts used</h2>
+            <div class="parts-used-wrap">
+                <table class="parts-used-table">
+                    <thead>
+                    <tr>
+                        <th>Part</th>
+                        <th>Qty</th>
+                        <th>Unit price</th>
+                        <th>Line total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="used : ${repair.usedParts}">
+                        <td th:text="${used.partName}">Oil filter</td>
+                        <td th:text="${used.quantity}">2</td>
+                        <td th:text="${used.unitPrice + ' BGN'}">25.00 BGN</td>
+                        <td th:text="${#numbers.formatDecimal(used.unitPrice.doubleValue() * used.quantity, 1, 2) + ' BGN'}">
+                            50.00 BGN
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="details-section"
+             th:if="${repair.status.name() == 'COMPLETED' and (repair.usedParts == null or repair.usedParts.isEmpty())}">
+            <h2>Parts used</h2>
+            <p class="problem-text">No parts were recorded for this repair.</p>
+        </div>
+
         <div class="details-actions">
-            <a class="button primary" th:href="@{/repairs}">Back to my repairs</a>
+            <a class="button primary"
+               th:if="${repair.status.name() == 'COMPLETED'}"
+               th:href="@{/repairs/history}">Back to service history</a>
+            <a class="button primary"
+               th:unless="${repair.status.name() == 'COMPLETED'}"
+               th:href="@{/repairs}">Back to my repairs</a>
             <a class="button secondary" th:href="@{/cars}">My cars</a>
         </div>
     </section>

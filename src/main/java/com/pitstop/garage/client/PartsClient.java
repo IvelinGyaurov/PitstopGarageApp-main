@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "pitstop-parts", url = "${parts.service.url}")
+@FeignClient(name = "pitstop-parts", url = "http://localhost:8081")
 public interface PartsClient {
 
     @GetMapping("/api/parts")

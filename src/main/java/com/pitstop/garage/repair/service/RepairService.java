@@ -195,6 +195,25 @@ public class RepairService {
         return staleRepairs.size();
     }
 
+    @Transactional
+    public int releaseStaleAcceptedRepairs(int olderThanDays) {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(olderThanDays);
+
+        List<ServiceRepair> staleRepairs = serviceRepairRepository
+                .findAllByStatusAndStartedAtIsNullAndAcceptedAtBefore(
+                        RepairStatus.ACCEPTED, cutoff);
+
+        for (ServiceRepair repair : staleRepairs) {
+            repair.setStatus(RepairStatus.PENDING);
+            repair.setMechanic(null);
+            repair.setAcceptedAt(null);
+        }
+
+        serviceRepairRepository.saveAll(staleRepairs);
+        log.info("Released {} stale ACCEPTED repair(s) back to queue", staleRepairs.size());
+        return staleRepairs.size();
+    }
+
     public List<ServiceRepair> getAcceptedRepairsForMechanic(UUID mechanicId) {
         User mechanic = userService.getById(mechanicId);
         List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
@@ -305,6 +324,7 @@ public class RepairService {
         };
     }
 
+    @Transactional(readOnly = true)
     public ServiceRepair getRepairForClient(UUID userId, UUID id) {
         User client = userService.getById(userId);
         return serviceRepairRepository.findByIdAndClient(id, client)

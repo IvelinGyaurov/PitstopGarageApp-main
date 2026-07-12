@@ -15,7 +15,13 @@ public class ScheduledTasks {
         this.repairService = repairService;
     }
 
-    //TODO implement fixedDelay
+    @Scheduled(fixedDelay = 86_400_000, initialDelay = 60_000)
+    public void releaseStaleAcceptedRepairs() {
+        log.info("fixedDelay job started: releasing ACCEPTED repairs not started within 7 days");
+        int released = repairService.releaseStaleAcceptedRepairs(7);
+        log.info("fixedDelay job finished: released {} repair(s) back to queue", released);
+    }
+
     @Scheduled(cron = "0 0 0 1 * *")
     public void expirePendingRepairs() {
         log.info("Monthly cron started: cancelling PENDING repairs older than 30 days");

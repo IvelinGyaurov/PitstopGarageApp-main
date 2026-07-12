@@ -29,4 +29,9 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
     );
 
     List<ServiceRepair> findAllByClientAndStatusIn(User client, List<RepairStatus> statuses);
+
+    List<ServiceRepair> findAllByStatusAndStartedAtIsNullAndAcceptedAtBefore(
+            RepairStatus status,
+            LocalDateTime acceptedBefore
+    );
 }
