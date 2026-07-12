@@ -172,7 +172,7 @@
             </p>
 
             <div class="labor-field">
-                <label for="laborCost">Labor cost</label>
+                <label for="laborCost">Labor cost (EUR)</label>
                 <input id="laborCost" type="number" th:field="*{laborCost}" th:errorclass="input-error"
                        min="0" step="0.01" placeholder="0.00">
                 <small class="field-error" th:if="${#fields.hasErrors('laborCost')}"

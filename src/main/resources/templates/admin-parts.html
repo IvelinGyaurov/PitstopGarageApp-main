@@ -141,7 +141,7 @@
             <tr th:each="part : ${parts}">
                 <td th:text="${part.name}">Name</td>
                 <td th:text="${part.sku}">SKU</td>
-                <td th:text="${part.unitPrice}">0.00</td>
+                <td th:text="${part.unitPrice + ' EUR'}">0.00</td>
                 <td th:text="${part.quantityInStock}">0</td>
                 <td>
                     <form class="parts-delete-form"

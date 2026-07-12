@@ -86,10 +86,10 @@ public class RepairController {
 
     @GetMapping("/history")
     public ModelAndView repairHistory(@AuthenticationPrincipal PitstopUserDetails userData) {
-
+        UUID clientId = userData.getUserId();
         ModelAndView modelAndView = new ModelAndView("repairs-history");
-        modelAndView.addObject("repairs", repairService.getMyRepairHistory(userData.getUserId()));
-
+        modelAndView.addObject("completedRepairs", repairService.getCompletedRepairsForClient(clientId));
+        modelAndView.addObject("rejectedRepairs", repairService.getRejectedRepairsForClient(clientId));
         return modelAndView;
     }
 
@@ -101,6 +101,7 @@ public class RepairController {
 
         ModelAndView modelAndView = new ModelAndView("repair-details");
         modelAndView.addObject("repair", repair);
+        modelAndView.addObject("detailsAudience", "CLIENT");
         return modelAndView;
     }
 }

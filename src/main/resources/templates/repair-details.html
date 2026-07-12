@@ -141,18 +141,39 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.85rem 1rem;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+            overflow: visible;
+        }
+
+        .timeline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            padding: 0;
+            border-bottom: none;
+        }
+
+        .timeline-item-wide {
+            grid-column: 1 / -1;
         }
 
         .timeline-item span {
             display: block;
             color: var(--muted);
             font-size: 0.78rem;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0;
         }
 
         .timeline-item strong {
             font-size: 0.95rem;
             font-weight: 600;
+            color: var(--text);
+            line-height: 1.45;
+            word-break: break-word;
         }
 
         .details-actions {
@@ -223,7 +244,7 @@
 </head>
 <body>
 <header class="dashboard-header">
-    <nav class="navbar">
+    <nav class="navbar" th:if="${detailsAudience == null or detailsAudience == 'CLIENT'}">
         <a class="brand" th:href="@{/home}">
             <span class="brand-mark">PS</span>
             <span>PitStop Garage</span>
@@ -233,6 +254,21 @@
             <a th:href="@{/cars}">My cars</a>
             <a th:href="@{/repairs}">My repairs</a>
             <a th:href="@{/home}">Home</a>
+            <a th:href="@{/logout}">Logout</a>
+        </div>
+    </nav>
+
+    <nav class="navbar" th:if="${detailsAudience == 'MECHANIC'}">
+        <a class="brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/mechanic/repairs}">Repair queue</a>
+            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
+            <a th:href="@{/mechanic/repairs/history}">Repair history</a>
             <a th:href="@{/logout}">Logout</a>
         </div>
     </nav>
@@ -293,21 +329,25 @@
                     <span>Submitted</span>
                     <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy HH:mm')}">-</strong>
                 </div>
-                <div class="timeline-item" th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic != null}">
+                <div class="timeline-item" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT') and repair.status.name() == 'CANCELLED' and repair.mechanic != null}">
                     <span>Rejected by</span>
                     <strong th:text="${repair.mechanic.username}">-</strong>
                 </div>
                 <div class="timeline-item" th:if="${repair.status.name() == 'USER_CANCELLED'}">
                     <span>Cancelled by</span>
-                    <strong>Client</strong>
+                    <strong th:text="${repair.client.username}">Client</strong>
                 </div>
-                <div class="timeline-item" th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
-                    <span>Mechanic</span>
-                    <strong>Not assigned</strong>
+                <div class="timeline-item timeline-item-wide" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT') and repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
+                    <span>Reason</span>
+                    <strong>No mechanic accepted the request within 30 days</strong>
                 </div>
-                <div class="timeline-item" th:if="${repair.status.name() != 'CANCELLED' and repair.status.name() != 'USER_CANCELLED'}">
+                <div class="timeline-item" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT') and repair.status.name() != 'CANCELLED' and repair.status.name() != 'USER_CANCELLED'}">
                     <span>Mechanic</span>
                     <strong th:text="${repair.mechanic != null ? repair.mechanic.username : 'Not assigned yet'}">-</strong>
+                </div>
+                <div class="timeline-item" th:if="${detailsAudience == 'MECHANIC'}">
+                    <span>Client</span>
+                    <strong th:text="${repair.client.username}">-</strong>
                 </div>
                 <div class="timeline-item" th:if="${repair.acceptedAt != null}">
                     <span>Accepted</span>
@@ -323,7 +363,7 @@
                 </div>
                 <div class="timeline-item" th:if="${repair.laborCost != null}">
                     <span>Labor cost</span>
-                    <strong th:text="${repair.laborCost + ' BGN'}">-</strong>
+                    <strong th:text="${repair.laborCost + ' EUR'}">-</strong>
                 </div>
             </div>
         </div>
@@ -345,9 +385,9 @@
                     <tr th:each="used : ${repair.usedParts}">
                         <td th:text="${used.partName}">Oil filter</td>
                         <td th:text="${used.quantity}">2</td>
-                        <td th:text="${used.unitPrice + ' BGN'}">25.00 BGN</td>
-                        <td th:text="${#numbers.formatDecimal(used.unitPrice.doubleValue() * used.quantity, 1, 2) + ' BGN'}">
-                            50.00 BGN
+                        <td th:text="${used.unitPrice + ' EUR'}">25.00 EUR</td>
+                        <td th:text="${#numbers.formatDecimal(used.unitPrice.doubleValue() * used.quantity, 1, 2) + ' EUR'}">
+                            50.00 EUR
                         </td>
                     </tr>
                     </tbody>
@@ -361,14 +401,19 @@
             <p class="problem-text">No parts were recorded for this repair.</p>
         </div>
 
-        <div class="details-actions">
+        <div class="details-actions" th:if="${detailsAudience == null or detailsAudience == 'CLIENT'}">
             <a class="button primary"
-               th:if="${repair.status.name() == 'COMPLETED'}"
+               th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
                th:href="@{/repairs/history}">Back to service history</a>
             <a class="button primary"
-               th:unless="${repair.status.name() == 'COMPLETED'}"
+               th:unless="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
                th:href="@{/repairs}">Back to my repairs</a>
             <a class="button secondary" th:href="@{/cars}">My cars</a>
+        </div>
+
+        <div class="details-actions" th:if="${detailsAudience == 'MECHANIC'}">
+            <a class="button primary" th:href="@{/mechanic/repairs/history}">Back to repair history</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
         </div>
     </section>
 </main>

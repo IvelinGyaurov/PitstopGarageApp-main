@@ -129,7 +129,7 @@
                 </div>
 
                 <div>
-                    <label for="unitPrice">Unit price</label>
+                    <label for="unitPrice">Unit price (EUR)</label>
                     <input id="unitPrice" type="number" th:field="*{unitPrice}" th:errorclass="input-error"
                            placeholder="25.00" min="0.01" step="0.01">
                     <small class="field-error" th:if="${#fields.hasErrors('unitPrice')}"

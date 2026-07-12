@@ -86,6 +86,17 @@ public class MechanicRepairController {
         return new ModelAndView("redirect:/mechanic/repairs/accepted");
     }
 
+    @GetMapping("/{id}/details")
+    public ModelAndView repairDetails(@PathVariable UUID id,
+                                      @AuthenticationPrincipal PitstopUserDetails userData) {
+        ServiceRepair repair = repairService.getRepairForMechanic(userData.getUserId(), id);
+
+        ModelAndView mav = new ModelAndView("repair-details");
+        mav.addObject("repair", repair);
+        mav.addObject("detailsAudience", "MECHANIC");
+        return mav;
+    }
+
     @PreAuthorize("hasRole('MECHANIC')")
     @PostMapping("/{id}/complete")
     public ModelAndView completeRepair(@PathVariable UUID id,

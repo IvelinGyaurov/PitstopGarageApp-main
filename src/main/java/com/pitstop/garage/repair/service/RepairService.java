@@ -277,6 +277,39 @@ public class RepairService {
                 .toList();
     }
 
+    public List<ServiceRepair> getCompletedRepairsForClient(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(
+                client,
+                List.of(RepairStatus.COMPLETED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(
+                        ServiceRepair::getCompletedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+
+    public List<ServiceRepair> getRejectedRepairsForClient(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(
+                client,
+                List.of(RepairStatus.CANCELLED, RepairStatus.USER_CANCELLED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::clientRejectedDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    private LocalDateTime clientRejectedDate(ServiceRepair repair) {
+        if (repair.getRejectedAt() != null) {
+            return repair.getRejectedAt();
+        }
+        return repair.getCreatedOn();
+    }
+
     public List<ServiceRepair> getMyRepairHistory(UUID clientId) {
         User client = userService.getById(clientId);
         List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(
@@ -329,6 +362,18 @@ public class RepairService {
         User client = userService.getById(userId);
         return serviceRepairRepository.findByIdAndClient(id, client)
                 .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceRepair getRepairForMechanic(UUID mechanicId, UUID repairId) {
+        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+
+        if (repair.getStatus() != RepairStatus.COMPLETED
+                && repair.getStatus() != RepairStatus.CANCELLED) {
+            throw new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND);
+        }
+
+        return repair;
     }
 
     public List<ServiceRepair> getPendingRepairsForMechanics() {
