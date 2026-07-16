@@ -118,6 +118,10 @@ public class UserService implements UserDetailsService  {
         return userRepository.findAll();
     }
 
+    public long countUsers() {
+        return userRepository.count();
+    }
+
     @Cacheable(value = "users")
     public User getById(UUID id) {
 

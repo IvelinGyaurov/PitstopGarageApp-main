@@ -50,6 +50,7 @@ public class CarController {
         redirectAttributes.addFlashAttribute("successMessage", "Car added successfully.");
         return new ModelAndView("redirect:/cars");
     }
+
     @DeleteMapping("/{id}")
     public ModelAndView deleteCar(@PathVariable UUID id,
                                   @AuthenticationPrincipal PitstopUserDetails userData,

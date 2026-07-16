@@ -3,7 +3,10 @@ package com.pitstop.garage.parts;
 import com.pitstop.garage.client.PartsClient;
 import com.pitstop.garage.client.dto.CreatePartRequest;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.exceptions.PartSkuAlreadyExistsException;
+import com.pitstop.garage.exceptions.PartSkuAlreadyExistsExceptionMessage;
 import com.pitstop.garage.web.dto.AddPartRequest;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +29,13 @@ public class PartsAdminService {
 
     public void createPart(AddPartRequest form) {
         CreatePartRequest request = toCreatePartRequest(form);
-        partsClient.createPart(request);
-        log.info("Admin created part with sku={}", request.getSku());
+        try {
+            partsClient.createPart(request);
+            log.info("Admin created part with sku={}", request.getSku());
+        } catch (FeignException.BadRequest ex) {
+            throw new PartSkuAlreadyExistsException(
+                    PartSkuAlreadyExistsExceptionMessage.SKU_ALREADY_EXISTS);
+        }
     }
 
     public void deletePart(UUID partId) {

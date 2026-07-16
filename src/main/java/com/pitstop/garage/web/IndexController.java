@@ -1,7 +1,10 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
+import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.LoginRequest;
 import com.pitstop.garage.web.dto.RegisterRequest;
@@ -21,9 +24,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class IndexController {
 
     private final UserService userService;
+    private final CarService carService;
+    private final RepairService repairService;
 
-    public IndexController(UserService userService) {
+    public IndexController(UserService userService,
+                           CarService carService,
+                           RepairService repairService) {
         this.userService = userService;
+        this.carService = carService;
+        this.repairService = repairService;
     }
 
     @GetMapping({"/", "/index"})
@@ -56,6 +65,20 @@ public class IndexController {
         modelAndView.addObject("username", user.getUsername());
         modelAndView.addObject("role", user.getRole());
         modelAndView.addObject("profilePicture", user.getProfilePicture());
+
+        if (user.getRole() == UserRole.USER) {
+            modelAndView.addObject("carsCount", carService.getMyCars(user.getId()).size());
+            modelAndView.addObject("activeRepairsCount", repairService.getMyRepairs(user.getId()).size());
+        } else if (user.getRole() == UserRole.MECHANIC) {
+            modelAndView.addObject("bayCount", repairService.getAcceptedRepairsForMechanic(user.getId()).size());
+            modelAndView.addObject("queueCount", repairService.getPendingRepairsForMechanics().size());
+        } else if (user.getRole() == UserRole.ADMIN) {
+            int activeRepairs = repairService.getPendingRepairsForAdmin().size()
+                    + repairService.getAcceptedRepairsForAdmin().size()
+                    + repairService.getInProgressRepairsForAdmin().size();
+            modelAndView.addObject("activeRepairsCount", activeRepairs);
+            modelAndView.addObject("usersCount", userService.countUsers());
+        }
 
         return modelAndView;
     }

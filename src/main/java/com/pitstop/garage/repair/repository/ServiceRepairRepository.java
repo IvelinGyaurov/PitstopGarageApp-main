@@ -34,4 +34,8 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
             RepairStatus status,
             LocalDateTime acceptedBefore
     );
+
+    List<ServiceRepair> findAllByStatusInOrderByCreatedOnDesc(List<RepairStatus> statuses);
+
+    List<ServiceRepair> findAllByStatusOrderByCreatedOnDesc(RepairStatus status);
 }

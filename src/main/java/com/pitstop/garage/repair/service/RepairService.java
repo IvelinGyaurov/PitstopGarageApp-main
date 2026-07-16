@@ -401,4 +401,44 @@ public class RepairService {
         return serviceRepairRepository
                 .findAllByStatusAndMechanicIsNullOrderByCreatedOnDesc(RepairStatus.PENDING);
     }
+
+    public List<ServiceRepair> getPendingRepairsForAdmin() {
+        return serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.PENDING);
+    }
+    public List<ServiceRepair> getAcceptedRepairsForAdmin() {
+        List<ServiceRepair> repairs = serviceRepairRepository
+                .findAllByStatusOrderByCreatedOnDesc(RepairStatus.ACCEPTED);
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::mechanicActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+    public List<ServiceRepair> getInProgressRepairsForAdmin() {
+        List<ServiceRepair> repairs = serviceRepairRepository
+                .findAllByStatusOrderByCreatedOnDesc(RepairStatus.IN_PROGRESS);
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::mechanicActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+    public List<ServiceRepair> getCompletedRepairsForAdmin() {
+        List<ServiceRepair> repairs = serviceRepairRepository
+                .findAllByStatusOrderByCreatedOnDesc(RepairStatus.COMPLETED);
+        return repairs.stream()
+                .sorted(Comparator.comparing(
+                        ServiceRepair::getCompletedAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+    public List<ServiceRepair> getRejectedRepairsForAdmin() {
+        List<ServiceRepair> repairs = serviceRepairRepository
+                .findAllByStatusInOrderByCreatedOnDesc(
+                        List.of(RepairStatus.CANCELLED, RepairStatus.USER_CANCELLED));
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::clientRejectedDate, Comparator.reverseOrder()))
+                .toList();
+    }
+    @Transactional(readOnly = true)
+    public ServiceRepair getRepairForAdmin(UUID repairId) {
+        return serviceRepairRepository.findById(repairId)
+                .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+    }
 }

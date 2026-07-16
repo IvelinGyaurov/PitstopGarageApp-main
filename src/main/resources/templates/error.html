@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:with="displayStatus=${status == 404 ? 404 : 500}"
+           th:text="${displayStatus == 404} ? 'Page not found - PitStop Garage' : 'Something went wrong - PitStop Garage'">
+        Error - PitStop Garage
+    </title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .error-page {
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .error-card {
+            width: min(520px, 100%);
+            padding: 2rem;
+            border: 1px solid var(--line);
+            border-radius: 1.6rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .error-card .auth-brand {
+            display: inline-flex;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .error-card h1 {
+            margin: 0.4rem 0 0.75rem;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+        }
+
+        .error-card .auth-copy {
+            margin: 0 0 1.5rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+<main class="error-page" th:with="displayStatus=${status == 404 ? 404 : 500}">
+    <section class="error-card">
+        <a class="brand auth-brand" th:href="@{/home}">
+            <span class="brand-mark">PS</span>
+            <span>PitStop Garage</span>
+        </a>
+
+        <th:block th:if="${displayStatus == 404}">
+            <p class="eyebrow">Error 404</p>
+            <h1>Page not found</h1>
+            <p class="auth-copy">
+                This page doesn’t exist or the link is broken.
+                Head back home and continue from there.
+            </p>
+        </th:block>
+
+        <th:block th:if="${displayStatus == 500}">
+            <p class="eyebrow">Error 500</p>
+            <h1>Something went wrong</h1>
+            <p class="auth-copy">
+                We couldn’t complete this request right now.
+                Please try again or return to your garage dashboard.
+            </p>
+        </th:block>
+
+        <div class="error-actions">
+            <a class="button primary" th:href="@{/home}">Back to home</a>
+            <a class="button secondary" th:href="@{/index}">Go to start page</a>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
