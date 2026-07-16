@@ -1,7 +1,5 @@
 package com.pitstop.garage.web;
 
-import com.pitstop.garage.client.PartsClient;
-import com.pitstop.garage.client.dto.PartResponse;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -23,11 +20,9 @@ import java.util.UUID;
 public class MechanicRepairController {
 
     private final RepairService repairService;
-    private final PartsClient partsClient;
 
-    public MechanicRepairController(RepairService repairService, PartsClient partsClient) {
+    public MechanicRepairController(RepairService repairService) {
         this.repairService = repairService;
-        this.partsClient = partsClient;
     }
 
     @PreAuthorize("hasRole('MECHANIC')")
@@ -86,6 +81,7 @@ public class MechanicRepairController {
         return new ModelAndView("redirect:/mechanic/repairs/accepted");
     }
 
+    @PreAuthorize("hasRole('MECHANIC')")
     @GetMapping("/{id}/details")
     public ModelAndView repairDetails(@PathVariable UUID id,
                                       @AuthenticationPrincipal PitstopUserDetails userData) {
@@ -105,10 +101,9 @@ public class MechanicRepairController {
                                        BindingResult bindingResult,
                                        RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            ServiceRepair repair = repairService.getInProgressRepairForMechanic(userData.getUserId(), id);
             ModelAndView modelAndView = new ModelAndView("mechanic-complete-repair");
-            modelAndView.addObject("repair", repair);
-            modelAndView.addObject("catalogParts", partsClient.getAllParts());
+            modelAndView.addObject("repair", repairService.getInProgressRepairForMechanic(userData.getUserId(), id));
+            modelAndView.addObject("catalogParts", repairService.getCatalogParts());
             modelAndView.addObject("completeRepairRequest", completeRepairRequest);
             return modelAndView;
         }
@@ -125,23 +120,10 @@ public class MechanicRepairController {
     @GetMapping("/{id}/complete")
     public ModelAndView completeRepairForm(@PathVariable UUID id,
                                            @AuthenticationPrincipal PitstopUserDetails userData) {
-        ServiceRepair repair = repairService.getInProgressRepairForMechanic(userData.getUserId(), id);
-        List<PartResponse> catalogParts = partsClient.getAllParts();
-
-        CompleteRepairRequest completeRepairRequest = new CompleteRepairRequest();
-        completeRepairRequest.setLaborCost(java.math.BigDecimal.ZERO);
-        completeRepairRequest.setParts(catalogParts.stream().map(part -> {
-            CompleteRepairRequest.PartUsageForm form = new CompleteRepairRequest.PartUsageForm();
-            form.setPartId(part.getId());
-            form.setQuantity(1);
-            form.setSelected(false);
-            return form;
-        }).toList());
-
         ModelAndView modelAndView = new ModelAndView("mechanic-complete-repair");
-        modelAndView.addObject("repair", repair);
-        modelAndView.addObject("catalogParts", catalogParts);
-        modelAndView.addObject("completeRepairRequest", completeRepairRequest);
+        modelAndView.addObject("repair", repairService.getInProgressRepairForMechanic(userData.getUserId(), id));
+        modelAndView.addObject("catalogParts", repairService.getCatalogParts());
+        modelAndView.addObject("completeRepairRequest", repairService.buildCompleteRepairForm());
         return modelAndView;
     }
 }

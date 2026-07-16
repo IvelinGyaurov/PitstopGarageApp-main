@@ -6,6 +6,7 @@ import com.pitstop.garage.client.PartsClient;
 import com.pitstop.garage.client.dto.DeductPartItemRequest;
 import com.pitstop.garage.client.dto.DeductPartsRequest;
 import com.pitstop.garage.client.dto.DeductedPartResponse;
+import com.pitstop.garage.client.dto.PartResponse;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairNotFoundExceptionMessage;
 import com.pitstop.garage.exceptions.RepairStatusException;
@@ -260,6 +261,26 @@ public class RepairService {
             throw new RepairStatusException(RepairStatusExceptionMessage.REPAIR_NOT_IN_PROGRESS);
         }
         return repair;
+    }
+
+    public List<PartResponse> getCatalogParts() {
+        return partsClient.getAllParts();
+    }
+
+    public CompleteRepairRequest buildCompleteRepairForm() {
+        List<PartResponse> catalogParts = getCatalogParts();
+
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setLaborCost(BigDecimal.ZERO);
+        request.setParts(catalogParts.stream().map(part -> {
+            CompleteRepairRequest.PartUsageForm form = new CompleteRepairRequest.PartUsageForm();
+            form.setPartId(part.getId());
+            form.setQuantity(1);
+            form.setSelected(false);
+            return form;
+        }).toList());
+
+        return request;
     }
 
 

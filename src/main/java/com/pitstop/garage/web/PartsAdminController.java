@@ -1,7 +1,6 @@
 package com.pitstop.garage.web;
 
-import com.pitstop.garage.client.PartsClient;
-import com.pitstop.garage.client.dto.CreatePartRequest;
+import com.pitstop.garage.parts.PartsAdminService;
 import com.pitstop.garage.web.dto.AddPartRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,17 +16,17 @@ import java.util.UUID;
 @RequestMapping("/admin/parts")
 public class PartsAdminController {
 
-    private final PartsClient partsClient;
+    private final PartsAdminService partsAdminService;
 
-    public PartsAdminController(PartsClient partsClient) {
-        this.partsClient = partsClient;
+    public PartsAdminController(PartsAdminService partsAdminService) {
+        this.partsAdminService = partsAdminService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ModelAndView listParts() {
         ModelAndView modelAndView = new ModelAndView("admin-parts");
-        modelAndView.addObject("parts", partsClient.getAllParts());
+        modelAndView.addObject("parts", partsAdminService.getAllParts());
         return modelAndView;
     }
 
@@ -38,6 +37,7 @@ public class PartsAdminController {
         modelAndView.addObject("addPartRequest", new AddPartRequest());
         return modelAndView;
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ModelAndView createPart(@Valid @ModelAttribute("addPartRequest") AddPartRequest addPartRequest,
@@ -48,12 +48,8 @@ public class PartsAdminController {
             modelAndView.addObject("addPartRequest", addPartRequest);
             return modelAndView;
         }
-        CreatePartRequest request = new CreatePartRequest();
-        request.setName(addPartRequest.getName().trim());
-        request.setSku(addPartRequest.getSku().trim());
-        request.setUnitPrice(addPartRequest.getUnitPrice());
-        request.setQuantityInStock(addPartRequest.getQuantityInStock());
-        partsClient.createPart(request);
+
+        partsAdminService.createPart(addPartRequest);
         redirectAttributes.addFlashAttribute("successMessage", "Part added successfully.");
         return new ModelAndView("redirect:/admin/parts");
     }
@@ -62,7 +58,7 @@ public class PartsAdminController {
     @PostMapping("/{id}/delete")
     public ModelAndView deletePart(@PathVariable UUID id,
                                    RedirectAttributes redirectAttributes) {
-        partsClient.deletePart(id);
+        partsAdminService.deletePart(id);
         redirectAttributes.addFlashAttribute("successMessage", "Part removed.");
         return new ModelAndView("redirect:/admin/parts");
     }
