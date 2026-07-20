@@ -79,8 +79,8 @@ public class UserService implements UserDetailsService  {
             throw new UserInactiveException(UserInactiveExceptionMessage.USER_INACTIVE);
         }
 
-        if (isFirstRegisteredUser(id)) {
-            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_PRIMARY_USER_ROLE);
+        if (isSoleActiveAdmin(user) && newRole != UserRole.ADMIN) {
+            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_LAST_ADMIN_ROLE);
         }
 
         user.setRole(newRole);
@@ -88,23 +88,30 @@ public class UserService implements UserDetailsService  {
         userRepository.save(user);
     }
 
-    public Optional<UUID> getFirstRegisteredUserId() {
-        return userRepository.findTopByOrderByCreatedOnAsc()
-                .map(User::getId);
+    public long countActiveAdmins() {
+        return userRepository.countByRoleAndIsActiveTrue(UserRole.ADMIN);
     }
 
-    public boolean isFirstRegisteredUser(UUID id) {
-        return getFirstRegisteredUserId()
-                .map(firstId -> firstId.equals(id))
-                .orElse(false);
+    public boolean isSoleActiveAdmin(User user) {
+        return user.getRole() == UserRole.ADMIN
+                && user.isActive()
+                && countActiveAdmins() == 1;
+    }
+
+    public Optional<UUID> getSoleActiveAdminId() {
+        if (countActiveAdmins() != 1) {
+            return Optional.empty();
+        }
+        return userRepository.findFirstByRoleAndIsActiveTrue(UserRole.ADMIN)
+                .map(User::getId);
     }
 
     @CacheEvict(value = "users", allEntries = true)
     public void changeActiveStatus(UUID id, boolean active) {
         User user = getById(id);
 
-        if (isFirstRegisteredUser(id)) {
-            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_PRIMARY_USER_STATUS);
+        if (!active && isSoleActiveAdmin(user)) {
+            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_LAST_ADMIN_STATUS);
         }
 
         user.setActive(active);

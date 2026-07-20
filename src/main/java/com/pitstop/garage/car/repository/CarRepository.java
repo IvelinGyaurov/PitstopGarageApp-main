@@ -14,13 +14,8 @@ public interface CarRepository extends JpaRepository<Car, UUID> {
 
     List<Car> findAllByOwnerAndDeletedAtIsNull(User owner);
 
-    List<Car> findAllByDeletedAtIsNull();
-
     Optional<Car> findByIdAndOwnerAndDeletedAtIsNull(UUID id, User owner);
-
-    Optional<Car> findByIdAndDeletedAtIsNull(UUID id);
 
     boolean existsByVinAndDeletedAtIsNull(String vin);
 
-    boolean existsByVinAndDeletedAtIsNullAndIdNot(String vin, UUID id);
 }

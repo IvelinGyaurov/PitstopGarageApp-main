@@ -286,12 +286,6 @@
     <section class="cars-grid" th:if="${cars != null and !cars.isEmpty()}">
         <article class="car-card" th:each="car : ${cars}">
             <div class="car-card-media">
-                <!-- Future: when Car has imageUrl, show img and hide placeholder -->
-                <!--
-                <img th:if="${car.imageUrl != null and !#strings.isEmpty(car.imageUrl)}"
-                     th:src="${car.imageUrl}"
-                     th:alt="${car.brand + ' ' + car.model}">
-                -->
                 <div class="car-card-media-placeholder">
                     <div class="car-icon" th:text="${car.brand != null ? #strings.toUpperCase(#strings.substring(car.brand, 0, 1)) : 'C'}">B</div>
                     <span th:text="${car.brand + ' ' + car.model}">BMW 320d</span>

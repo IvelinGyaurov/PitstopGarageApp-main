@@ -7,7 +7,6 @@ import com.pitstop.garage.exceptions.CarNotFoundExceptionMessage;
 import com.pitstop.garage.exceptions.VinAlreadyExistsException;
 import com.pitstop.garage.exceptions.VinAlreadyExistsExceptionMessage;
 import com.pitstop.garage.user.model.User;
-import com.pitstop.garage.user.repository.UserRepository;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.AddCarRequest;
 import lombok.extern.slf4j.Slf4j;

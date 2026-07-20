@@ -58,8 +58,7 @@ public class MechanicRepairController {
                                      RedirectAttributes redirectAttributes) {
         repairService.acceptRepairByMechanic(userData.getUserId(), id);
         redirectAttributes.addFlashAttribute("successMessage", "Repair accepted.");
-        return new ModelAndView("redirect:/mechanic/repairs");
-    }
+        return new ModelAndView("redirect:/mechanic/repairs/accepted");    }
 
     @PreAuthorize("hasRole('MECHANIC')")
     @PostMapping("/{id}/reject")

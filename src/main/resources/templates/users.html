@@ -317,14 +317,14 @@
                           method="post"
                           class="status-action-form"
                           th:attr="data-username=${user.username}"
-                          th:onsubmit="${firstUserId == null or firstUserId != user.id} ? |return confirm('Change status for ' + this.dataset.username + '?');| : 'return false;'">
+                          th:onsubmit="${soleAdminId == null or soleAdminId != user.id} ? |return confirm('Change status for ' + this.dataset.username + '?');| : 'return false;'">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" name="active" th:value="${!user.active}">
                         <button type="submit"
                                 class="button status-switch-btn"
-                                th:classappend="${firstUserId != null and firstUserId == user.id ? ' status-switch-disabled' : (user.active ? ' status-deactivate' : ' status-activate')}"
-                                th:disabled="${firstUserId != null and firstUserId == user.id}"
-                                th:title="${firstUserId != null and firstUserId == user.id ? 'The first registered user status cannot be changed' : null}"
+                                th:classappend="${soleAdminId != null and soleAdminId == user.id ? ' status-switch-disabled' : (user.active ? ' status-deactivate' : ' status-activate')}"
+                                th:disabled="${soleAdminId != null and soleAdminId == user.id}"
+                                th:title="${soleAdminId != null and soleAdminId == user.id ? 'Cannot deactivate the last remaining admin' : null}"
                                 th:text="${user.active} ? 'Deactivate' : 'Activate'">
                             Deactivate
                         </button>
@@ -338,14 +338,14 @@
                               method="post"
                               class="role-action-form"
                               th:attr="data-username=${user.username}, data-role=${roleOption.name()}"
-                              th:onsubmit="${user.active and (firstUserId == null or firstUserId != user.id)} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
+                              th:onsubmit="${user.active and (soleAdminId == null or soleAdminId != user.id)} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="role" th:value="${roleOption}">
                             <button type="submit"
                                     class="button role-switch-btn"
-                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + ((!user.active or (firstUserId != null and firstUserId == user.id)) ? ' role-switch-disabled' : '')}"
-                                    th:disabled="${!user.active or (firstUserId != null and firstUserId == user.id)}"
-                                    th:title="${firstUserId != null and firstUserId == user.id ? 'The first registered user role cannot be changed' : (!user.active ? 'Inactive users cannot change role' : null)}"
+                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + ((!user.active or (soleAdminId != null and soleAdminId == user.id)) ? ' role-switch-disabled' : '')}"
+                                    th:disabled="${!user.active or (soleAdminId != null and soleAdminId == user.id)}"
+                                    th:title="${soleAdminId != null and soleAdminId == user.id ? 'Cannot change the role of the last remaining admin' : (!user.active ? 'Inactive users cannot change role' : null)}"
                                     th:text="'Make ' + ${roleOption}">
                                 Make USER
                             </button>

@@ -13,9 +13,6 @@ public interface PartsClient {
     @GetMapping("/api/parts")
     List<PartResponse> getAllParts();
 
-    @GetMapping("/api/parts/{id}")
-    PartResponse getPartById(@PathVariable("id") UUID id);
-
     @PostMapping("/api/parts")
     PartResponse createPart(@RequestBody CreatePartRequest request);
 
