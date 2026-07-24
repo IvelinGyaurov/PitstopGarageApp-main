@@ -229,6 +229,30 @@ public class RepairService {
                 .toList();
     }
 
+    public List<ServiceRepair> getInProgressRepairsForMechanic(UUID mechanicId) {
+        User mechanic = userService.getById(mechanicId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                mechanic,
+                List.of(RepairStatus.IN_PROGRESS)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::mechanicActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getWaitingAcceptedRepairsForMechanic(UUID mechanicId) {
+        User mechanic = userService.getById(mechanicId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                mechanic,
+                List.of(RepairStatus.ACCEPTED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::mechanicActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
     public List<ServiceRepair> getRejectedRepairsForMechanic(UUID mechanicId) {
         User mechanic = userService.getById(mechanicId);
         List<ServiceRepair> repairs = serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(

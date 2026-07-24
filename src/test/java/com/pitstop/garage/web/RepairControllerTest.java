@@ -1,0 +1,144 @@
+package com.pitstop.garage.web;
+
+import com.pitstop.garage.car.model.Car;
+import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.repair.model.ServiceRepair;
+import com.pitstop.garage.repair.service.RepairService;
+import com.pitstop.garage.security.PitstopUserDetails;
+import com.pitstop.garage.user.model.UserRole;
+import com.pitstop.garage.web.dto.RequestRepairRequest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class RepairControllerTest {
+
+    @Mock
+    private CarService carService;
+
+    @Mock
+    private RepairService repairService;
+
+    @Mock
+    private BindingResult bindingResult;
+
+    @Mock
+    private RedirectAttributes redirectAttributes;
+
+    @InjectMocks
+    private RepairController repairController;
+
+    @Test
+    void repairsPreview_returnsRepairsView() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        when(repairService.getMyRepairs(user.getUserId())).thenReturn(List.of());
+
+        ModelAndView mav = repairController.repairsPreview(user);
+
+        assertEquals("repairs", mav.getViewName());
+        assertEquals(List.of(), mav.getModel().get("repairs"));
+    }
+
+    @Test
+    void repairRequestForm_withoutCarId_returnsForm() {
+        ModelAndView mav = repairController.repairRequestForm(null, principal(UserRole.USER));
+
+        assertEquals("repair-request", mav.getViewName());
+        verify(carService, never()).getMyCar(any(), any());
+    }
+
+    @Test
+    void repairRequestForm_withCarId_loadsCar() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        UUID carId = UUID.randomUUID();
+        Car car = Car.builder().id(carId).vin("WBA3A5C50EK123456").build();
+        when(carService.getMyCar(user.getUserId(), carId)).thenReturn(car);
+
+        ModelAndView mav = repairController.repairRequestForm(carId, user);
+
+        assertEquals(car, mav.getModel().get("car"));
+    }
+
+    @Test
+    void cancelRepair_redirectsToRepairs() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        UUID repairId = UUID.randomUUID();
+
+        ModelAndView mav = repairController.cancelRepair(repairId, user, redirectAttributes);
+
+        verify(repairService).cancelRepairByClient(user.getUserId(), repairId);
+        assertEquals("redirect:/repairs", mav.getViewName());
+    }
+
+    @Test
+    void submitRepairRequest_whenValid_redirects() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        UUID carId = UUID.randomUUID();
+        RequestRepairRequest request = RequestRepairRequest.builder()
+                .problemDescription("Engine noise is very loud")
+                .build();
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        ModelAndView mav = repairController.submitRepairRequest(
+                carId, request, bindingResult, user, redirectAttributes);
+
+        verify(repairService).requestRepair(user.getUserId(), carId, request);
+        assertEquals("redirect:/repairs", mav.getViewName());
+    }
+
+    @Test
+    void submitRepairRequest_whenInvalid_staysOnForm() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        UUID carId = UUID.randomUUID();
+        RequestRepairRequest request = new RequestRepairRequest();
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getModel()).thenReturn(new java.util.HashMap<>());
+        when(carService.getMyCar(user.getUserId(), carId)).thenReturn(Car.builder().id(carId).build());
+
+        ModelAndView mav = repairController.submitRepairRequest(
+                carId, request, bindingResult, user, redirectAttributes);
+
+        assertEquals("repair-request", mav.getViewName());
+        verify(repairService, never()).requestRepair(any(), any(), any());
+    }
+
+    @Test
+    void repairHistory_returnsHistoryView() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        when(repairService.getCompletedRepairsForClient(user.getUserId())).thenReturn(List.of());
+        when(repairService.getRejectedRepairsForClient(user.getUserId())).thenReturn(List.of());
+
+        ModelAndView mav = repairController.repairHistory(user);
+
+        assertEquals("repairs-history", mav.getViewName());
+    }
+
+    @Test
+    void viewRepairDetails_returnsDetails() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        UUID repairId = UUID.randomUUID();
+        ServiceRepair repair = ServiceRepair.builder().id(repairId).build();
+        when(repairService.getRepairForClient(user.getUserId(), repairId)).thenReturn(repair);
+
+        ModelAndView mav = repairController.viewRepairDetails(repairId, user);
+
+        assertEquals("repair-details", mav.getViewName());
+        assertEquals("CLIENT", mav.getModel().get("detailsAudience"));
+    }
+
+    private PitstopUserDetails principal(UserRole role) {
+        return new PitstopUserDetails(UUID.randomUUID(), "user", "pass", role, true);
+    }
+}

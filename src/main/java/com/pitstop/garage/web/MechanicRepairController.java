@@ -36,8 +36,10 @@ public class MechanicRepairController {
     @PreAuthorize("hasRole('MECHANIC')")
     @GetMapping("/accepted")
     public ModelAndView acceptedRepairs(@AuthenticationPrincipal PitstopUserDetails userData) {
+        UUID mechanicId = userData.getUserId();
         ModelAndView modelAndView = new ModelAndView("mechanic-repairs-accepted");
-        modelAndView.addObject("repairs", repairService.getAcceptedRepairsForMechanic(userData.getUserId()));
+        modelAndView.addObject("inProgressRepairs", repairService.getInProgressRepairsForMechanic(mechanicId));
+        modelAndView.addObject("acceptedRepairs", repairService.getWaitingAcceptedRepairsForMechanic(mechanicId));
         return modelAndView;
     }
 
