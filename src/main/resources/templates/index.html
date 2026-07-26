@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
 </head>
 <body>
 <header class="site-header">
     <nav class="navbar">
         <a class="brand" th:href="@{/index}">
-            <span class="brand-mark">PS</span>
+            <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
             <span>PitStop Garage</span>
         </a>
 
@@ -33,6 +34,7 @@
         </div>
 
         <div class="hero-card">
+            <img class="brand-logo-lg" th:src="@{/images/logo-hero.png}" alt="PitStop Garage logo" width="180" height="180">
             <div class="status-pill">Auto service</div>
             <h2>PitStop Garage</h2>
             <p>Diagnostics, repairs, maintenance and clear service records for every car.</p>

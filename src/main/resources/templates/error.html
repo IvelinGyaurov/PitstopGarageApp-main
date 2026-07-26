@@ -8,6 +8,7 @@
         Error - PitStop Garage
     </title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
         .error-page {
             min-height: calc(100vh - 4rem);
@@ -58,7 +59,7 @@
 <main class="error-page" th:with="displayStatus=${status == 404 ? 404 : 500}">
     <section class="error-card">
         <a class="brand auth-brand" th:href="@{/home}">
-            <span class="brand-mark">PS</span>
+            <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
             <span>PitStop Garage</span>
         </a>
 

@@ -424,6 +424,32 @@ class RepairServiceTest {
     }
 
     @Test
+    void getRepairForMechanic_whenCancelled_returns() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, mechanic, RepairStatus.CANCELLED);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getRepairForMechanic(mechanicId, repairId).getId());
+    }
+
+    @Test
+    void startRepairByMechanic_whenMechanicNull_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        ServiceRepair repair = pendingRepair(repairId, user(UUID.randomUUID(), UserRole.USER));
+        repair.setStatus(RepairStatus.ACCEPTED);
+        repair.setMechanic(null);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.startRepairByMechanic(mechanicId, repairId));
+    }
+
+    @Test
     void getRepairForMechanic_whenStillActive_throws() {
         UUID mechanicId = UUID.randomUUID();
         UUID repairId = UUID.randomUUID();
@@ -548,6 +574,173 @@ class RepairServiceTest {
         when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
 
         assertEquals(repairId, repairService.getRepairForAdmin(repairId).getId());
+    }
+
+    @Test
+    void acceptRepairByMechanic_whenMissing_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        when(userService.getById(mechanicId)).thenReturn(user(mechanicId, UserRole.MECHANIC));
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.empty());
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.acceptRepairByMechanic(mechanicId, repairId));
+    }
+
+    @Test
+    void startRepairByMechanic_whenMissing_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.empty());
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.startRepairByMechanic(mechanicId, repairId));
+    }
+
+    @Test
+    void getRepairForClient_whenMissing_throws() {
+        UUID clientId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findByIdAndClient(repairId, client)).thenReturn(Optional.empty());
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.getRepairForClient(clientId, repairId));
+    }
+
+    @Test
+    void completeRepairByMechanic_selectedWithZeroQuantity_skipsFeign() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, mechanic, RepairStatus.IN_PROGRESS);
+
+        CompleteRepairRequest.PartUsageForm selectedZero = new CompleteRepairRequest.PartUsageForm();
+        selectedZero.setPartId(UUID.randomUUID());
+        selectedZero.setSelected(true);
+        selectedZero.setQuantity(0);
+
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setLaborCost(new BigDecimal("50.00"));
+        request.setParts(List.of(selectedZero));
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        repairService.completeRepairByMechanic(mechanicId, repairId, new BigDecimal("50.00"), request);
+
+        verify(partsClient, never()).deductParts(any());
+        assertEquals(RepairStatus.COMPLETED, repair.getStatus());
+    }
+
+    @Test
+    void getRejectedRepairsForClient_sortsByRejectedAtOrCreatedOn() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        LocalDateTime older = LocalDateTime.now().minusDays(2);
+        LocalDateTime newer = LocalDateTime.now().minusHours(1);
+
+        ServiceRepair withRejectedAt = pendingRepair(UUID.randomUUID(), client);
+        withRejectedAt.setStatus(RepairStatus.CANCELLED);
+        withRejectedAt.setCreatedOn(older);
+        withRejectedAt.setRejectedAt(newer);
+
+        ServiceRepair withoutRejectedAt = pendingRepair(UUID.randomUUID(), client);
+        withoutRejectedAt.setStatus(RepairStatus.USER_CANCELLED);
+        withoutRejectedAt.setCreatedOn(older.plusHours(1));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), any()))
+                .thenReturn(new ArrayList<>(List.of(withoutRejectedAt, withRejectedAt)));
+
+        List<ServiceRepair> result = repairService.getRejectedRepairsForClient(clientId);
+
+        assertEquals(withRejectedAt.getId(), result.get(0).getId());
+        assertEquals(withoutRejectedAt.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getAcceptedRepairsForMechanic_sortsByActiveDateBranches() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime base = LocalDateTime.now().minusDays(1);
+
+        ServiceRepair inProgressWithStart = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        inProgressWithStart.setAcceptedAt(null);
+        inProgressWithStart.setStartedAt(base.plusHours(5));
+        inProgressWithStart.setCreatedOn(base);
+
+        ServiceRepair inProgressFallbackCreated = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        inProgressFallbackCreated.setAcceptedAt(null);
+        inProgressFallbackCreated.setStartedAt(null);
+        inProgressFallbackCreated.setCreatedOn(base.plusHours(2));
+
+        ServiceRepair acceptedWithAcceptedAt = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        acceptedWithAcceptedAt.setAcceptedAt(base.plusHours(4));
+        acceptedWithAcceptedAt.setCreatedOn(base);
+
+        ServiceRepair acceptedFallbackCreated = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        acceptedFallbackCreated.setAcceptedAt(null);
+        acceptedFallbackCreated.setCreatedOn(base.plusHours(1));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(eq(mechanic), any()))
+                .thenReturn(new ArrayList<>(List.of(
+                        acceptedFallbackCreated,
+                        inProgressFallbackCreated,
+                        acceptedWithAcceptedAt,
+                        inProgressWithStart)));
+
+        List<ServiceRepair> result = repairService.getAcceptedRepairsForMechanic(mechanicId);
+
+        assertEquals(inProgressWithStart.getId(), result.get(0).getId());
+        assertEquals(inProgressFallbackCreated.getId(), result.get(1).getId());
+        assertEquals(acceptedWithAcceptedAt.getId(), result.get(2).getId());
+        assertEquals(acceptedFallbackCreated.getId(), result.get(3).getId());
+    }
+
+    @Test
+    void getRejectedRepairsForMechanic_sortsByRejectedAtOrCreatedOn() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime older = LocalDateTime.now().minusDays(3);
+        LocalDateTime newer = LocalDateTime.now().minusHours(2);
+
+        ServiceRepair withRejectedAt = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.CANCELLED);
+        withRejectedAt.setRejectedAt(newer);
+        withRejectedAt.setCreatedOn(older);
+
+        ServiceRepair withoutRejectedAt = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.CANCELLED);
+        withoutRejectedAt.setRejectedAt(null);
+        withoutRejectedAt.setCreatedOn(older.plusDays(1));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(eq(mechanic), any()))
+                .thenReturn(new ArrayList<>(List.of(withoutRejectedAt, withRejectedAt)));
+
+        List<ServiceRepair> result = repairService.getRejectedRepairsForMechanic(mechanicId);
+
+        assertEquals(withRejectedAt.getId(), result.get(0).getId());
+        assertEquals(withoutRejectedAt.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getMyRepairs_usesDefaultStatusPriorityForUnknownStatuses() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair pending = repairWithStatus(client, null, RepairStatus.PENDING, now.minusHours(1));
+        ServiceRepair cancelled = repairWithStatus(client, null, RepairStatus.CANCELLED, now);
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), any()))
+                .thenReturn(new ArrayList<>(List.of(cancelled, pending)));
+
+        List<ServiceRepair> result = repairService.getMyRepairs(clientId);
+
+        assertEquals(RepairStatus.PENDING, result.get(0).getStatus());
+        assertEquals(RepairStatus.CANCELLED, result.get(1).getStatus());
     }
 
     private User user(UUID id, UserRole role) {

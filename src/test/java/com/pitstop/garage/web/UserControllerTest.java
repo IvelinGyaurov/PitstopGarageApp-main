@@ -125,6 +125,20 @@ class UserControllerTest {
     }
 
     @Test
+    void changeRole_selfStillAdmin_redirectsUsers() {
+        UUID id = UUID.randomUUID();
+        PitstopUserDetails current = new PitstopUserDetails(id, "admin", "pass", UserRole.ADMIN, true);
+        when(request.getSession()).thenReturn(session);
+
+        ModelAndView mav = controller.changeRole(
+                id, UserRole.ADMIN, current, request, redirectAttributes);
+
+        verify(userService).changeRole(id, UserRole.ADMIN);
+        assertEquals("redirect:/users", mav.getViewName());
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
     void changeStatus_forOtherUser_redirectsUsers() {
         UUID targetId = UUID.randomUUID();
         PitstopUserDetails current = new PitstopUserDetails(
@@ -135,6 +149,34 @@ class UserControllerTest {
 
         verify(userService).changeActiveStatus(targetId, false);
         assertEquals("redirect:/users", mav.getViewName());
+    }
+
+    @Test
+    void changeStatus_selfDeactivate_logsOutAndRedirectsLogin() {
+        UUID id = UUID.randomUUID();
+        PitstopUserDetails current = new PitstopUserDetails(id, "admin", "pass", UserRole.ADMIN, true);
+        when(request.getSession(false)).thenReturn(session);
+
+        ModelAndView mav = controller.changeStatus(
+                id, false, current, request, response, redirectAttributes);
+
+        verify(userService).changeActiveStatus(id, false);
+        assertEquals("redirect:/login", mav.getViewName());
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void changeStatus_selfStillActive_refreshesAuthAndRedirectsUsers() {
+        UUID id = UUID.randomUUID();
+        PitstopUserDetails current = new PitstopUserDetails(id, "admin", "pass", UserRole.ADMIN, true);
+        when(request.getSession()).thenReturn(session);
+
+        ModelAndView mav = controller.changeStatus(
+                id, true, current, request, response, redirectAttributes);
+
+        verify(userService).changeActiveStatus(id, true);
+        assertEquals("redirect:/users", mav.getViewName());
+        SecurityContextHolder.clearContext();
     }
 
     private User user(UUID id, UserRole role) {

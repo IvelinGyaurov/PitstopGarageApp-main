@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,6 +76,48 @@ class IndexControllerHomeTest {
         ModelAndView mav = indexController.getLoginPage(null, "1");
         assertEquals("login", mav.getViewName());
         assertEquals("Your account is inactive.", mav.getModel().get("errorMessage"));
+    }
+
+    @Test
+    void getLoginPage_withErrorFlag_setsIncorrectCredentialsMessage() {
+        ModelAndView mav = indexController.getLoginPage("true", null);
+        assertEquals("login", mav.getViewName());
+        assertEquals("Incorrect username or password.", mav.getModel().get("errorMessage"));
+    }
+
+    @Test
+    void getHomePage_forUser_addsCarsAndActiveRepairsCounts() {
+        UUID id = UUID.randomUUID();
+        User user = user(id, UserRole.USER);
+        when(userService.getById(id)).thenReturn(user);
+        when(carService.getMyCars(id)).thenReturn(List.of());
+        when(repairService.getMyRepairs(id)).thenReturn(List.of());
+
+        ModelAndView mav = indexController.getHomePage(
+                new PitstopUserDetails(id, "client", "pass", UserRole.USER, true));
+
+        assertEquals("home", mav.getViewName());
+        assertEquals(0, mav.getModel().get("carsCount"));
+        assertEquals(0, mav.getModel().get("activeRepairsCount"));
+    }
+
+    @Test
+    void getHomePage_whenRoleIsNull_skipsRoleSpecificCounts() {
+        UUID id = UUID.randomUUID();
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(id);
+        when(user.getUsername()).thenReturn("unknown");
+        when(user.getRole()).thenReturn(null);
+        when(user.getProfilePicture()).thenReturn(null);
+        when(userService.getById(id)).thenReturn(user);
+
+        ModelAndView mav = indexController.getHomePage(
+                new PitstopUserDetails(id, "unknown", "pass", UserRole.USER, true));
+
+        assertEquals("home", mav.getViewName());
+        assertFalse(mav.getModel().containsKey("carsCount"));
+        assertFalse(mav.getModel().containsKey("bayCount"));
+        assertFalse(mav.getModel().containsKey("usersCount"));
     }
 
     private User user(UUID id, UserRole role) {

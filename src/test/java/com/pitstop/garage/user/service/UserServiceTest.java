@@ -132,6 +132,21 @@ class UserServiceTest {
     }
 
     @Test
+    void changeRole_whenSoleAdminKeepsAdmin_updates() {
+        UUID id = UUID.randomUUID();
+        User admin = activeUser(id, "admin", UserRole.ADMIN);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(admin));
+        when(userRepository.countByRoleAndIsActiveTrue(UserRole.ADMIN)).thenReturn(1L);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.changeRole(id, UserRole.ADMIN);
+
+        assertEquals(UserRole.ADMIN, admin.getRole());
+        verify(userRepository).save(admin);
+    }
+
+    @Test
     void changeRole_whenMultipleAdmins_updatesRole() {
         UUID id = UUID.randomUUID();
         User admin = activeUser(id, "admin", UserRole.ADMIN);
@@ -169,6 +184,48 @@ class UserServiceTest {
         assertThrows(PrimaryUserException.class,
                 () -> userService.changeActiveStatus(id, false));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changeActiveStatus_whenDeactivatingNonSoleAdmin_updates() {
+        UUID id = UUID.randomUUID();
+        User admin = activeUser(id, "admin", UserRole.ADMIN);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(admin));
+        when(userRepository.countByRoleAndIsActiveTrue(UserRole.ADMIN)).thenReturn(2L);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.changeActiveStatus(id, false);
+
+        assertFalse(admin.isActive());
+        verify(userRepository).save(admin);
+    }
+
+    @Test
+    void changeActiveStatus_whenActivatingSoleAdmin_updates() {
+        UUID id = UUID.randomUUID();
+        User admin = activeUser(id, "admin", UserRole.ADMIN);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(admin));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.changeActiveStatus(id, true);
+
+        assertTrue(admin.isActive());
+        verify(userRepository).save(admin);
+    }
+
+    @Test
+    void isSoleActiveAdmin_whenUserRole_returnsFalse() {
+        User user = activeUser(UUID.randomUUID(), "user", UserRole.USER);
+        assertFalse(userService.isSoleActiveAdmin(user));
+    }
+
+    @Test
+    void isSoleActiveAdmin_whenInactiveAdmin_returnsFalse() {
+        User admin = activeUser(UUID.randomUUID(), "admin", UserRole.ADMIN);
+        admin.setActive(false);
+        assertFalse(userService.isSoleActiveAdmin(admin));
     }
 
     @Test
