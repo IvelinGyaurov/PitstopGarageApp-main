@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repair history - PitStop Garage</title>
+    <title th:text="#{mechanicHistory.title}">Repair history - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -212,15 +212,16 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/mechanic/repairs}">Repair queue</a>
-            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
-            <a th:href="@{/mechanic/repairs/history}">Repair history</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/mechanic/repairs}" th:text="#{nav.repairQueue}">Repair queue</a>
+            <a th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -228,15 +229,15 @@
 <main class="dashboard">
     <section class="repairs-page-header">
         <div>
-            <p class="eyebrow">Past work</p>
-            <h1>Repair history</h1>
+            <p class="eyebrow" th:text="#{mechanicHistory.eyebrow}">Past work</p>
+            <h1 th:text="#{mechanicHistory.heading}">Repair history</h1>
             <p class="repairs-count"
-               th:text="${(rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0) + (completedRepairs != null ? #lists.size(completedRepairs) : 0)} + ' past repair(s)'">0 past repair(s)</p>
+               th:text="#{mechanicHistory.count(${(rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0) + (completedRepairs != null ? #lists.size(completedRepairs) : 0)})}">0 past repair(s)</p>
         </div>
         <div class="repairs-header-actions">
-            <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
-            <a class="button secondary" th:href="@{/mechanic/repairs}">Back to queue</a>
-            <a class="button secondary" th:href="@{/home}">Back to home</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs}" th:text="#{action.backToQueue}">Back to queue</a>
+            <a class="button secondary" th:href="@{/home}" th:text="#{action.backToHome}">Back to home</a>
         </div>
     </section>
 
@@ -244,9 +245,9 @@
 
     <section class="repairs-section">
         <div class="repairs-section-header">
-            <h2>Completed repairs</h2>
+            <h2 th:text="#{section.completedRepairs}">Completed repairs</h2>
             <span class="repairs-section-count"
-                  th:text="${completedRepairs != null ? #lists.size(completedRepairs) : 0} + ' completed'">0 completed</span>
+                  th:text="#{status.count.completed(${completedRepairs != null ? #lists.size(completedRepairs) : 0})}">0 completed</span>
         </div>
 
         <section class="repairs-list" th:if="${completedRepairs != null and !completedRepairs.isEmpty()}">
@@ -259,32 +260,32 @@
                            th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                     </div>
                     <span class="repair-status completed"
-                          th:text="${repair.status.displayName}">Completed</span>
+                          th:text="#{repairStatus.completed}">Completed</span>
                 </div>
 
-                <span class="repair-description-label">Problem description</span>
+                <span class="repair-description-label" th:text="#{repairs.problem}">Problem description</span>
                 <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
 
                 <div class="repair-card-footer">
                     <div class="repair-footer-left">
                         <div class="repair-meta">
                             <span>
-                                Client <strong th:text="${repair.client.username}">client</strong>
+                                <span th:text="#{repairCard.client}">Client</span> <strong th:text="${repair.client.username}">client</strong>
                             </span>
                             <span th:if="${repair.completedAt != null}">
-                                Completed <strong th:text="${#temporals.format(repair.completedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairs.completed}">Completed</span> <strong th:text="${#temporals.format(repair.completedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.mechanic != null}">
-                                Mechanic <strong th:text="${repair.mechanic.username}">mechanic</strong>
+                                <span th:text="#{repairs.mechanic}">Mechanic</span> <strong th:text="${repair.mechanic.username}">mechanic</strong>
                             </span>
                             <span th:if="${repair.laborCost != null}">
-                                Labor cost <strong th:text="${repair.laborCost + ' EUR'}">-</strong>
+                                <span th:text="#{repairCard.laborCost}">Labor cost</span> <strong th:text="#{common.eur(${repair.laborCost})}">-</strong>
                             </span>
                         </div>
                     </div>
                     <div class="repair-card-actions">
                         <a class="button secondary repair-details-btn"
-                           th:href="@{/mechanic/repairs/{id}/details(id=${repair.id})}">View details</a>
+                           th:href="@{/mechanic/repairs/{id}/details(id=${repair.id})}" th:text="#{action.viewDetails}">View details</a>
                     </div>
                 </div>
             </article>
@@ -292,16 +293,16 @@
 
         <section class="repairs-empty-wrap" th:if="${completedRepairs == null or completedRepairs.isEmpty()}">
             <div class="empty-state">
-                <p>No completed repairs yet. Finish accepted jobs to see them here.</p>
+                <p th:text="#{mechanicHistory.emptyCompleted}">No completed repairs yet. Finish accepted jobs to see them here.</p>
             </div>
         </section>
     </section>
 
     <section class="repairs-section">
         <div class="repairs-section-header">
-            <h2>Rejected requests</h2>
+            <h2 th:text="#{section.rejectedRequests}">Rejected requests</h2>
             <span class="repairs-section-count"
-                  th:text="${rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0} + ' rejected'">0 rejected</span>
+                  th:text="#{status.count.rejected(${rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0})}">0 rejected</span>
         </div>
 
         <section class="repairs-list" th:if="${rejectedRepairs != null and !rejectedRepairs.isEmpty()}">
@@ -314,32 +315,32 @@
                            th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                     </div>
                     <span class="repair-status cancelled"
-                          th:text="${repair.status.displayName}">Cancelled</span>
+                          th:text="#{repairStatus.cancelled}">Cancelled</span>
                 </div>
 
-                <span class="repair-description-label">Problem description</span>
+                <span class="repair-description-label" th:text="#{repairs.problem}">Problem description</span>
                 <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
 
                 <div class="repair-card-footer">
                     <div class="repair-footer-left">
                         <div class="repair-meta">
                             <span>
-                                Client <strong th:text="${repair.client.username}">client</strong>
+                                <span th:text="#{repairCard.client}">Client</span> <strong th:text="${repair.client.username}">client</strong>
                             </span>
                             <span>
-                                Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairs.submitted}">Submitted</span> <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.rejectedAt != null}">
-                                Rejected <strong th:text="${#temporals.format(repair.rejectedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairCard.rejected}">Rejected</span> <strong th:text="${#temporals.format(repair.rejectedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.mechanic != null}">
-                                Rejected by <strong th:text="${repair.mechanic.username}">mechanic</strong>
+                                <span th:text="#{repairCard.rejectedBy}">Rejected by</span> <strong th:text="${repair.mechanic.username}">mechanic</strong>
                             </span>
                         </div>
                     </div>
                     <div class="repair-card-actions">
                         <a class="button secondary repair-details-btn"
-                           th:href="@{/mechanic/repairs/{id}/details(id=${repair.id})}">View details</a>
+                           th:href="@{/mechanic/repairs/{id}/details(id=${repair.id})}" th:text="#{action.viewDetails}">View details</a>
                     </div>
                 </div>
             </article>
@@ -347,7 +348,7 @@
 
         <section class="repairs-empty-wrap" th:if="${rejectedRepairs == null or rejectedRepairs.isEmpty()}">
             <div class="empty-state">
-                <p>No rejected repair requests yet.</p>
+                <p th:text="#{mechanicHistory.emptyRejected}">No rejected repair requests yet.</p>
             </div>
         </section>
     </section>

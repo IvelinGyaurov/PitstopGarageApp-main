@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -259,11 +259,13 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/home}">Home</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -271,9 +273,10 @@
 <main class="dashboard">
     <section class="users-page-header">
         <div>
-            <p class="eyebrow">Administration</p>
-            <h1>All users</h1>
-            <p class="users-count" th:text="${#lists.size(users)} + ' registered users'">0 registered users</p>
+            <p class="eyebrow" th:text="#{users.eyebrow}">Administration</p>
+            <h1 th:text="#{users.heading}">All users</h1>
+            <p class="users-count"
+               th:text="#{users.count(${users != null ? #lists.size(users) : 0})}">0 registered users</p>
         </div>
     </section>
 
@@ -283,71 +286,74 @@
         <table class="users-table">
             <thead>
             <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created on</th>
-                <th>Action</th>
-                <th>Switch role</th>
+                <th th:text="#{users.col.username}">Username</th>
+                <th th:text="#{users.col.email}">Email</th>
+                <th th:text="#{users.col.role}">Role</th>
+                <th th:text="#{users.col.status}">Status</th>
+                <th th:text="#{users.col.created}">Created on</th>
+                <th th:text="#{users.col.action}">Action</th>
+                <th th:text="#{users.col.switchRole}">Switch role</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="user : ${users}">
-                <td th:text="${user.username}">username</td>
-                <td th:text="${user.email}">email@example.com</td>
+            <tr th:each="listedUser : ${users}">
+                <td th:text="${listedUser.username}">username</td>
+                <td th:text="${listedUser.email}">email@example.com</td>
                 <td>
                     <span class="role-badge"
-                          th:classappend="${' ' + user.role.name().toLowerCase()}"
-                          th:text="${user.role}">
+                          th:classappend="${' ' + listedUser.role.name().toLowerCase()}"
+                          th:text="${listedUser.role}">
                         USER
                     </span>
                 </td>
                 <td class="status-cell">
-                    <span class="status-badge active"
-                          th:text="${user.active} ? 'Active' : 'Inactive'"
-                          th:classappend="${user.active} ? ' active' : ' inactive'">
-                        Active
-                    </span>
+                    <span th:if="${listedUser.active}"
+                          class="status-badge active"
+                          th:text="#{status.active}">Active</span>
+                    <span th:unless="${listedUser.active}"
+                          class="status-badge inactive"
+                          th:text="#{status.inactive}">Inactive</span>
                 </td>
-                <td th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
+                <td th:text="${listedUser.createdOn != null ? #temporals.format(listedUser.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
                     01.01.2026 12:00
                 </td>
                 <td class="status-action-cell">
-                    <form th:action="@{/users/{id}/status(id=${user.id})}"
+                    <form th:action="@{/users/{id}/status(id=${listedUser.id})}"
                           method="post"
                           class="status-action-form"
-                          th:attr="data-username=${user.username}"
-                          th:onsubmit="${soleAdminId == null or soleAdminId != user.id} ? |return confirm('Change status for ' + this.dataset.username + '?');| : 'return false;'">
+                          th:attr="data-confirm=#{confirm.changeStatus(${listedUser.username})}"
+                          th:onsubmit="${soleAdminId == null or soleAdminId != listedUser.id} ? |return confirm(this.dataset.confirm);| : 'return false;'">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="active" th:value="${!user.active}">
+                        <input type="hidden" name="active" th:value="${!listedUser.active}">
                         <button type="submit"
                                 class="button status-switch-btn"
-                                th:classappend="${soleAdminId != null and soleAdminId == user.id ? ' status-switch-disabled' : (user.active ? ' status-deactivate' : ' status-activate')}"
-                                th:disabled="${soleAdminId != null and soleAdminId == user.id}"
-                                th:title="${soleAdminId != null and soleAdminId == user.id ? 'Cannot deactivate the last remaining admin' : null}"
-                                th:text="${user.active} ? 'Deactivate' : 'Activate'">
-                            Deactivate
+                                th:with="lastAdminStatusTitle=#{users.title.lastAdminStatus}"
+                                th:classappend="${soleAdminId != null and soleAdminId == listedUser.id ? ' status-switch-disabled' : (listedUser.active ? ' status-deactivate' : ' status-activate')}"
+                                th:disabled="${soleAdminId != null and soleAdminId == listedUser.id}"
+                                th:title="${soleAdminId != null and soleAdminId == listedUser.id} ? ${lastAdminStatusTitle} : null">
+                            <span th:if="${listedUser.active}" th:text="#{users.deactivate}">Deactivate</span>
+                            <span th:unless="${listedUser.active}" th:text="#{users.activate}">Activate</span>
                         </button>
                     </form>
                 </td>
                 <td class="role-actions-cell">
                     <div class="role-actions">
                         <form th:each="roleOption : ${T(com.pitstop.garage.user.model.UserRole).values()}"
-                              th:if="${roleOption != user.role}"
-                              th:action="@{/users/{id}/role(id=${user.id})}"
+                              th:if="${roleOption != listedUser.role}"
+                              th:action="@{/users/{id}/role(id=${listedUser.id})}"
                               method="post"
                               class="role-action-form"
-                              th:attr="data-username=${user.username}, data-role=${roleOption.name()}"
-                              th:onsubmit="${user.active and (soleAdminId == null or soleAdminId != user.id)} ? |return confirm('Change role for ' + this.dataset.username + ' to ' + this.dataset.role + '?');| : 'return false;'">
+                              th:attr="data-confirm=#{confirm.changeRole(${listedUser.username}, ${roleOption.name()})}"
+                              th:onsubmit="${listedUser.active and (soleAdminId == null or soleAdminId != listedUser.id)} ? |return confirm(this.dataset.confirm);| : 'return false;'">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="role" th:value="${roleOption}">
                             <button type="submit"
                                     class="button role-switch-btn"
-                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + ((!user.active or (soleAdminId != null and soleAdminId == user.id)) ? ' role-switch-disabled' : '')}"
-                                    th:disabled="${!user.active or (soleAdminId != null and soleAdminId == user.id)}"
-                                    th:title="${soleAdminId != null and soleAdminId == user.id ? 'Cannot change the role of the last remaining admin' : (!user.active ? 'Inactive users cannot change role' : null)}"
-                                    th:text="'Make ' + ${roleOption}">
+                                    th:with="lastAdminRoleTitle=#{users.title.lastAdminRole}, inactiveRoleTitle=#{users.title.inactiveRole}"
+                                    th:classappend="${' role-switch-' + #strings.toLowerCase(roleOption.name()) + ((!listedUser.active or (soleAdminId != null and soleAdminId == listedUser.id)) ? ' role-switch-disabled' : '')}"
+                                    th:disabled="${!listedUser.active or (soleAdminId != null and soleAdminId == listedUser.id)}"
+                                    th:title="${soleAdminId != null and soleAdminId == listedUser.id} ? ${lastAdminRoleTitle} : (!listedUser.active ? ${inactiveRoleTitle} : null)"
+                                    th:text="#{users.makeRole(${roleOption.name()})}">
                                 Make USER
                             </button>
                         </form>
@@ -359,7 +365,7 @@
     </section>
 
     <section class="users-table-wrap" th:if="${users == null or users.isEmpty()}">
-        <p class="empty-state">No users found.</p>
+        <p class="empty-state" th:text="#{users.empty}">No users found.</p>
     </section>
 </main>
 

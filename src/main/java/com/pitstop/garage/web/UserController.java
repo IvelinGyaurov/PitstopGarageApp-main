@@ -1,5 +1,6 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
@@ -30,10 +31,12 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final MessageHelper messages;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, MessageHelper messages) {
         this.userService = userService;
+        this.messages = messages;
     }
 
     @PreAuthorize("#id == authentication.principal.userId")
@@ -81,13 +84,13 @@ public class UserController {
 
         if (currentUser.getUserId().equals(id)) {
             refreshCurrentAuthentication(currentUser, role, currentUser.isActive(), request);
-            redirectAttributes.addFlashAttribute("successMessage", "Role updated successfully.");
+            redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.user.roleUpdated"));
             if (role != UserRole.ADMIN) {
                 return new ModelAndView("redirect:/home");
             }
         }
 
-        redirectAttributes.addFlashAttribute("successMessage", "Role updated successfully.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.user.roleUpdated"));
         return new ModelAndView("redirect:/users");
     }
 
@@ -111,7 +114,7 @@ public class UserController {
             refreshCurrentAuthentication(currentUser, currentUser.getRole(), active, request);
         }
 
-        redirectAttributes.addFlashAttribute("successMessage", "User status updated successfully.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.user.statusUpdated"));
         return new ModelAndView("redirect:/users");
     }
 

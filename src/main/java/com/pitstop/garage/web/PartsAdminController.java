@@ -1,5 +1,6 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.parts.PartsAdminService;
 import com.pitstop.garage.web.dto.AddPartRequest;
 import jakarta.validation.Valid;
@@ -17,9 +18,11 @@ import java.util.UUID;
 public class PartsAdminController {
 
     private final PartsAdminService partsAdminService;
+    private final MessageHelper messages;
 
-    public PartsAdminController(PartsAdminService partsAdminService) {
+    public PartsAdminController(PartsAdminService partsAdminService, MessageHelper messages) {
         this.partsAdminService = partsAdminService;
+        this.messages = messages;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -50,7 +53,7 @@ public class PartsAdminController {
         }
 
         partsAdminService.createPart(addPartRequest);
-        redirectAttributes.addFlashAttribute("successMessage", "Part added successfully.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.part.added"));
         return new ModelAndView("redirect:/admin/parts");
     }
 
@@ -59,7 +62,7 @@ public class PartsAdminController {
     public ModelAndView deletePart(@PathVariable UUID id,
                                    RedirectAttributes redirectAttributes) {
         partsAdminService.deletePart(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Part removed.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.part.removed"));
         return new ModelAndView("redirect:/admin/parts");
     }
 }

@@ -119,9 +119,8 @@ public class UserService implements UserDetailsService  {
         userRepository.save(user);
     }
 
-    @Cacheable(value = "users")
+    @Cacheable(value = "users", key = "'all'")
     public List<User> getAll() {
-
         return userRepository.findAll();
     }
 
@@ -129,10 +128,10 @@ public class UserService implements UserDetailsService  {
         return userRepository.count();
     }
 
-    @Cacheable(value = "users")
+    @Cacheable(value = "users", key = "#id")
     public User getById(UUID id) {
-
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(UserNotFoundExceptionMessage.USER_NOT_FOUND));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(UserNotFoundExceptionMessage.USER_NOT_FOUND));
     }
 
     @CacheEvict(value = "users", allEntries = true)

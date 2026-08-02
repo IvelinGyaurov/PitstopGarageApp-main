@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PitStop Garage</title>
+    <title th:text="#{index.title}">PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
 </head>
@@ -12,37 +12,38 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/index}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/login}">Login</a>
+            <a th:href="@{/login}" th:text="#{nav.login}">Login</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 
     <section class="hero">
         <div class="hero-content">
-            <p class="eyebrow">Professional auto service</p>
-            <h1>Your trusted garage for repairs and maintenance.</h1>
-            <p class="hero-text">
+            <p class="eyebrow" th:text="#{index.eyebrow}">Professional auto service</p>
+            <h1 th:text="#{index.hero.title}">Your trusted garage for repairs and maintenance.</h1>
+            <p class="hero-text" th:text="#{index.hero.text}">
                 Manage visits, repairs and service history in one clean garage system.
             </p>
 
             <div class="hero-actions">
-                <a class="button primary" th:href="@{/login}">Open login menu</a>
+                <a class="button primary" th:href="@{/login}" th:text="#{index.cta}">Open login menu</a>
             </div>
         </div>
 
         <div class="hero-card">
             <img class="brand-logo-lg" th:src="@{/images/logo-hero.png}" alt="PitStop Garage logo" width="180" height="180">
-            <div class="status-pill">Auto service</div>
-            <h2>PitStop Garage</h2>
-            <p>Diagnostics, repairs, maintenance and clear service records for every car.</p>
+            <div class="status-pill" th:text="#{index.card.pill}">Auto service</div>
+            <h2 th:text="#{app.name}">PitStop Garage</h2>
+            <p th:text="#{index.card.text}">Diagnostics, repairs, maintenance and clear service records for every car.</p>
             <div class="card-grid">
-                <span>Cars</span>
-                <span>Repairs</span>
-                <span>Mechanics</span>
-                <span>Service history</span>
+                <span th:text="#{index.tag.cars}">Cars</span>
+                <span th:text="#{index.tag.repairs}">Repairs</span>
+                <span th:text="#{index.tag.mechanics}">Mechanics</span>
+                <span th:text="#{index.tag.history}">Service history</span>
             </div>
         </div>
     </section>

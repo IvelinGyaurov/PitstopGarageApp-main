@@ -1,7 +1,9 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.parts.PartsAdminService;
 import com.pitstop.garage.web.dto.AddPartRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +28,9 @@ class PartsAdminControllerTest {
     private PartsAdminService partsAdminService;
 
     @Mock
+    private MessageHelper messages;
+
+    @Mock
     private BindingResult bindingResult;
 
     @Mock
@@ -32,6 +38,11 @@ class PartsAdminControllerTest {
 
     @InjectMocks
     private PartsAdminController controller;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void listParts_returnsView() {

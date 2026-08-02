@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add part - PitStop Garage</title>
+    <title th:text="#{adminPartsAdd.title}">Add part - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -77,13 +77,14 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/admin/parts}">Parts inventory</a>
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -92,12 +93,12 @@
     <section class="add-part-card">
         <a class="brand auth-brand" th:href="@{/admin/parts}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
-        <p class="eyebrow">Admin</p>
-        <h1>Add part</h1>
-        <p class="auth-copy">Add a new spare part to the parts shop inventory.</p>
+        <p class="eyebrow" th:text="#{adminPartsAdd.eyebrow}">Admin</p>
+        <h1 th:text="#{adminPartsAdd.heading}">Add part</h1>
+        <p class="auth-copy" th:text="#{adminPartsAdd.copy}">Add a new spare part to the parts shop inventory.</p>
 
         <div th:replace="~{fragments/alerts :: alerts}"></div>
 
@@ -108,47 +109,47 @@
               novalidate>
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
                 Please correct the highlighted fields.
             </p>
 
             <div class="form-grid">
                 <div class="full-width">
-                    <label for="name">Part name</label>
+                    <label for="name" th:text="#{adminPartsAdd.name}">Part name</label>
                     <input id="name" type="text" th:field="*{name}" th:errorclass="input-error"
-                           placeholder="Oil filter" maxlength="100">
+                           th:placeholder="#{adminPartsAdd.name.placeholder}" maxlength="100">
                     <small class="field-error" th:if="${#fields.hasErrors('name')}"
                            th:text="${#strings.listJoin(#fields.errors('name'), ' and ')}"></small>
                 </div>
 
                 <div class="full-width">
-                    <label for="sku">SKU</label>
+                    <label for="sku" th:text="#{adminParts.sku}">SKU</label>
                     <input id="sku" type="text" th:field="*{sku}" th:errorclass="input-error"
-                           placeholder="OF-001" maxlength="50">
+                           th:placeholder="#{adminPartsAdd.sku.placeholder}" maxlength="50">
                     <small class="field-error" th:if="${#fields.hasErrors('sku')}"
                            th:text="${#strings.listJoin(#fields.errors('sku'), ' and ')}"></small>
                 </div>
 
                 <div>
-                    <label for="unitPrice">Unit price (EUR)</label>
+                    <label for="unitPrice" th:text="#{adminPartsAdd.unitPrice}">Unit price (EUR)</label>
                     <input id="unitPrice" type="number" th:field="*{unitPrice}" th:errorclass="input-error"
-                           placeholder="25.00" min="0.01" step="0.01">
+                           th:placeholder="#{adminPartsAdd.price.placeholder}" min="0.01" step="0.01">
                     <small class="field-error" th:if="${#fields.hasErrors('unitPrice')}"
                            th:text="${#strings.listJoin(#fields.errors('unitPrice'), ' and ')}"></small>
                 </div>
 
                 <div>
-                    <label for="quantityInStock">Quantity in stock</label>
+                    <label for="quantityInStock" th:text="#{adminPartsAdd.quantity}">Quantity in stock</label>
                     <input id="quantityInStock" type="number" th:field="*{quantityInStock}" th:errorclass="input-error"
-                           placeholder="40" min="0" step="1">
+                           th:placeholder="#{adminPartsAdd.qty.placeholder}" min="0" step="1">
                     <small class="field-error" th:if="${#fields.hasErrors('quantityInStock')}"
                            th:text="${#strings.listJoin(#fields.errors('quantityInStock'), ' and ')}"></small>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="button primary">Save part</button>
-                <a class="button secondary" th:href="@{/admin/parts}">Cancel</a>
+                <button type="submit" class="button primary" th:text="#{adminPartsAdd.submit}">Save part</button>
+                <a class="button secondary" th:href="@{/admin/parts}" th:text="#{action.cancel}">Cancel</a>
             </div>
         </form>
     </section>

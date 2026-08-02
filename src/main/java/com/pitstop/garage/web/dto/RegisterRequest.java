@@ -10,21 +10,21 @@ import lombok.*;
 @AllArgsConstructor
 public class RegisterRequest {
 
-    @NotNull(message = "Username is required")
-    @NotBlank(message = "Username cannot be blank")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers and underscores")
+    @NotNull(message = "{validation.username.required}")
+    @NotBlank(message = "{validation.username.blank}")
+    @Size(min = 3, max = 20, message = "{validation.username.size}")
+    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "{validation.username.pattern}")
     private String username;
 
-    @NotNull(message = "Password is required")
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 4, max = 20, message = "Password must be between 4 and 20 characters")
+    @NotNull(message = "{validation.password.required}")
+    @NotBlank(message = "{validation.password.blank}")
+    @Size(min = 4, max = 20, message = "{validation.password.size}")
     private String password;
 
-    @NotNull(message = "Email is required")
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Email must be a valid email address")
-    @Size(max = 100, message = "Email must not exceed 100 characters")
+    @NotNull(message = "{validation.email.required}")
+    @NotBlank(message = "{validation.email.blank}")
+    @Email(message = "{validation.email.format}")
+    @Size(max = 100, message = "{validation.email.size}")
     private String email;
 
 }

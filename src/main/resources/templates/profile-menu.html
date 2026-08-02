@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - PitStop Garage</title>
+    <title th:text="#{profile.title}">Profile - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -171,12 +171,13 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -184,8 +185,8 @@
 <main class="dashboard">
     <section class="users-page-header" style="margin-bottom: 2rem;">
         <div>
-            <p class="eyebrow">Account settings</p>
-            <h1 style="font-size: clamp(2.2rem, 4vw, 3.4rem); margin-bottom: 0;">Profile menu</h1>
+            <p class="eyebrow" th:text="#{profile.eyebrow}">Account settings</p>
+            <h1 style="font-size: clamp(2.2rem, 4vw, 3.4rem); margin-bottom: 0;" th:text="#{profile.heading}">Profile menu</h1>
         </div>
     </section>
 
@@ -207,7 +208,7 @@
                 </div>
             </div>
 
-            <span class="status-pill">Your account</span>
+            <span class="status-pill" th:text="#{profile.yourAccount}">Your account</span>
             <h2 th:with="hasFullName=${user.firstName != null and !#strings.isEmpty(user.firstName)
                 and user.lastName != null and !#strings.isEmpty(user.lastName)}"
                 th:text="${hasFullName ? user.firstName + ' ' + user.lastName : user.username}">
@@ -217,44 +218,45 @@
 
             <div class="info-list">
                 <div class="info-item">
-                    <span>Username</span>
+                    <span th:text="#{profile.username}">Username</span>
                     <strong th:text="${user.username}">username</strong>
                 </div>
                 <div class="info-item" th:if="${user.phoneNumber != null and !#strings.isEmpty(user.phoneNumber)}">
-                    <span>Phone</span>
+                    <span th:text="#{profile.phone}">Phone</span>
                     <strong th:text="${user.phoneNumber}">+359 888 123 456</strong>
                 </div>
                 <div class="info-item">
-                    <span>Role</span>
+                    <span th:text="#{profile.role}">Role</span>
                     <strong th:text="${user.role}">USER</strong>
                 </div>
                 <div class="info-item">
-                    <span>Status</span>
-                    <strong th:text="${user.active} ? 'Active' : 'Inactive'">Active</strong>
+                    <span th:text="#{profile.status}">Status</span>
+                    <strong th:if="${user.active}" th:text="#{status.active}">Active</strong>
+                    <strong th:unless="${user.active}" th:text="#{status.inactive}">Inactive</strong>
                 </div>
                 <div class="info-item">
-                    <span>Member since</span>
+                    <span th:text="#{profile.memberSince}">Member since</span>
                     <strong th:text="${user.createdOn != null ? #temporals.format(user.createdOn, 'dd.MM.yyyy HH:mm') : '-'}">
                         01.01.2026
                     </strong>
                 </div>
                 <div class="info-item">
-                    <span>Last updated</span>
+                    <span th:text="#{profile.lastUpdated}">Last updated</span>
                     <strong th:text="${user.updatedOn != null ? #temporals.format(user.updatedOn, 'dd.MM.yyyy HH:mm') : '-'}">
                         01.01.2026
                     </strong>
                 </div>
             </div>
 
-            <p class="readonly-hint">
+            <p class="readonly-hint" th:text="#{profile.readonlyHint}">
                 Username, email, role and account status cannot be changed here.
             </p>
         </aside>
 
         <section class="profile-form-card">
-            <p class="eyebrow">Edit profile</p>
-            <h1>Update your details</h1>
-            <p class="auth-copy">Change your name, phone number and profile picture URL.</p>
+            <p class="eyebrow" th:text="#{home.editProfile}">Edit profile</p>
+            <h1 th:text="#{profile.updateHeading}">Update your details</h1>
+            <p class="auth-copy" th:text="#{profile.updateCopy}">Change your name, phone number and profile picture URL.</p>
 
             <div th:replace="~{fragments/alerts :: alerts}"></div>
 
@@ -266,80 +268,80 @@
                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
                 <div th:if="${editProfileRequest != null}" th:object="${editProfileRequest}">
-                    <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+                    <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
                         Please correct the highlighted fields.
                     </p>
 
                     <div class="form-section">
-                        <h3>Personal information</h3>
-                        <p>Your public name and contact phone number.</p>
+                        <h3 th:text="#{profile.personalInfo}">Personal information</h3>
+                        <p th:text="#{profile.personalInfoCopy}">Your public name and contact phone number.</p>
 
-                        <label for="firstName">First name</label>
-                        <input id="firstName" type="text" th:field="*{firstName}" th:errorclass="input-error" placeholder="Georgi">
+                        <label for="firstName" th:text="#{profile.firstName}">First name</label>
+                        <input id="firstName" type="text" th:field="*{firstName}" th:errorclass="input-error" th:placeholder="#{profile.firstName.placeholder}">
                         <small class="field-error" th:if="${#fields.hasErrors('firstName')}"
                                th:text="${#strings.listJoin(#fields.errors('firstName'), ' and ')}"></small>
 
-                        <label for="lastName">Last name</label>
-                        <input id="lastName" type="text" th:field="*{lastName}" th:errorclass="input-error" placeholder="Ivanov">
+                        <label for="lastName" th:text="#{profile.lastName}">Last name</label>
+                        <input id="lastName" type="text" th:field="*{lastName}" th:errorclass="input-error" th:placeholder="#{profile.lastName.placeholder}">
                         <small class="field-error" th:if="${#fields.hasErrors('lastName')}"
                                th:text="${#strings.listJoin(#fields.errors('lastName'), ' and ')}"></small>
 
-                        <label for="phoneNumber">Phone number</label>
-                        <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" th:errorclass="input-error" placeholder="+359888123456">
+                        <label for="phoneNumber" th:text="#{profile.phoneNumber}">Phone number</label>
+                        <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" th:errorclass="input-error" th:placeholder="#{profile.phone.placeholder}">
                         <small class="field-error" th:if="${#fields.hasErrors('phoneNumber')}"
                                th:text="${#strings.listJoin(#fields.errors('phoneNumber'), ' and ')}"></small>
                     </div>
 
                     <div class="form-section">
-                        <h3>Profile picture</h3>
-                        <p>Paste a direct link to an image on the internet (jpg, png, webp).</p>
+                        <h3 th:text="#{profile.pictureSection}">Profile picture</h3>
+                        <p th:text="#{profile.pictureCopy}">Paste a direct link to an image on the internet (jpg, png, webp).</p>
 
-                        <label for="profilePictureURL">Picture URL</label>
+                        <label for="profilePictureURL" th:text="#{profile.picture}">Picture URL</label>
                         <input id="profilePictureURL" type="url" th:field="*{profilePictureURL}" th:errorclass="input-error"
-                               placeholder="https://example.com/photo.jpg">
+                               th:placeholder="#{profile.picture.placeholder}">
                         <small class="field-error" th:if="${#fields.hasErrors('profilePictureURL')}"
                                th:text="${#strings.listJoin(#fields.errors('profilePictureURL'), ' and ')}"></small>
 
                         <div class="picture-preview"
                              th:if="*{profilePictureURL != null and !#strings.isEmpty(profilePictureURL)}">
-                            <img th:src="*{profilePictureURL}" alt="Picture preview">
+                            <img th:src="*{profilePictureURL}" th:alt="#{profile.picturePreviewAlt}">
                         </div>
                     </div>
                 </div>
 
                 <div th:if="${editProfileRequest == null}">
                     <div class="form-section">
-                        <h3>Personal information</h3>
-                        <p>Your public name and contact phone number.</p>
+                        <h3 th:text="#{profile.personalInfo}">Personal information</h3>
+                        <p th:text="#{profile.personalInfoCopy}">Your public name and contact phone number.</p>
 
-                        <label for="firstName">First name</label>
-                        <input id="firstName" type="text" name="firstName" th:value="${user.firstName}" placeholder="Georgi">
+                        <label for="firstName" th:text="#{profile.firstName}">First name</label>
+                        <input id="firstName" type="text" name="firstName" th:value="${user.firstName}" th:placeholder="#{profile.firstName.placeholder}">
 
-                        <label for="lastName">Last name</label>
-                        <input id="lastName" type="text" name="lastName" th:value="${user.lastName}" placeholder="Ivanov">
+                        <label for="lastName" th:text="#{profile.lastName}">Last name</label>
+                        <input id="lastName" type="text" name="lastName" th:value="${user.lastName}" th:placeholder="#{profile.lastName.placeholder}">
 
-                        <label for="phoneNumber">Phone number</label>
-                        <input id="phoneNumber" type="tel" name="phoneNumber" th:value="${user.phoneNumber}" placeholder="+359888123456">
+                        <label for="phoneNumber" th:text="#{profile.phoneNumber}">Phone number</label>
+                        <input id="phoneNumber" type="tel" name="phoneNumber" th:value="${user.phoneNumber}" th:placeholder="#{profile.phone.placeholder}">
                     </div>
 
                     <div class="form-section">
-                        <h3>Profile picture</h3>
-                        <p>Paste a direct link to an image on the internet (jpg, png, webp).</p>
+                        <h3 th:text="#{profile.pictureSection}">Profile picture</h3>
+                        <p th:text="#{profile.pictureCopy}">Paste a direct link to an image on the internet (jpg, png, webp).</p>
 
-                        <label for="profilePictureURL">Picture URL</label>
+                        <label for="profilePictureURL" th:text="#{profile.picture}">Picture URL</label>
                         <input id="profilePictureURL" type="url" name="profilePictureURL" th:value="${user.profilePicture}"
-                               placeholder="https://example.com/photo.jpg">
+                               th:placeholder="#{profile.picture.placeholder}">
 
                         <div class="picture-preview"
                              th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}">
-                            <img th:src="${user.profilePicture}" alt="Picture preview">
+                            <img th:src="${user.profilePicture}" th:alt="#{profile.picturePreviewAlt}">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="button primary">Save changes</button>
-                    <a class="button secondary" th:href="@{/home}">Cancel</a>
+                    <button type="submit" class="button primary" th:text="#{profile.save}">Save changes</button>
+                    <a class="button secondary" th:href="@{/home}" th:text="#{action.cancel}">Cancel</a>
                 </div>
             </form>
         </section>

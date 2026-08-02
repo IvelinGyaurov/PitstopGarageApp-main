@@ -13,8 +13,8 @@ import java.util.UUID;
 @Data
 public class CompleteRepairRequest {
 
-    @NotNull
-    @DecimalMin("0.00")
+    @NotNull(message = "{validation.laborCost.required}")
+    @DecimalMin(value = "0.00", message = "{validation.laborCost.min}")
     private BigDecimal laborCost;
 
     private List<PartUsageForm> parts = new ArrayList<>();
@@ -24,7 +24,7 @@ public class CompleteRepairRequest {
         private UUID partId;
         private boolean selected;
 
-        @Min(1)
+        @Min(value = 1, message = "{validation.partQty.min}")
         private int quantity;
     }
 }

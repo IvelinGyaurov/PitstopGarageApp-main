@@ -1,6 +1,7 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.AddCarRequest;
 import jakarta.validation.Valid;
@@ -18,9 +19,11 @@ import java.util.UUID;
 public class CarController {
 
     private final CarService carService;
+    private final MessageHelper messages;
 
-    public CarController(CarService carService) {
+    public CarController(CarService carService, MessageHelper messages) {
         this.carService = carService;
+        this.messages = messages;
     }
 
     @GetMapping
@@ -47,7 +50,7 @@ public class CarController {
             return new ModelAndView("car-add", bindingResult.getModel());
         }
         carService.addCar(userData.getUserId(), addCarRequest);
-        redirectAttributes.addFlashAttribute("successMessage", "Car added successfully.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.car.added"));
         return new ModelAndView("redirect:/cars");
     }
 
@@ -56,7 +59,7 @@ public class CarController {
                                   @AuthenticationPrincipal PitstopUserDetails userData,
                                   RedirectAttributes redirectAttributes) {
         carService.deleteCar(userData.getUserId(), id);
-        redirectAttributes.addFlashAttribute("successMessage", "Car removed.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.car.removed"));
         return new ModelAndView("redirect:/cars");
     }
 

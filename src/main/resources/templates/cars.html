@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My cars - PitStop Garage</title>
+    <title th:text="#{cars.title}">My cars - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -262,12 +262,13 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -275,11 +276,12 @@
 <main class="dashboard">
     <section class="cars-page-header">
         <div>
-            <p class="eyebrow">Garage fleet</p>
-            <h1>My cars</h1>
-            <p class="cars-count" th:text="${cars != null ? #lists.size(cars) : 0} + ' registered vehicles'">0 registered vehicles</p>
+            <p class="eyebrow" th:text="#{cars.eyebrow}">Garage fleet</p>
+            <h1 th:text="#{cars.heading}">My cars</h1>
+            <p class="cars-count"
+               th:text="#{cars.count(${cars != null ? #lists.size(cars) : 0})}">0 registered vehicles</p>
         </div>
-        <a class="button primary" th:href="@{/cars/add}">Add car</a>
+        <a class="button primary" th:href="@{/cars/add}" th:text="#{cars.add}">Add car</a>
     </section>
 
     <div th:replace="~{fragments/alerts :: alerts}"></div>
@@ -297,49 +299,52 @@
                 <div class="car-card-head">
                     <div>
                         <h2 th:text="${car.brand + ' ' + car.model}">BMW 320d</h2>
-                        <p th:text="${car.year != null ? car.year : 'Year not set'}">2019</p>
+                        <p th:if="${car.year != null}" th:text="${car.year}">2019</p>
+                        <p th:unless="${car.year != null}" th:text="#{label.yearNotSet}">Year not set</p>
                     </div>
                     <span class="car-badge" th:text="${car.plateNumber}">CB1234AB</span>
                 </div>
 
                 <div class="car-card-details">
                     <div class="car-detail">
-                        <span>Engine</span>
+                        <span th:text="#{cars.engine}">Engine</span>
                         <strong th:text="${car.engineType}">DIESEL</strong>
                     </div>
                     <div class="car-detail">
-                        <span>Transmission</span>
+                        <span th:text="#{cars.transmission}">Transmission</span>
                         <strong th:text="${car.transmission}">AUTOMATIC</strong>
                     </div>
                     <div class="car-detail">
-                        <span>Mileage</span>
+                        <span th:text="#{cars.mileage}">Mileage</span>
                         <strong th:text="${car.mileage != null ? car.mileage + ' km' : '-'}">120000 km</strong>
                     </div>
                     <div class="car-detail">
-                        <span>Year</span>
+                        <span th:text="#{cars.year}">Year</span>
                         <strong th:text="${car.year != null ? car.year : '-'}">2019</strong>
                     </div>
                 </div>
 
                 <p class="car-card-vin">
-                    VIN: <span th:text="${car.vin}">WBA00000000000000</span>
+                    <span th:text="#{cars.vin}">VIN</span>: <span th:text="${car.vin}">WBA00000000000000</span>
                 </p>
 
                 <div class="car-card-actions">
                     <a class="button primary"
-                       th:href="@{/repairs/request(carId=${car.id})}">
+                       th:href="@{/repairs/request(carId=${car.id})}"
+                       th:text="#{cars.requestRepair}">
                         Request repair
                     </a>
                     <form th:action="@{/cars/{id}(id=${car.id})}"
                           method="post"
                           class="car-delete-form"
-                          th:attr="data-car-label=${car.brand + ' ' + car.model}"
-                          onsubmit="return confirm('Delete ' + this.dataset.carLabel + '?');">
+                          th:attr="data-confirm=#{confirm.deleteCar(${car.brand + ' ' + car.model})}"
+                          onsubmit="return confirm(this.dataset.confirm);">
                         <input type="hidden" name="_method" value="delete">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit"
                                 class="button secondary car-delete-btn"
-                                th:attr="aria-label=${'Delete ' + car.brand + ' ' + car.model}">
+                                th:attr="aria-label=#{cars.deleteAria(${car.brand + ' ' + car.model})}"
+                                th:text="#{cars.delete}">
                             Delete
                         </button>
                     </form>
@@ -350,8 +355,8 @@
 
     <section class="cars-empty-wrap" th:if="${cars == null or cars.isEmpty()}">
         <div class="empty-state">
-            <p>You have not registered any cars yet. Add your first vehicle to start tracking service visits.</p>
-            <a class="button primary" th:href="@{/cars/add}">Add your first car</a>
+            <p th:text="#{cars.empty}">You have not registered any cars yet. Add your first vehicle to start tracking service visits.</p>
+            <a class="button primary" th:href="@{/cars/add}" th:text="#{cars.empty.cta}">Add your first car</a>
         </div>
     </section>
 </main>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<span th:fragment="langSwitcher" class="lang-switcher" th:attr="aria-label=#{lang.aria}">
+    <a href="?lang=en"
+       th:classappend="${#locale.language == 'en'} ? ' is-active'"
+       th:text="#{lang.en}">EN</a>
+    <span class="lang-sep" aria-hidden="true">|</span>
+    <a href="?lang=bg"
+       th:classappend="${#locale.language == 'bg'} ? ' is-active'"
+       th:text="#{lang.bg}">BG</a>
+</span>
+</body>
+</html>

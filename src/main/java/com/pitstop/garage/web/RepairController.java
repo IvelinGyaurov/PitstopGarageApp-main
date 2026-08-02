@@ -2,6 +2,7 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
@@ -22,10 +23,12 @@ public class RepairController {
 
     private final CarService carService;
     private final RepairService repairService;
+    private final MessageHelper messages;
 
-    public RepairController(CarService carService, RepairService repairService) {
+    public RepairController(CarService carService, RepairService repairService, MessageHelper messages) {
         this.carService = carService;
         this.repairService = repairService;
+        this.messages = messages;
     }
 
     @GetMapping
@@ -58,7 +61,7 @@ public class RepairController {
 
         repairService.cancelRepairByClient(userData.getUserId(), id);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Repair request cancelled.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.cancelled"));
         return new ModelAndView("redirect:/repairs");
     }
 
@@ -80,7 +83,7 @@ public class RepairController {
 
         repairService.requestRepair(userId, carId, requestRepairRequest);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Repair request submitted.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.submitted"));
         return new ModelAndView("redirect:/repairs");
     }
 

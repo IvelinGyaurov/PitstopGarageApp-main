@@ -1,10 +1,12 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.web.dto.CompleteRepairRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +31,9 @@ class MechanicRepairControllerTest {
     private RepairService repairService;
 
     @Mock
+    private MessageHelper messages;
+
+    @Mock
     private BindingResult bindingResult;
 
     @Mock
@@ -35,6 +41,11 @@ class MechanicRepairControllerTest {
 
     @InjectMocks
     private MechanicRepairController controller;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void repairQueue_returnsView() {

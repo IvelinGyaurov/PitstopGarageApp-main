@@ -1,5 +1,6 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class MechanicRepairController {
 
     private final RepairService repairService;
+    private final MessageHelper messages;
 
-    public MechanicRepairController(RepairService repairService) {
+    public MechanicRepairController(RepairService repairService, MessageHelper messages) {
         this.repairService = repairService;
+        this.messages = messages;
     }
 
     @PreAuthorize("hasRole('MECHANIC')")
@@ -59,7 +62,7 @@ public class MechanicRepairController {
                                      @AuthenticationPrincipal PitstopUserDetails userData,
                                      RedirectAttributes redirectAttributes) {
         repairService.acceptRepairByMechanic(userData.getUserId(), id);
-        redirectAttributes.addFlashAttribute("successMessage", "Repair accepted.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.accepted"));
         return new ModelAndView("redirect:/mechanic/repairs/accepted");    }
 
     @PreAuthorize("hasRole('MECHANIC')")
@@ -68,7 +71,7 @@ public class MechanicRepairController {
                                      @AuthenticationPrincipal PitstopUserDetails userData,
                                      RedirectAttributes redirectAttributes) {
         repairService.rejectRepairByMechanic(userData.getUserId(), id);
-        redirectAttributes.addFlashAttribute("successMessage", "Repair rejected.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.rejected"));
         return new ModelAndView("redirect:/mechanic/repairs");
     }
 
@@ -78,7 +81,7 @@ public class MechanicRepairController {
                                     @AuthenticationPrincipal PitstopUserDetails userData,
                                     RedirectAttributes redirectAttributes) {
         repairService.startRepairByMechanic(userData.getUserId(), id);
-        redirectAttributes.addFlashAttribute("successMessage", "Repair started.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.started"));
         return new ModelAndView("redirect:/mechanic/repairs/accepted");
     }
 
@@ -113,7 +116,7 @@ public class MechanicRepairController {
                 userData.getUserId(), id,
                 completeRepairRequest.getLaborCost(),
                 completeRepairRequest);
-        redirectAttributes.addFlashAttribute("successMessage", "Repair completed.");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.repair.completed"));
         return new ModelAndView("redirect:/mechanic/repairs/accepted");
     }
 

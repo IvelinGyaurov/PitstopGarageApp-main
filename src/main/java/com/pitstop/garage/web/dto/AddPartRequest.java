@@ -8,18 +8,18 @@ import java.math.BigDecimal;
 @Data
 public class AddPartRequest {
 
-    @NotBlank
-    @Size(max = 100)
+    @NotBlank(message = "{validation.partName.required}")
+    @Size(max = 100, message = "{validation.partName.size}")
     private String name;
 
-    @NotBlank
-    @Size(max = 50)
+    @NotBlank(message = "{validation.sku.required}")
+    @Size(max = 50, message = "{validation.sku.size}")
     private String sku;
 
-    @NotNull
-    @DecimalMin("0.01")
+    @NotNull(message = "{validation.unitPrice.required}")
+    @DecimalMin(value = "0.01", message = "{validation.unitPrice.min}")
     private BigDecimal unitPrice;
 
-    @Min(0)
+    @Min(value = 0, message = "{validation.quantity.min}")
     private int quantityInStock;
 }

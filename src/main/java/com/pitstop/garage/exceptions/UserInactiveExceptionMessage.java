@@ -6,5 +6,5 @@ public class UserInactiveExceptionMessage {
 
     }
 
-    public static final String USER_INACTIVE = "User inactive";
+    public static final String USER_INACTIVE = "error.userInactive";
 }

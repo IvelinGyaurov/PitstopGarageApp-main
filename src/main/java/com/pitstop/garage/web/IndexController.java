@@ -1,6 +1,7 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
@@ -26,13 +27,16 @@ public class IndexController {
     private final UserService userService;
     private final CarService carService;
     private final RepairService repairService;
+    private final MessageHelper messages;
 
     public IndexController(UserService userService,
                            CarService carService,
-                           RepairService repairService) {
+                           RepairService repairService,
+                           MessageHelper messages) {
         this.userService = userService;
         this.carService = carService;
         this.repairService = repairService;
+        this.messages = messages;
     }
 
     @GetMapping({"/", "/index"})
@@ -47,9 +51,9 @@ public class IndexController {
         modelAndView.addObject("loginRequest", new LoginRequest());
 
         if (inactive != null) {
-            modelAndView.addObject("errorMessage", "Your account is inactive.");
+            modelAndView.addObject("errorMessage", messages.get("flash.login.inactive"));
         } else if (error != null) {
-            modelAndView.addObject("errorMessage", "Incorrect username or password.");
+            modelAndView.addObject("errorMessage", messages.get("flash.login.badCredentials"));
         }
 
         return modelAndView;
@@ -103,7 +107,7 @@ public class IndexController {
         }
 
         userService.registerUser(registerRequest);
-        redirectAttributes.addFlashAttribute("successMessage", "You have registered successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.register.success"));
         return new ModelAndView("redirect:/login");
     }
 }

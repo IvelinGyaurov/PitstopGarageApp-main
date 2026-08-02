@@ -1,51 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - PitStop Garage</title>
+    <title th:text="#{register.title}">Register - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
 </head>
 <body>
 <main class="auth-page">
+    <div class="auth-lang">
+        <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
+    </div>
+
     <section class="auth-card">
         <a class="brand auth-brand" th:href="@{/index}">
             <img class="brand-logo" th:src="@{/images/logo-auth.png}" alt="PitStop Garage logo" width="54" height="54">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
-        <p class="eyebrow">Join the garage</p>
-        <h1>Register</h1>
-        <p class="auth-copy">Create your account and start managing car service visits.</p>
+        <p class="eyebrow" th:text="#{register.eyebrow}">Join the garage</p>
+        <h1 th:text="#{register.heading}">Register</h1>
+        <p class="auth-copy" th:text="#{register.copy}">Create your account and start managing car service visits.</p>
 
         <div th:replace="~{fragments/alerts :: alerts}"></div>
 
         <form th:action="@{/register}" th:object="${registerRequest}" method="post" class="auth-form" novalidate>
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{register.formError}">
                 Please correct the highlighted fields.
             </p>
 
-            <label for="username">Username</label>
-            <input id="username" type="text" th:field="*{username}" th:errorclass="input-error" placeholder="Choose username">
+            <label for="username" th:text="#{register.username}">Username</label>
+            <input id="username" type="text" th:field="*{username}" th:errorclass="input-error" th:placeholder="#{register.username.placeholder}">
             <small class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
 
-            <label for="email">Email</label>
-            <input id="email" type="email" th:field="*{email}" th:errorclass="input-error" placeholder="you@example.com">
+            <label for="email" th:text="#{register.email}">Email</label>
+            <input id="email" type="email" th:field="*{email}" th:errorclass="input-error" th:placeholder="#{register.email.placeholder}">
             <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
 
-            <label for="password">Password</label>
-            <input id="password" type="password" th:field="*{password}" th:errorclass="input-error" placeholder="Choose password">
+            <label for="password" th:text="#{register.password}">Password</label>
+            <input id="password" type="password" th:field="*{password}" th:errorclass="input-error" th:placeholder="#{register.password.placeholder}">
             <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
 
-            <button type="submit" class="button primary full-width">Create account</button>
+            <button type="submit" class="button primary full-width" th:text="#{register.submit}">Create account</button>
         </form>
 
         <p class="footer-link">
-            Already have an account?
-            <a th:href="@{/login}">Login here</a>
+            <span th:text="#{register.hasAccount}">Already have an account?</span>
+            <a th:href="@{/login}" th:text="#{register.loginHere}">Login here</a>
         </p>
     </section>
 </main>

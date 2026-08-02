@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accepted repairs - PitStop Garage</title>
+    <title th:text="#{mechanicAccepted.title}">Accepted repairs - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -233,15 +233,16 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/mechanic/repairs}">Repair queue</a>
-            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
-            <a th:href="@{/mechanic/repairs/history}">Repair history</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/mechanic/repairs}" th:text="#{nav.repairQueue}">Repair queue</a>
+            <a th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -249,17 +250,16 @@
 <main class="dashboard">
     <section class="repairs-page-header">
         <div>
-            <p class="eyebrow">My active jobs</p>
-            <h1>Accepted repairs</h1>
+            <p class="eyebrow" th:text="#{mechanicAccepted.eyebrow}">My active jobs</p>
+            <h1 th:text="#{mechanicAccepted.heading}">Accepted repairs</h1>
             <p class="repairs-count"
-               th:text="${(inProgressRepairs != null ? #lists.size(inProgressRepairs) : 0)
-                         + (acceptedRepairs != null ? #lists.size(acceptedRepairs) : 0)}
-                         + ' active repair(s)'">0 active repair(s)</p>
+               th:text="#{mechanicAccepted.count(${(inProgressRepairs != null ? #lists.size(inProgressRepairs) : 0)
+                         + (acceptedRepairs != null ? #lists.size(acceptedRepairs) : 0)})}">0 active repair(s)</p>
         </div>
         <div class="repairs-header-actions">
-            <a class="button secondary" th:href="@{/mechanic/repairs}">Back to queue</a>
-            <a class="button secondary" th:href="@{/mechanic/repairs/history}">Repair history</a>
-            <a class="button secondary" th:href="@{/home}">Back to home</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs}" th:text="#{action.backToQueue}">Back to queue</a>
+            <a class="button secondary" th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a class="button secondary" th:href="@{/home}" th:text="#{action.backToHome}">Back to home</a>
         </div>
     </section>
 
@@ -267,9 +267,9 @@
 
     <section class="repairs-section">
         <div class="repairs-section-header">
-            <h2>In progress</h2>
+            <h2 th:text="#{section.inProgress}">In progress</h2>
             <span class="repairs-section-count"
-                  th:text="${inProgressRepairs != null ? #lists.size(inProgressRepairs) : 0} + ' in progress'">0 in progress</span>
+                  th:text="#{status.count.inProgress(${inProgressRepairs != null ? #lists.size(inProgressRepairs) : 0})}">0 in progress</span>
         </div>
 
         <section class="repairs-list" th:if="${inProgressRepairs != null and !inProgressRepairs.isEmpty()}">
@@ -282,32 +282,32 @@
                            th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                     </div>
                     <span class="repair-status in-progress"
-                          th:text="${repair.status.displayName}">In progress</span>
+                          th:text="#{repairStatus.inProgress}">In progress</span>
                 </div>
 
-                <span class="repair-description-label">Problem description</span>
+                <span class="repair-description-label" th:text="#{repairs.problem}">Problem description</span>
                 <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
 
                 <div class="repair-card-footer">
                     <div class="repair-footer-left">
                         <div class="repair-meta">
                             <span>
-                                Client <strong th:text="${repair.client.username}">client</strong>
+                                <span th:text="#{repairCard.client}">Client</span> <strong th:text="${repair.client.username}">client</strong>
                             </span>
                             <span>
-                                Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairs.submitted}">Submitted</span> <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.acceptedAt != null}">
-                                Accepted <strong th:text="${#temporals.format(repair.acceptedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairCard.accepted}">Accepted</span> <strong th:text="${#temporals.format(repair.acceptedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.startedAt != null}">
-                                Started <strong th:text="${#temporals.format(repair.startedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairCard.started}">Started</span> <strong th:text="${#temporals.format(repair.startedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                         </div>
                     </div>
                     <div class="repair-card-actions">
                         <a class="button repair-complete-btn"
-                           th:href="@{/mechanic/repairs/{id}/complete(id=${repair.id})}">Complete</a>
+                           th:href="@{/mechanic/repairs/{id}/complete(id=${repair.id})}" th:text="#{mechanicAccepted.complete}">Complete</a>
                     </div>
                 </div>
             </article>
@@ -315,16 +315,16 @@
 
         <section class="repairs-empty-wrap" th:if="${inProgressRepairs == null or inProgressRepairs.isEmpty()}">
             <div class="empty-state">
-                <p>No repairs in progress. Start an accepted job below.</p>
+                <p th:text="#{mechanicAccepted.emptyInProgress}">No repairs in progress. Start an accepted job below.</p>
             </div>
         </section>
     </section>
 
     <section class="repairs-section">
         <div class="repairs-section-header">
-            <h2>Accepted</h2>
+            <h2 th:text="#{section.accepted}">Accepted</h2>
             <span class="repairs-section-count"
-                  th:text="${acceptedRepairs != null ? #lists.size(acceptedRepairs) : 0} + ' accepted'">0 accepted</span>
+                  th:text="#{status.count.accepted(${acceptedRepairs != null ? #lists.size(acceptedRepairs) : 0})}">0 accepted</span>
         </div>
 
         <section class="repairs-list" th:if="${acceptedRepairs != null and !acceptedRepairs.isEmpty()}">
@@ -337,23 +337,23 @@
                            th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                     </div>
                     <span class="repair-status accepted"
-                          th:text="${repair.status.displayName}">Accepted</span>
+                          th:text="#{repairStatus.accepted}">Accepted</span>
                 </div>
 
-                <span class="repair-description-label">Problem description</span>
+                <span class="repair-description-label" th:text="#{repairs.problem}">Problem description</span>
                 <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
 
                 <div class="repair-card-footer">
                     <div class="repair-footer-left">
                         <div class="repair-meta">
                             <span>
-                                Client <strong th:text="${repair.client.username}">client</strong>
+                                <span th:text="#{repairCard.client}">Client</span> <strong th:text="${repair.client.username}">client</strong>
                             </span>
                             <span>
-                                Submitted <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairs.submitted}">Submitted</span> <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                             <span th:if="${repair.acceptedAt != null}">
-                                Accepted <strong th:text="${#temporals.format(repair.acceptedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
+                                <span th:text="#{repairCard.accepted}">Accepted</span> <strong th:text="${#temporals.format(repair.acceptedAt, 'dd.MM.yyyy')}">01.01.2026</strong>
                             </span>
                         </div>
                     </div>
@@ -362,7 +362,7 @@
                               method="post"
                               class="repair-action-form">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <button type="submit" class="button repair-start-btn">Start</button>
+                            <button type="submit" class="button repair-start-btn" th:text="#{mechanicAccepted.start}">Start</button>
                         </form>
                     </div>
                 </div>
@@ -371,7 +371,7 @@
 
         <section class="repairs-empty-wrap" th:if="${acceptedRepairs == null or acceptedRepairs.isEmpty()}">
             <div class="empty-state">
-                <p>No accepted repairs waiting to start. Accept a request from the repair queue.</p>
+                <p th:text="#{mechanicAccepted.emptyAccepted}">No accepted repairs waiting to start. Accept a request from the repair queue.</p>
             </div>
         </section>
     </section>

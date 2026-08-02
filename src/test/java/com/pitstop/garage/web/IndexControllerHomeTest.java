@@ -1,11 +1,13 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +21,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,8 +38,16 @@ class IndexControllerHomeTest {
     @Mock
     private RepairService repairService;
 
+    @Mock
+    private MessageHelper messages;
+
     @InjectMocks
     private IndexController indexController;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void getHomePage_forMechanic_addsBayAndQueueCounts() {
@@ -75,14 +87,14 @@ class IndexControllerHomeTest {
     void getLoginPage_withInactiveFlag_setsMessage() {
         ModelAndView mav = indexController.getLoginPage(null, "1");
         assertEquals("login", mav.getViewName());
-        assertEquals("Your account is inactive.", mav.getModel().get("errorMessage"));
+        assertEquals("flash.login.inactive", mav.getModel().get("errorMessage"));
     }
 
     @Test
     void getLoginPage_withErrorFlag_setsIncorrectCredentialsMessage() {
         ModelAndView mav = indexController.getLoginPage("true", null);
         assertEquals("login", mav.getViewName());
-        assertEquals("Incorrect username or password.", mav.getModel().get("errorMessage"));
+        assertEquals("flash.login.badCredentials", mav.getModel().get("errorMessage"));
     }
 
     @Test

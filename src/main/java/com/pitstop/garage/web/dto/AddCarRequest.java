@@ -12,52 +12,52 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AddCarRequest {
 
-    @NotBlank(message = "VIN is required")
-    @Size(min = 17, max = 17, message = "VIN must be exactly 17 characters")
+    @NotBlank(message = "{validation.vin.required}")
+    @Size(min = 17, max = 17, message = "{validation.vin.size}")
     @Pattern(
             regexp = "^[A-HJ-NPR-Z0-9]{17}$",
-            message = "VIN must contain only valid letters and digits (no I, O, Q)"
+            message = "{validation.vin.pattern}"
     )
     private String vin;
 
-    @NotBlank(message = "Plate number is required")
-    @Size(max = 10, message = "Plate number must be at most 10 characters")
+    @NotBlank(message = "{validation.plate.required}")
+    @Size(max = 10, message = "{validation.plate.size}")
     @Pattern(
             regexp = "^[\\p{L}0-9\\s-]+$",
-            message = "Plate number contains invalid characters"
+            message = "{validation.plate.pattern}"
     )
     private String plateNumber;
 
-    @NotBlank(message = "Brand is required")
-    @Size(min = 2, max = 50, message = "Brand must be between 2 and 50 characters")
+    @NotBlank(message = "{validation.brand.required}")
+    @Size(min = 2, max = 50, message = "{validation.brand.size}")
     private String brand;
 
-    @NotBlank(message = "Model is required")
-    @Size(min = 1, max = 50, message = "Model must be between 1 and 50 characters")
+    @NotBlank(message = "{validation.model.required}")
+    @Size(min = 1, max = 50, message = "{validation.model.size}")
     private String model;
 
-    @NotBlank(message = "Engine type is required")
+    @NotBlank(message = "{validation.engine.required}")
     @Pattern(
             regexp = "^(PETROL|DIESEL|ELECTRIC|HYBRID|LPG)$",
-            message = "Engine type must be PETROL, DIESEL, ELECTRIC, HYBRID or LPG"
+            message = "{validation.engine.pattern}"
     )
     private String engineType;
 
-    @NotBlank(message = "Transmission is required")
+    @NotBlank(message = "{validation.transmission.required}")
     @Pattern(
             regexp = "^(MANUAL|AUTOMATIC)$",
-            message = "Transmission must be MANUAL or AUTOMATIC"
+            message = "{validation.transmission.pattern}"
     )
     private String transmission;
 
-    @NotNull(message = "Year is required")
-    @Min(value = 1900, message = "Year must be 1900 or later")
-    @Max(value = 2030, message = "Year is not valid")
+    @NotNull(message = "{validation.year.required}")
+    @Min(value = 1900, message = "{validation.year.min}")
+    @Max(value = 2030, message = "{validation.year.max}")
     private Integer year;
 
-    @NotNull(message = "Mileage is required")
-    @Min(value = 0, message = "Mileage cannot be negative")
-    @Max(value = 2_000_000, message = "Mileage is not valid")
+    @NotNull(message = "{validation.mileage.required}")
+    @Min(value = 0, message = "{validation.mileage.min}")
+    @Max(value = 2_000_000, message = "{validation.mileage.max}")
     private Integer mileage;
 
 }

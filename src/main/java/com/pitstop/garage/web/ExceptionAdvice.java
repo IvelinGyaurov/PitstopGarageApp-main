@@ -1,5 +1,6 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -15,26 +16,31 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @ControllerAdvice
 public class ExceptionAdvice {
 
+    private final MessageHelper messages;
+
+    public ExceptionAdvice(MessageHelper messages) {
+        this.messages = messages;
+    }
 
     @ExceptionHandler(UserAlreadyExistException.class)
     public String handleUserAlreadyExist(RedirectAttributes redirectAttributes,
                                          UserAlreadyExistException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/register";
     }
 
     @ExceptionHandler(VinAlreadyExistsException.class)
     public String handleVinAlreadyExists(RedirectAttributes redirectAttributes,
                                          VinAlreadyExistsException exception) {
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/cars/add";
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String handleDataIntegrityViolation(RedirectAttributes redirectAttributes) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", "Username or email already exists.");
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get("error.usernameOrEmailExists"));
         return "redirect:/register";
     }
 
@@ -42,14 +48,14 @@ public class ExceptionAdvice {
     public String handleCarNotFound(RedirectAttributes redirectAttributes,
                                     CarNotFoundException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/cars";
     }
 
     @ExceptionHandler(PartSkuAlreadyExistsException.class)
     public String handlePartSkuAlreadyExists(RedirectAttributes redirectAttributes,
                                              PartSkuAlreadyExistsException exception) {
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/admin/parts/add";
     }
 
@@ -57,7 +63,7 @@ public class ExceptionAdvice {
     public String handleRepairNotFound(RedirectAttributes redirectAttributes,
                                        RepairNotFoundException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/repairs";
     }
 
@@ -65,7 +71,7 @@ public class ExceptionAdvice {
     public String handleRepairStatus(RedirectAttributes redirectAttributes,
                                      RepairStatusException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/repairs";
     }
 
@@ -73,14 +79,14 @@ public class ExceptionAdvice {
     public String handleUserInactive(RedirectAttributes redirectAttributes,
                                      UserInactiveException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/users";
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public String handleUserNotFound(RedirectAttributes redirectAttributes,
                                      UserNotFoundException exception) {
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/home";
     }
 
@@ -88,7 +94,7 @@ public class ExceptionAdvice {
     public String handlePrimaryUser(RedirectAttributes redirectAttributes,
                                     PrimaryUserException exception) {
 
-        redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
         return "redirect:/users";
     }
 

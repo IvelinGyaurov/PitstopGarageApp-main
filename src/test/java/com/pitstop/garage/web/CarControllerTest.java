@@ -1,9 +1,11 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.web.dto.AddCarRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +29,9 @@ class CarControllerTest {
     private CarService carService;
 
     @Mock
+    private MessageHelper messages;
+
+    @Mock
     private BindingResult bindingResult;
 
     @Mock
@@ -33,6 +39,11 @@ class CarControllerTest {
 
     @InjectMocks
     private CarController controller;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void myCars_returnsCarsView() {
@@ -57,7 +68,7 @@ class CarControllerTest {
         ModelAndView mav = controller.deleteCar(carId, principal, redirectAttributes);
 
         verify(carService).deleteCar(userId, carId);
-        verify(redirectAttributes).addFlashAttribute("successMessage", "Car removed.");
+        verify(redirectAttributes).addFlashAttribute("successMessage", "flash.car.removed");
         assertEquals("redirect:/cars", mav.getViewName());
     }
 

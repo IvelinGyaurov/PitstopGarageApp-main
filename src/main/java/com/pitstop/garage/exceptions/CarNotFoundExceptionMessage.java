@@ -4,5 +4,5 @@ public class CarNotFoundExceptionMessage {
 
     private CarNotFoundExceptionMessage() {}
 
-    public static final String CAR_NOT_FOUND = "Car not found";
+    public static final String CAR_NOT_FOUND = "error.carNotFound";
 }

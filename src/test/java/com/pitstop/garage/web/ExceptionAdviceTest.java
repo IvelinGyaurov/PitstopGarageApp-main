@@ -1,6 +1,8 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -12,15 +14,27 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExceptionAdviceTest {
 
-    private final ExceptionAdvice advice = new ExceptionAdvice();
+    @Mock
+    private MessageHelper messages;
 
     @Mock
     private RedirectAttributes redirectAttributes;
+
+    private ExceptionAdvice advice;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        advice = new ExceptionAdvice(messages);
+    }
 
     @Test
     void handleUserAlreadyExist_redirectsToRegister() {
@@ -39,6 +53,7 @@ class ExceptionAdviceTest {
     void handleDataIntegrityViolation_redirectsToRegister() {
         assertEquals("redirect:/register",
                 advice.handleDataIntegrityViolation(redirectAttributes));
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "error.usernameOrEmailExists");
     }
 
     @Test

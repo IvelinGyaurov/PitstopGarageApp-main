@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - PitStop Garage</title>
+    <title th:text="#{home.title}">Home - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
 </head>
@@ -12,18 +12,19 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/users}">All users</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/parts}">Parts inventory</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs}">Active repairs</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs/history}">Repair history</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs}">Repair queue</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/history}">Repair history</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/users}" th:text="#{nav.allUsers}">All users</a>
+            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
+            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs}" th:text="#{nav.activeRepairs}">Active repairs</a>
+            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs}" th:text="#{nav.repairQueue}">Repair queue</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -31,18 +32,18 @@
 <main class="dashboard">
     <section class="welcome-panel">
         <div>
-            <p class="eyebrow" sec:authorize="hasRole('MECHANIC')">Mechanic workspace</p>
-            <p class="eyebrow" sec:authorize="hasRole('ADMIN')">Admin dashboard</p>
-            <p class="eyebrow" sec:authorize="!hasAnyRole('MECHANIC', 'ADMIN')">Garage dashboard</p>
-            <h1>Welcome, <span th:text="${username}">driver</span>.</h1>
-            <p class="hero-text" sec:authorize="hasRole('MECHANIC')">
+            <p class="eyebrow" sec:authorize="hasRole('MECHANIC')" th:text="#{home.eyebrow.mechanic}">Mechanic workspace</p>
+            <p class="eyebrow" sec:authorize="hasRole('ADMIN')" th:text="#{home.eyebrow.admin}">Admin dashboard</p>
+            <p class="eyebrow" sec:authorize="!hasAnyRole('MECHANIC', 'ADMIN')" th:text="#{home.eyebrow.user}">Garage dashboard</p>
+            <h1><span th:text="#{home.welcome}">Welcome,</span> <span th:text="${username}">driver</span>.</h1>
+            <p class="hero-text" sec:authorize="hasRole('MECHANIC')" th:text="#{home.text.mechanic}">
                 Review pending requests, manage accepted jobs, and track rejected and completed repairs in your history.
             </p>
-            <p class="hero-text" sec:authorize="hasRole('ADMIN')">
+            <p class="hero-text" sec:authorize="hasRole('ADMIN')" th:text="#{home.text.admin}">
                 Oversee the garage: parts inventory, active repairs across all mechanics, and full service history.
             </p>
-            <p class="hero-text" sec:authorize="!hasAnyRole('MECHANIC', 'ADMIN')">
-                Your PitStop Garage account is ready. Car, repair and service history features will appear here.
+            <p class="hero-text" sec:authorize="!hasAnyRole('MECHANIC', 'ADMIN')" th:text="#{home.text.user}">
+                Your PitStop Garage account is ready. Manage your cars and repair requests from here.
             </p>
         </div>
 
@@ -57,102 +58,102 @@
                 <h2 th:text="${username}">username</h2>
             </div>
             <div class="profile-card-stats" sec:authorize="hasRole('USER')">
-                <p>Cars</p>
+                <p th:text="#{home.stats.cars}">Cars</p>
                 <strong th:text="${carsCount}">0</strong>
-                <p>Active repairs</p>
+                <p th:text="#{home.stats.activeRepairs}">Active repairs</p>
                 <strong class="profile-card-stat-last" th:text="${activeRepairsCount}">0</strong>
             </div>
 
             <div class="profile-card-stats" sec:authorize="hasRole('MECHANIC')">
-                <p>In my bay</p>
+                <p th:text="#{home.stats.inMyBay}">In my bay</p>
                 <strong th:text="${bayCount}">0</strong>
-                <p>Queue waiting</p>
+                <p th:text="#{home.stats.queueWaiting}">Queue waiting</p>
                 <strong class="profile-card-stat-last" th:text="${queueCount}">0</strong>
             </div>
 
             <div class="profile-card-stats" sec:authorize="hasRole('ADMIN')">
-                <p>Active repairs</p>
+                <p th:text="#{home.stats.activeRepairs}">Active repairs</p>
                 <strong th:text="${activeRepairsCount}">0</strong>
-                <p>Users</p>
+                <p th:text="#{home.stats.users}">Users</p>
                 <strong class="profile-card-stat-last" th:text="${usersCount}">0</strong>
             </div>
 
-            <a class="button primary full-width" th:href="@{/users/{id}/profile(id=${userId})}">Edit profile</a>
+            <a class="button primary full-width" th:href="@{/users/{id}/profile(id=${userId})}" th:text="#{home.editProfile}">Edit profile</a>
         </div>
     </section>
 
     <section class="mechanic-panel" sec:authorize="hasRole('MECHANIC')">
         <div class="mechanic-panel-header">
-            <p class="eyebrow">Mechanic panel</p>
-            <h2>Bay tools</h2>
-            <p class="mechanic-panel-lead">Your queue, active jobs and personal repair history — separate from client tools.</p>
+            <p class="eyebrow" th:text="#{home.mechanic.panel}">Mechanic panel</p>
+            <h2 th:text="#{home.mechanic.tools}">Bay tools</h2>
+            <p class="mechanic-panel-lead" th:text="#{home.mechanic.lead}">Your queue, active jobs and personal repair history — separate from client tools.</p>
         </div>
 
         <div class="dashboard-grid mechanic-panel-grid">
             <article class="dashboard-card mechanic-dashboard-card">
-                <h3>Repair queue</h3>
-                <p>All pending repair requests from clients across the garage.</p>
-                <a class="button mechanic full-width" th:href="@{/mechanic/repairs}">Open repair queue</a>
+                <h3 th:text="#{home.mechanic.queue.title}">Repair queue</h3>
+                <p th:text="#{home.mechanic.queue.text}">All pending repair requests from clients across the garage.</p>
+                <a class="button mechanic full-width" th:href="@{/mechanic/repairs}" th:text="#{home.mechanic.queue.cta}">Open repair queue</a>
             </article>
 
             <article class="dashboard-card mechanic-dashboard-card">
-                <h3>Accepted repairs</h3>
-                <p>Repairs you have accepted. Start work and mark them completed when done.</p>
-                <a class="button mechanic full-width" th:href="@{/mechanic/repairs/accepted}">View accepted repairs</a>
+                <h3 th:text="#{home.mechanic.accepted.title}">Accepted repairs</h3>
+                <p th:text="#{home.mechanic.accepted.text}">Repairs you have accepted. Start work and mark them completed when done.</p>
+                <a class="button mechanic full-width" th:href="@{/mechanic/repairs/accepted}" th:text="#{home.mechanic.accepted.cta}">View accepted repairs</a>
             </article>
 
             <article class="dashboard-card mechanic-dashboard-card">
-                <h3>Repair history</h3>
-                <p>Rejected requests and completed repairs from your work.</p>
-                <a class="button mechanic full-width" th:href="@{/mechanic/repairs/history}">View repair history</a>
+                <h3 th:text="#{home.mechanic.history.title}">Repair history</h3>
+                <p th:text="#{home.mechanic.history.text}">Rejected requests and completed repairs from your work.</p>
+                <a class="button mechanic full-width" th:href="@{/mechanic/repairs/history}" th:text="#{home.mechanic.history.cta}">View repair history</a>
             </article>
         </div>
     </section>
 
     <section class="dashboard-grid" sec:authorize="hasAnyRole('USER', 'ADMIN')">
         <article class="dashboard-card">
-            <h3>My cars</h3>
-            <p>Register and manage your vehicles from one place.</p>
-            <a class="button primary full-width" th:href="@{/cars}">View my cars</a>
+            <h3 th:text="#{home.myCars}">My cars</h3>
+            <p th:text="#{home.myCars.text}">Register and manage your vehicles from one place.</p>
+            <a class="button primary full-width" th:href="@{/cars}" th:text="#{home.myCars.cta}">View my cars</a>
         </article>
 
         <article class="dashboard-card">
-            <h3>Repairs</h3>
-            <p>Follow repair status and completed service work.</p>
-            <a class="button primary full-width" th:href="@{/repairs}">View my repairs</a>
+            <h3 th:text="#{home.repairs}">Repairs</h3>
+            <p th:text="#{home.repairs.text}">Follow repair status and completed service work.</p>
+            <a class="button primary full-width" th:href="@{/repairs}" th:text="#{home.repairs.cta}">View my repairs</a>
         </article>
 
         <article class="dashboard-card">
-            <h3>Service history</h3>
-            <p>Keep a clean record of every garage visit.</p>
-            <a class="button primary full-width" th:href="@{/repairs/history}">View service history</a>
+            <h3 th:text="#{home.serviceHistory}">Service history</h3>
+            <p th:text="#{home.serviceHistory.text}">Keep a clean record of every garage visit.</p>
+            <a class="button primary full-width" th:href="@{/repairs/history}" th:text="#{home.serviceHistory.cta}">View service history</a>
         </article>
     </section>
 
     <section class="admin-panel" sec:authorize="hasRole('ADMIN')">
         <div class="admin-panel-header">
-            <p class="eyebrow">Admin panel</p>
-            <h2>Garage management</h2>
-            <p class="admin-panel-lead">Parts stock and a live overview of every repair in the garage.</p>
+            <p class="eyebrow" th:text="#{home.admin.panel}">Admin panel</p>
+            <h2 th:text="#{home.admin.management}">Garage management</h2>
+            <p class="admin-panel-lead" th:text="#{home.admin.lead}">Parts stock and a live overview of every repair in the garage.</p>
         </div>
 
         <div class="dashboard-grid admin-panel-grid">
             <article class="dashboard-card admin-dashboard-card">
-                <h3>Parts inventory</h3>
-                <p>Manage spare parts stock in the parts shop microservice.</p>
-                <a class="button admin full-width" th:href="@{/admin/parts}">Manage parts</a>
+                <h3 th:text="#{home.admin.parts.title}">Parts inventory</h3>
+                <p th:text="#{home.admin.parts.text}">Manage spare parts stock in the parts shop microservice.</p>
+                <a class="button admin full-width" th:href="@{/admin/parts}" th:text="#{home.admin.parts.cta}">Manage parts</a>
             </article>
 
             <article class="dashboard-card admin-dashboard-card">
-                <h3>Active repairs</h3>
-                <p>See all pending, accepted and in-progress repairs across the garage.</p>
-                <a class="button admin full-width" th:href="@{/admin/repairs}">View active repairs</a>
+                <h3 th:text="#{home.admin.active.title}">Active repairs</h3>
+                <p th:text="#{home.admin.active.text}">See all pending, accepted and in-progress repairs across the garage.</p>
+                <a class="button admin full-width" th:href="@{/admin/repairs}" th:text="#{home.admin.active.cta}">View active repairs</a>
             </article>
 
             <article class="dashboard-card admin-dashboard-card">
-                <h3>Repair history</h3>
-                <p>Completed work plus rejected, cancelled and expired requests from every mechanic.</p>
-                <a class="button admin full-width" th:href="@{/admin/repairs/history}">View repair history</a>
+                <h3 th:text="#{home.admin.history.title}">Repair history</h3>
+                <p th:text="#{home.admin.history.text}">Completed work plus rejected, cancelled and expired requests from every mechanic.</p>
+                <a class="button admin full-width" th:href="@{/admin/repairs/history}" th:text="#{home.admin.history.cta}">View repair history</a>
             </article>
         </div>
     </section>

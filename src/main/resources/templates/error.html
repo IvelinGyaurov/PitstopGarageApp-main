@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:with="displayStatus=${status == 404 ? 404 : 500}"
-           th:text="${displayStatus == 404} ? 'Page not found - PitStop Garage' : 'Something went wrong - PitStop Garage'">
+    <title th:with="titleKey=${status == 404 ? 'error.notFound.title' : 'error.serverError.title'}"
+           th:text="#{${titleKey}}">
         Error - PitStop Garage
     </title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
@@ -60,30 +60,30 @@
     <section class="error-card">
         <a class="brand auth-brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <th:block th:if="${displayStatus == 404}">
-            <p class="eyebrow">Error 404</p>
-            <h1>Page not found</h1>
-            <p class="auth-copy">
+            <p class="eyebrow" th:text="#{error.404.eyebrow}">Error 404</p>
+            <h1 th:text="#{error.404.heading}">Page not found</h1>
+            <p class="auth-copy" th:text="#{error.404.copy}">
                 This page doesn’t exist or the link is broken.
                 Head back home and continue from there.
             </p>
         </th:block>
 
         <th:block th:if="${displayStatus == 500}">
-            <p class="eyebrow">Error 500</p>
-            <h1>Something went wrong</h1>
-            <p class="auth-copy">
+            <p class="eyebrow" th:text="#{error.500.eyebrow}">Error 500</p>
+            <h1 th:text="#{error.500.heading}">Something went wrong</h1>
+            <p class="auth-copy" th:text="#{error.500.copy}">
                 We couldn’t complete this request right now.
                 Please try again or return to your garage dashboard.
             </p>
         </th:block>
 
         <div class="error-actions">
-            <a class="button primary" th:href="@{/home}">Back to home</a>
-            <a class="button secondary" th:href="@{/index}">Go to start page</a>
+            <a class="button primary" th:href="@{/home}" th:text="#{action.backToHome}">Back to home</a>
+            <a class="button secondary" th:href="@{/index}" th:text="#{error.goToStart}">Go to start page</a>
         </div>
     </section>
 </main>

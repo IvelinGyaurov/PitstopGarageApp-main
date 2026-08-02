@@ -109,6 +109,41 @@ a {
     color: var(--text);
 }
 
+.lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.lang-switcher a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.35rem;
+}
+
+.lang-switcher a:hover,
+.lang-switcher a.is-active {
+    color: #fdba74;
+    background: rgba(253, 186, 116, 0.12);
+}
+
+.lang-sep {
+    color: rgba(148, 163, 184, 0.55);
+    user-select: none;
+}
+
+.auth-lang {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 2;
+}
+
 .hero {
     width: min(1180px, 100%);
     margin: 6rem auto 0;
@@ -375,6 +410,7 @@ h3 {
 }
 
 .auth-page {
+    position: relative;
     min-height: 100vh;
     display: grid;
     place-items: center;

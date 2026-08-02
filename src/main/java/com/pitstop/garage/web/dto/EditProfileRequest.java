@@ -1,7 +1,6 @@
 package com.pitstop.garage.web.dto;
 
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,25 +14,25 @@ public class EditProfileRequest {
 
     @Pattern(
             regexp = "^$|^[\\p{L}][\\p{L}\\s'-]{0,18}$",
-            message = "First name must be at most 20 characters and must contain only letters, spaces, hyphens or apostrophes"
+            message = "{validation.firstName.pattern}"
     )
     private String firstName;
 
     @Pattern(
             regexp = "^$|^[\\p{L}][\\p{L}\\s'-]{0,18}$",
-            message = "Last name must be at most 20 characters and must contain only letters, spaces, hyphens or apostrophes"
+            message = "{validation.lastName.pattern}"
     )
     private String lastName;
 
     @Pattern(
             regexp = "^$|^\\+?[0-9][0-9\\s-]{5,18}$",
-            message = "Phone number must be at most 20 characters and must be a valid phone number"
+            message = "{validation.phone.pattern}"
     )
     private String phoneNumber;
 
     @Pattern(
             regexp = "^$|^https?://.+",
-            message = "Picture must be at most 500 characters and must be a valid http or https URL"
+            message = "{validation.picture.pattern}"
     )
     private String profilePictureURL;
 

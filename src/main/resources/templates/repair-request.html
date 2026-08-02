@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request repair - PitStop Garage</title>
+    <title th:text="#{repairRequest.title}">Request repair - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -120,14 +120,15 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/cars}">My cars</a>
-            <a th:href="@{/repairs}">My repairs</a>
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/cars}" th:text="#{nav.myCars}">My cars</a>
+            <a th:href="@{/repairs}" th:text="#{nav.myRepairs}">My repairs</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -136,38 +137,38 @@
     <section class="repair-request-card">
         <a class="brand auth-brand" th:href="@{/cars}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
-        <p class="eyebrow">New service request</p>
-        <h1>Request repair</h1>
-        <p class="auth-copy">Describe the problem for the selected vehicle. A mechanic will review your request.</p>
+        <p class="eyebrow" th:text="#{repairRequest.eyebrow}">New service request</p>
+        <h1 th:text="#{repairRequest.heading}">Request repair</h1>
+        <p class="auth-copy" th:text="#{repairRequest.copy}">Describe the problem for the selected vehicle. A mechanic will review your request.</p>
 
         <div th:replace="~{fragments/alerts :: alerts}"></div>
 
-        <p class="alert error" th:if="${car == null}">
+        <p class="alert error" th:if="${car == null}" th:text="#{repairRequest.noVehicle}">
             No vehicle selected. Choose a car from My cars and use Request repair.
         </p>
 
         <div class="car-summary" th:if="${car != null}">
             <div>
-                <span>Vehicle</span>
+                <span th:text="#{section.vehicle}">Vehicle</span>
                 <strong th:text="${car.brand + ' ' + car.model}">-</strong>
             </div>
             <div>
-                <span>Year</span>
+                <span th:text="#{cars.year}">Year</span>
                 <strong th:text="${car.year != null ? car.year : '-'}">-</strong>
             </div>
             <div>
-                <span>Plate number</span>
+                <span th:text="#{carAdd.plate}">Plate number</span>
                 <strong th:text="${car.plateNumber}">-</strong>
             </div>
             <div>
-                <span>Engine</span>
+                <span th:text="#{cars.engine}">Engine</span>
                 <strong th:text="${car.engineType + ' · ' + car.transmission}">-</strong>
             </div>
             <div class="full-width">
-                <span>VIN</span>
+                <span th:text="#{cars.vin}">VIN</span>
                 <strong th:text="${car.vin}">-</strong>
             </div>
         </div>
@@ -181,28 +182,28 @@
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="carId" th:value="${car.id}">
 
-            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
                 Please correct the highlighted field.
             </p>
 
-            <label for="problemDescription">What needs to be repaired?</label>
+            <label for="problemDescription" th:text="#{repairRequest.label}">What needs to be repaired?</label>
             <textarea id="problemDescription"
                       th:field="*{problemDescription}"
                       th:errorclass="input-error"
-                      placeholder="Example: Brakes squeak when stopping. Please check front pads and discs."
+                      th:placeholder="#{repairRequest.problem.placeholder}"
                       maxlength="2000"></textarea>
             <small class="field-error" th:if="${#fields.hasErrors('problemDescription')}"
                    th:text="${#strings.listJoin(#fields.errors('problemDescription'), ' and ')}"></small>
-            <small class="field-hint">Be as specific as you can — noise, warning lights, when it happens, etc.</small>
+            <small class="field-hint" th:text="#{repairRequest.hint}">Be as specific as you can — noise, warning lights, when it happens, etc.</small>
 
             <div class="form-actions">
-                <button type="submit" class="button primary">Submit request</button>
-                <a class="button secondary" th:href="@{/cars}">Back to my cars</a>
+                <button type="submit" class="button primary" th:text="#{repairRequest.submit}">Submit request</button>
+                <a class="button secondary" th:href="@{/cars}" th:text="#{repairRequest.back}">Back to my cars</a>
             </div>
         </form>
 
         <div class="form-actions" th:if="${car == null}">
-            <a class="button primary" th:href="@{/cars}">Go to my cars</a>
+            <a class="button primary" th:href="@{/cars}" th:text="#{action.goToMyCars}">Go to my cars</a>
         </div>
     </section>
 </main>

@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RequestRepairRequest {
 
-    @NotBlank(message = "Problem description is required")
+    @NotBlank(message = "{validation.problem.required}")
     @Size(
             min = 10,
             max = 2000,
-            message = "Description must be between 10 and 2000 characters"
+            message = "{validation.problem.size}"
     )
     private String problemDescription;
 

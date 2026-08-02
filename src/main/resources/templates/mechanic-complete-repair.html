@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete repair - PitStop Garage</title>
+    <title th:text="#{mechanicComplete.title}">Complete repair - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -133,22 +133,23 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
 
         <div class="nav-links">
-            <a th:href="@{/mechanic/repairs/accepted}">Accepted repairs</a>
-            <a th:href="@{/home}">Home</a>
-            <a th:href="@{/logout}">Logout</a>
+            <a th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
 
 <main class="dashboard complete-repair-page">
     <section class="complete-repair-header">
-        <p class="eyebrow">Mechanic</p>
-        <h1>Complete repair</h1>
-        <p class="auth-copy">Add labor cost and select parts used for this job.</p>
+        <p class="eyebrow" th:text="#{mechanicComplete.eyebrow}">Mechanic</p>
+        <h1 th:text="#{mechanicComplete.heading}">Complete repair</h1>
+        <p class="auth-copy" th:text="#{mechanicComplete.copy}">Add labor cost and select parts used for this job.</p>
     </section>
 
     <div th:replace="~{fragments/alerts :: alerts}"></div>
@@ -156,7 +157,7 @@
     <section class="complete-repair-card repair-summary">
         <h2 th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h2>
         <p th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB</p>
-        <p>Client: <strong th:text="${repair.client.username}">client</strong></p>
+        <p><span th:text="#{repairCard.client}">Client</span>: <strong th:text="${repair.client.username}">client</strong></p>
         <p class="problem" th:text="${repair.problemDescription}">Problem description</p>
     </section>
 
@@ -168,19 +169,19 @@
               novalidate>
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <p class="alert error" th:if="${#fields.hasAnyErrors()}">
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
                 Please correct the highlighted fields.
             </p>
 
             <div class="labor-field">
-                <label for="laborCost">Labor cost (EUR)</label>
+                <label for="laborCost" th:text="#{mechanicComplete.laborCost}">Labor cost (EUR)</label>
                 <input id="laborCost" type="number" th:field="*{laborCost}" th:errorclass="input-error"
                        min="0" step="0.01" placeholder="0.00">
                 <small class="field-error" th:if="${#fields.hasErrors('laborCost')}"
                        th:text="${#strings.listJoin(#fields.errors('laborCost'), ' and ')}"></small>
             </div>
 
-            <p class="parts-empty-note" th:if="${#lists.isEmpty(catalogParts)}">
+            <p class="parts-empty-note" th:if="${#lists.isEmpty(catalogParts)}" th:text="#{mechanicComplete.noParts}">
                 No parts available in inventory. You can still complete the repair with labor cost only.
             </p>
 
@@ -188,11 +189,11 @@
                 <table class="parts-table">
                     <thead>
                     <tr>
-                        <th>Use</th>
-                        <th>Part</th>
-                        <th>SKU</th>
-                        <th>In stock</th>
-                        <th>Qty</th>
+                        <th th:text="#{table.use}">Use</th>
+                        <th th:text="#{table.part}">Part</th>
+                        <th th:text="#{table.sku}">SKU</th>
+                        <th th:text="#{table.inStock}">In stock</th>
+                        <th th:text="#{table.qty}">Qty</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -214,8 +215,8 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="button primary">Complete repair</button>
-                <a class="button secondary" th:href="@{/mechanic/repairs/accepted}">Cancel</a>
+                <button type="submit" class="button primary" th:text="#{mechanicComplete.submit}">Complete repair</button>
+                <a class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{action.cancel}">Cancel</a>
             </div>
         </form>
     </section>

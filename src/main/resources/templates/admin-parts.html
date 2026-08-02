@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parts inventory - PitStop Garage</title>
+    <title th:text="#{adminParts.title}">Parts inventory - PitStop Garage</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
     <style>
@@ -104,11 +104,13 @@
     <nav class="navbar">
         <a class="brand" th:href="@{/home}">
             <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
-            <span>PitStop Garage</span>
+            <span th:text="#{app.name}">PitStop Garage</span>
         </a>
         <div class="nav-links">
-            <a class="button secondary" th:href="@{/home}">Home</a>
-            <a class="button primary" th:href="@{/admin/parts/add}">Add part</a>
+            <a class="button secondary" th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a class="button primary" th:href="@{/admin/parts/add}" th:text="#{adminParts.add}">Add part</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
     </nav>
 </header>
@@ -118,12 +120,12 @@
 
     <section class="parts-page-header">
         <div>
-            <p class="eyebrow">Admin</p>
-            <h1>Parts inventory</h1>
-            <p class="parts-count" th:text="${#lists.size(parts)} + ' part(s) in stock'">0 parts</p>
+            <p class="eyebrow" th:text="#{adminParts.eyebrow}">Admin</p>
+            <h1 th:text="#{adminParts.heading}">Parts inventory</h1>
+            <p class="parts-count" th:text="#{adminParts.count(${#lists.size(parts)})}">0 parts</p>
         </div>
         <div class="parts-header-actions">
-            <a class="button primary" th:href="@{/admin/parts/add}">Add part</a>
+            <a class="button primary" th:href="@{/admin/parts/add}" th:text="#{adminParts.add}">Add part</a>
         </div>
     </section>
 
@@ -131,27 +133,28 @@
         <table class="parts-table">
             <thead>
             <tr>
-                <th>Name</th>
-                <th>SKU</th>
-                <th>Unit price</th>
-                <th>In stock</th>
-                <th>Actions</th>
+                <th th:text="#{adminParts.name}">Name</th>
+                <th th:text="#{adminParts.sku}">SKU</th>
+                <th th:text="#{adminParts.price}">Unit price</th>
+                <th th:text="#{adminParts.colInStock}">In stock</th>
+                <th th:text="#{adminParts.colActions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="part : ${parts}">
                 <td th:text="${part.name}">Name</td>
                 <td th:text="${part.sku}">SKU</td>
-                <td th:text="${part.unitPrice + ' EUR'}">0.00</td>
+                <td th:text="#{common.eur(${part.unitPrice})}">0.00</td>
                 <td th:text="${part.quantityInStock}">0</td>
                 <td>
                     <form class="parts-delete-form"
                           th:action="@{/admin/parts/{id}/delete(id=${part.id})}"
                           method="post"
-                          onsubmit="return confirm('Delete this part?');">
+                          th:attr="data-confirm=#{confirm.deletePart}"
+                          onsubmit="return confirm(this.dataset.confirm);">
                         <input type="hidden" th:if="${_csrf != null}"
                                th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" class="button secondary">Delete</button>
+                        <button type="submit" class="button secondary" th:text="#{adminParts.delete}">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -160,8 +163,8 @@
     </section>
 
     <section class="parts-empty" th:if="${#lists.isEmpty(parts)}">
-        <p>No parts in inventory yet.</p>
-        <a class="button primary" th:href="@{/admin/parts/add}">Add first part</a>
+        <p th:text="#{adminParts.empty}">No parts in inventory yet.</p>
+        <a class="button primary" th:href="@{/admin/parts/add}" th:text="#{adminParts.addFirst}">Add first part</a>
     </section>
 </main>
 

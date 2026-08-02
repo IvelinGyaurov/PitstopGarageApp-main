@@ -12,10 +12,10 @@ import lombok.*;
 public class LoginRequest {
 
     @NotBlank
-    @Size(min = 3,max = 20, message = "Username length must be between 3 and 20 symbols.")
+    @Size(min = 3,max = 20, message = "{validation.username.size}")
     public String username;
 
     @NotBlank
-    @Size(min = 4, max = 20, message = "Password must be between 4 and 20 characters")
+    @Size(min = 4, max = 20, message = "{validation.password.size}")
     public String password;
 }

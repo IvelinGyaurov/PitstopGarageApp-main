@@ -1,5 +1,6 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
@@ -8,6 +9,7 @@ import com.pitstop.garage.web.dto.EditProfileRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +34,9 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private MessageHelper messages;
 
     @Mock
     private BindingResult bindingResult;
@@ -49,6 +55,11 @@ class UserControllerTest {
 
     @InjectMocks
     private UserController controller;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void getProfilePage_returnsProfile() {
