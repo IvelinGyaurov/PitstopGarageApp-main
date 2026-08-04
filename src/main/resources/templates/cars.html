@@ -266,6 +266,8 @@
         </a>
 
         <div class="nav-links">
+            <a th:href="@{/repairs}" th:text="#{home.repairs}">Repairs</a>
+            <a th:href="@{/repairs/history}" th:text="#{repairs.history}">Service history</a>
             <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
             <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
             <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
@@ -336,9 +338,10 @@
                     </a>
                     <form th:action="@{/cars/{id}(id=${car.id})}"
                           method="post"
-                          class="car-delete-form"
-                          th:attr="data-confirm=#{confirm.deleteCar(${car.brand + ' ' + car.model})}"
-                          onsubmit="return confirm(this.dataset.confirm);">
+                          class="car-delete-form js-confirm-form"
+                          th:attr="data-confirm-title=#{confirm.deleteCar.title},
+                                   data-confirm-message=#{confirm.deleteCar.body(${car.brand + ' ' + car.model})},
+                                   data-confirm-action=#{confirm.deleteCar.action}">
                         <input type="hidden" name="_method" value="delete">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit"
@@ -362,5 +365,7 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/confirm-modal :: confirmModal}"></div>
+<script th:src="@{/js/confirm-modal.js}"></script>
 </body>
 </html>

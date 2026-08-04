@@ -321,16 +321,26 @@
                     <form th:action="@{/users/{id}/status(id=${listedUser.id})}"
                           method="post"
                           class="status-action-form"
-                          th:attr="data-confirm=#{confirm.changeStatus(${listedUser.username})}"
-                          th:onsubmit="${soleAdminId == null or soleAdminId != listedUser.id} ? |return confirm(this.dataset.confirm);| : 'return false;'">
+                          th:classappend="${soleAdminId == null or soleAdminId != listedUser.id} ? ' js-confirm-form'"
+                          th:with="deactivateTitle=#{confirm.deactivateUser.title},
+                                   activateTitle=#{confirm.activateUser.title},
+                                   deactivateBody=#{confirm.deactivateUser.body(${listedUser.username})},
+                                   activateBody=#{confirm.activateUser.body(${listedUser.username})},
+                                   deactivateAction=#{confirm.deactivateUser.action},
+                                   activateAction=#{confirm.activateUser.action},
+                                   isSoleAdmin=${soleAdminId != null and soleAdminId == listedUser.id}"
+                          th:attr="data-confirm-title=${listedUser.active} ? ${deactivateTitle} : ${activateTitle},
+                                   data-confirm-message=${listedUser.active} ? ${deactivateBody} : ${activateBody},
+                                   data-confirm-action=${listedUser.active} ? ${deactivateAction} : ${activateAction}"
+                          th:onsubmit="${isSoleAdmin} ? 'return false;' : null">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" name="active" th:value="${!listedUser.active}">
                         <button type="submit"
                                 class="button status-switch-btn"
                                 th:with="lastAdminStatusTitle=#{users.title.lastAdminStatus}"
-                                th:classappend="${soleAdminId != null and soleAdminId == listedUser.id ? ' status-switch-disabled' : (listedUser.active ? ' status-deactivate' : ' status-activate')}"
-                                th:disabled="${soleAdminId != null and soleAdminId == listedUser.id}"
-                                th:title="${soleAdminId != null and soleAdminId == listedUser.id} ? ${lastAdminStatusTitle} : null">
+                                th:classappend="${isSoleAdmin ? ' status-switch-disabled' : (listedUser.active ? ' status-deactivate' : ' status-activate')}"
+                                th:disabled="${isSoleAdmin}"
+                                th:title="${isSoleAdmin} ? ${lastAdminStatusTitle} : null">
                             <span th:if="${listedUser.active}" th:text="#{users.deactivate}">Deactivate</span>
                             <span th:unless="${listedUser.active}" th:text="#{users.activate}">Activate</span>
                         </button>
@@ -343,8 +353,11 @@
                               th:action="@{/users/{id}/role(id=${listedUser.id})}"
                               method="post"
                               class="role-action-form"
-                              th:attr="data-confirm=#{confirm.changeRole(${listedUser.username}, ${roleOption.name()})}"
-                              th:onsubmit="${listedUser.active and (soleAdminId == null or soleAdminId != listedUser.id)} ? |return confirm(this.dataset.confirm);| : 'return false;'">
+                              th:classappend="${listedUser.active and (soleAdminId == null or soleAdminId != listedUser.id)} ? ' js-confirm-form'"
+                              th:attr="data-confirm-title=#{confirm.changeRole.title},
+                                       data-confirm-message=#{confirm.changeRole.body(${listedUser.username}, ${roleOption.name()})},
+                                       data-confirm-action=#{confirm.changeRole.action}"
+                              th:onsubmit="${listedUser.active and (soleAdminId == null or soleAdminId != listedUser.id)} ? null : 'return false;'">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="role" th:value="${roleOption}">
                             <button type="submit"
@@ -370,5 +383,7 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/confirm-modal :: confirmModal}"></div>
+<script th:src="@{/js/confirm-modal.js}"></script>
 </body>
 </html>

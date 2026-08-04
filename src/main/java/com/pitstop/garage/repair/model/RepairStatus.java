@@ -11,7 +11,8 @@ public enum RepairStatus {
     IN_PROGRESS("In progress"),
     COMPLETED("Completed"),
     CANCELLED("Cancelled"),
-    USER_CANCELLED("Cancelled by user");
+    USER_CANCELLED("Cancelled by user"),
+    EXPIRED("Expired");
 
     private final String displayName;
 }

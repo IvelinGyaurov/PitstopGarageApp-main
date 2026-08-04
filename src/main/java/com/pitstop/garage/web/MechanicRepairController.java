@@ -53,6 +53,7 @@ public class MechanicRepairController {
         ModelAndView modelAndView = new ModelAndView("mechanic-repairs-history");
         modelAndView.addObject("rejectedRepairs", repairService.getRejectedRepairsForMechanic(mechanicId));
         modelAndView.addObject("completedRepairs", repairService.getCompletedRepairsForMechanic(mechanicId));
+        modelAndView.addObject("expiredRepairs", repairService.getExpiredRepairsForMechanic());
         return modelAndView;
     }
 

@@ -189,7 +189,7 @@ public class RepairService {
                 .findAllByStatusAndCreatedOnBefore(RepairStatus.PENDING, cutoff);
 
         for (ServiceRepair repair : staleRepairs) {
-            repair.setStatus(RepairStatus.CANCELLED);
+            repair.setStatus(RepairStatus.EXPIRED);
         }
 
         serviceRepairRepository.saveAll(staleRepairs);
@@ -348,6 +348,22 @@ public class RepairService {
                 .toList();
     }
 
+    public List<ServiceRepair> getExpiredRepairsForClient(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(
+                client,
+                List.of(RepairStatus.EXPIRED)
+        );
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(ServiceRepair::getCreatedOn, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getExpiredRepairsForMechanic() {
+        return getExpiredRepairsForAdmin();
+    }
+
     private LocalDateTime clientRejectedDate(ServiceRepair repair) {
         if (repair.getRejectedAt() != null) {
             return repair.getRejectedAt();
@@ -439,6 +455,15 @@ public class RepairService {
                 .sorted(Comparator.comparing(this::clientRejectedDate, Comparator.reverseOrder()))
                 .toList();
     }
+
+    public List<ServiceRepair> getExpiredRepairsForAdmin() {
+        List<ServiceRepair> repairs = serviceRepairRepository
+                .findAllByStatusOrderByCreatedOnDesc(RepairStatus.EXPIRED);
+        return repairs.stream()
+                .sorted(Comparator.comparing(ServiceRepair::getCreatedOn, Comparator.reverseOrder()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public ServiceRepair getRepairForAdmin(UUID repairId) {
         return serviceRepairRepository.findById(repairId)

@@ -98,7 +98,7 @@
 
         <p class="eyebrow" th:text="#{adminPartsAdd.eyebrow}">Admin</p>
         <h1 th:text="#{adminPartsAdd.heading}">Add part</h1>
-        <p class="auth-copy" th:text="#{adminPartsAdd.copy}">Add a new spare part to the parts shop inventory.</p>
+        <p class="auth-copy" th:text="#{adminPartsAdd.copy}">Add a new spare part to the garage inventory.</p>
 
         <div th:replace="~{fragments/alerts :: alerts}"></div>
 
@@ -141,7 +141,7 @@
                 <div>
                     <label for="quantityInStock" th:text="#{adminPartsAdd.quantity}">Quantity in stock</label>
                     <input id="quantityInStock" type="number" th:field="*{quantityInStock}" th:errorclass="input-error"
-                           th:placeholder="#{adminPartsAdd.qty.placeholder}" min="0" step="1">
+                           th:placeholder="#{adminPartsAdd.qty.placeholder}" min="1" step="1">
                     <small class="field-error" th:if="${#fields.hasErrors('quantityInStock')}"
                            th:text="${#strings.listJoin(#fields.errors('quantityInStock'), ' and ')}"></small>
                 </div>

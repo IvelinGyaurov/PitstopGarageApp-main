@@ -238,7 +238,9 @@
             <p class="eyebrow" th:text="#{repairsHistory.eyebrow}">Past visits</p>
             <h1 th:text="#{repairsHistory.heading}">Service history</h1>
             <p class="repairs-count"
-               th:text="#{repairsHistory.count(${(rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0) + (completedRepairs != null ? #lists.size(completedRepairs) : 0)})}">0 past repair(s)</p>
+               th:text="#{repairsHistory.count(${(rejectedRepairs != null ? #lists.size(rejectedRepairs) : 0)
+                       + (completedRepairs != null ? #lists.size(completedRepairs) : 0)
+                       + (expiredRepairs != null ? #lists.size(expiredRepairs) : 0)})}">0 past repair(s)</p>
         </div>
         <div class="repairs-header-actions">
             <a class="button secondary" th:href="@{/repairs}" th:text="#{repairsHistory.viewActive}">View active repairs</a>
@@ -316,11 +318,8 @@
                         <p class="repair-car-meta"
                            th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
                     </div>
-                    <span class="repair-status expired"
-                          th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic == null}"
-                          th:text="#{repairCard.expired}">Expired</span>
                     <span class="repair-status cancelled"
-                          th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic != null}"
+                          th:if="${repair.status.name() == 'CANCELLED'}"
                           th:text="#{repairStatus.cancelled}">Cancelled</span>
                     <span class="repair-status user-cancelled"
                           th:if="${repair.status.name() == 'USER_CANCELLED'}"
@@ -333,9 +332,6 @@
                 <div class="repair-card-footer">
                     <div class="repair-footer-left">
                         <div class="repair-meta">
-                            <span th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
-                                <span th:text="#{repairCard.reason}">Reason</span> <strong th:text="#{repairCard.reasonNoMechanic}">No mechanic accepted the request in time</strong>
-                            </span>
                             <span th:if="${repair.status.name() == 'CANCELLED' and repair.mechanic != null}">
                                 <span th:text="#{repairCard.rejectedBy}">Rejected by</span> <strong th:text="${repair.mechanic.username}">mechanic</strong>
                             </span>
@@ -361,6 +357,57 @@
         <section class="repairs-empty-wrap" th:if="${rejectedRepairs == null or rejectedRepairs.isEmpty()}">
             <div class="empty-state">
                 <p th:text="#{repairsHistory.emptyRejected}">No rejected or cancelled requests yet.</p>
+            </div>
+        </section>
+    </section>
+
+    <section class="repairs-section">
+        <div class="repairs-section-header">
+            <h2 th:text="#{section.expiredRequests}">Expired requests</h2>
+            <span class="repairs-section-count"
+                  th:text="#{status.count.expired(${expiredRepairs != null ? #lists.size(expiredRepairs) : 0})}">0 expired</span>
+        </div>
+
+        <section class="repairs-list" th:if="${expiredRepairs != null and !expiredRepairs.isEmpty()}">
+            <article class="repair-card" th:each="repair : ${expiredRepairs}">
+                <div class="repair-card-head">
+                    <div>
+                        <h3 class="repair-car-title"
+                            th:text="${repair.car.brand + ' ' + repair.car.model}">BMW 320d</h3>
+                        <p class="repair-car-meta"
+                           th:text="${repair.car.plateNumber + ' · VIN ' + repair.car.vin}">CB1234AB · VIN ...</p>
+                    </div>
+                    <span class="repair-status expired"
+                          th:text="#{repairStatus.expired}">Expired</span>
+                </div>
+
+                <span class="repair-description-label" th:text="#{repairs.problem}">Problem description</span>
+                <p class="repair-description" th:text="${repair.problemDescription}">Problem description</p>
+
+                <div class="repair-card-footer">
+                    <div class="repair-footer-left">
+                        <div class="repair-meta">
+                            <span>
+                                <span th:text="#{repairCard.reason}">Reason</span>
+                                <strong th:text="#{repairCard.reasonNoMechanic}">No mechanic accepted the request in time</strong>
+                            </span>
+                            <span>
+                                <span th:text="#{repairs.submitted}">Submitted</span>
+                                <strong th:text="${#temporals.format(repair.createdOn, 'dd.MM.yyyy')}">01.01.2026</strong>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="repair-card-actions">
+                        <a class="button secondary repair-details-btn"
+                           th:href="@{/repairs/{id}(id=${repair.id})}" th:text="#{action.viewDetails}">View details</a>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="repairs-empty-wrap" th:if="${expiredRepairs == null or expiredRepairs.isEmpty()}">
+            <div class="empty-state">
+                <p th:text="#{repairsHistory.emptyExpired}">No expired requests yet.</p>
             </div>
         </section>
     </section>

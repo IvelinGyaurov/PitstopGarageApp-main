@@ -37,6 +37,7 @@ class AdminRepairControllerTest {
     void repairHistory_returnsView() {
         when(repairService.getCompletedRepairsForAdmin()).thenReturn(List.of());
         when(repairService.getRejectedRepairsForAdmin()).thenReturn(List.of());
+        when(repairService.getExpiredRepairsForAdmin()).thenReturn(List.of());
 
         assertEquals("admin-repairs-history", controller.repairHistory().getViewName());
     }

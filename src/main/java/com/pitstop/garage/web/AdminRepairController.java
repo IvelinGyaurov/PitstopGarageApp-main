@@ -37,6 +37,7 @@ public class AdminRepairController {
         ModelAndView modelAndView = new ModelAndView("admin-repairs-history");
         modelAndView.addObject("completedRepairs", repairService.getCompletedRepairsForAdmin());
         modelAndView.addObject("rejectedRepairs", repairService.getRejectedRepairsForAdmin());
+        modelAndView.addObject("expiredRepairs", repairService.getExpiredRepairsForAdmin());
         return modelAndView;
     }
 

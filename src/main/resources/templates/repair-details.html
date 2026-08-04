@@ -80,6 +80,12 @@
             background: rgba(248, 113, 113, 0.12);
         }
 
+        .repair-status.expired {
+            color: #fdba74;
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            background: rgba(249, 115, 22, 0.12);
+        }
+
         .details-section {
             margin-bottom: 1.5rem;
             padding-bottom: 1.5rem;
@@ -313,6 +319,7 @@
                 <th:block th:if="${repair.status.name() == 'COMPLETED'}" th:text="#{repairStatus.completed}">Completed</th:block>
                 <th:block th:if="${repair.status.name() == 'CANCELLED'}" th:text="#{repairStatus.cancelled}">Cancelled</th:block>
                 <th:block th:if="${repair.status.name() == 'USER_CANCELLED'}" th:text="#{repairStatus.userCancelled}">Cancelled by user</th:block>
+                <th:block th:if="${repair.status.name() == 'EXPIRED'}" th:text="#{repairStatus.expired}">Expired</th:block>
             </span>
         </div>
 
@@ -366,11 +373,11 @@
                     <span th:text="#{repairCard.cancelledBy}">Cancelled by</span>
                     <strong th:text="${repair.client.username}">Client</strong>
                 </div>
-                <div class="timeline-item timeline-item-wide" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT' or detailsAudience == 'ADMIN') and repair.status.name() == 'CANCELLED' and repair.mechanic == null}">
+                <div class="timeline-item timeline-item-wide" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT' or detailsAudience == 'ADMIN') and repair.status.name() == 'EXPIRED'}">
                     <span th:text="#{repairCard.reason}">Reason</span>
                     <strong th:text="#{repairDetails.reasonNoMechanic30}">No mechanic accepted the request within 30 days</strong>
                 </div>
-                <div class="timeline-item" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT') and repair.status.name() != 'CANCELLED' and repair.status.name() != 'USER_CANCELLED'}">
+                <div class="timeline-item" th:if="${(detailsAudience == null or detailsAudience == 'CLIENT') and repair.status.name() != 'CANCELLED' and repair.status.name() != 'USER_CANCELLED' and repair.status.name() != 'EXPIRED'}">
                     <span th:text="#{repairs.mechanic}">Mechanic</span>
                     <strong th:if="${repair.mechanic != null}" th:text="${repair.mechanic.username}">-</strong>
                     <strong th:if="${repair.mechanic == null}" th:text="#{label.notAssigned}">-</strong>
@@ -442,10 +449,10 @@
 
         <div class="details-actions" th:if="${detailsAudience == null or detailsAudience == 'CLIENT'}">
             <a class="button primary"
-               th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
+               th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/repairs/history}" th:text="#{action.backToServiceHistory}">Back to service history</a>
             <a class="button primary"
-               th:unless="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
+               th:unless="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/repairs}" th:text="#{action.backToMyRepairs}">Back to my repairs</a>
             <a class="button secondary" th:href="@{/cars}" th:text="#{nav.myCars}">My cars</a>
         </div>
@@ -457,10 +464,10 @@
 
         <div class="details-actions" th:if="${detailsAudience == 'ADMIN'}">
             <a class="button primary"
-               th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
+               th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/admin/repairs/history}" th:text="#{action.backToRepairHistory}">Back to repair history</a>
             <a class="button primary"
-               th:unless="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED'}"
+               th:unless="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/admin/repairs}" th:text="#{action.backToActiveRepairs}">Back to active repairs</a>
             <a class="button secondary" th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
         </div>

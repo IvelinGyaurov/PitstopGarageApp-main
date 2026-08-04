@@ -75,6 +75,7 @@ class MechanicRepairControllerTest {
         PitstopUserDetails user = principal();
         when(repairService.getRejectedRepairsForMechanic(user.getUserId())).thenReturn(List.of());
         when(repairService.getCompletedRepairsForMechanic(user.getUserId())).thenReturn(List.of());
+        when(repairService.getExpiredRepairsForMechanic()).thenReturn(List.of());
         assertEquals("mechanic-repairs-history", controller.repairHistory(user).getViewName());
     }
 

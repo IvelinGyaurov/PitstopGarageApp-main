@@ -130,6 +130,7 @@ class RepairControllerTest {
         PitstopUserDetails user = principal(UserRole.USER);
         when(repairService.getCompletedRepairsForClient(user.getUserId())).thenReturn(List.of());
         when(repairService.getRejectedRepairsForClient(user.getUserId())).thenReturn(List.of());
+        when(repairService.getExpiredRepairsForClient(user.getUserId())).thenReturn(List.of());
 
         ModelAndView mav = repairController.repairHistory(user);
 

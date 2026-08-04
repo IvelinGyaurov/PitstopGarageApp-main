@@ -322,7 +322,7 @@ class RepairServiceTest {
         int count = repairService.expireStalePendingRepairs(7);
 
         assertEquals(1, count);
-        assertEquals(RepairStatus.CANCELLED, stale.getStatus());
+        assertEquals(RepairStatus.EXPIRED, stale.getStatus());
         verify(serviceRepairRepository).saveAll(List.of(stale));
     }
 
@@ -541,10 +541,12 @@ class RepairServiceTest {
         when(userService.getById(clientId)).thenReturn(client);
         when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), any()))
                 .thenReturn(List.of(pendingRepair(UUID.randomUUID(), client)))
+                .thenReturn(List.of(pendingRepair(UUID.randomUUID(), client)))
                 .thenReturn(List.of(pendingRepair(UUID.randomUUID(), client)));
 
         assertEquals(1, repairService.getCompletedRepairsForClient(clientId).size());
         assertEquals(1, repairService.getRejectedRepairsForClient(clientId).size());
+        assertEquals(1, repairService.getExpiredRepairsForClient(clientId).size());
     }
 
     @Test
@@ -557,6 +559,8 @@ class RepairServiceTest {
                 .thenReturn(List.of(assignedRepair(UUID.randomUUID(), user(UUID.randomUUID(), UserRole.MECHANIC), RepairStatus.IN_PROGRESS)));
         when(serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.COMPLETED))
                 .thenReturn(List.of(assignedRepair(UUID.randomUUID(), user(UUID.randomUUID(), UserRole.MECHANIC), RepairStatus.COMPLETED)));
+        when(serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.EXPIRED))
+                .thenReturn(List.of(pendingRepair(UUID.randomUUID(), user(UUID.randomUUID(), UserRole.USER))));
         when(serviceRepairRepository.findAllByStatusInOrderByCreatedOnDesc(any()))
                 .thenReturn(List.of(pendingRepair(UUID.randomUUID(), user(UUID.randomUUID(), UserRole.USER))));
 
@@ -565,6 +569,8 @@ class RepairServiceTest {
         assertEquals(1, repairService.getInProgressRepairsForAdmin().size());
         assertEquals(1, repairService.getCompletedRepairsForAdmin().size());
         assertEquals(1, repairService.getRejectedRepairsForAdmin().size());
+        assertEquals(1, repairService.getExpiredRepairsForAdmin().size());
+        assertEquals(1, repairService.getExpiredRepairsForMechanic().size());
     }
 
     @Test

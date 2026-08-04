@@ -313,9 +313,10 @@
                     <form th:if="${repair.status.name() == 'PENDING'}"
                           th:action="@{/repairs/{id}/cancel(id=${repair.id})}"
                           method="post"
-                          class="repair-action-form"
-                          th:attr="data-confirm=#{confirm.cancelRepair(${repair.car.brand + ' ' + repair.car.model})}"
-                          onsubmit="return confirm(this.dataset.confirm);">
+                          class="repair-action-form js-confirm-form"
+                          th:attr="data-confirm-title=#{confirm.cancelRepair.title},
+                                   data-confirm-message=#{confirm.cancelRepair.body(${repair.car.brand + ' ' + repair.car.model})},
+                                   data-confirm-action=#{confirm.cancelRepair.action}">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="button secondary repair-cancel-btn" th:text="#{action.cancelRequest}">Cancel request</button>
                     </form>
@@ -336,5 +337,7 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/confirm-modal :: confirmModal}"></div>
+<script th:src="@{/js/confirm-modal.js}"></script>
 </body>
 </html>

@@ -20,6 +20,6 @@ public class AddPartRequest {
     @DecimalMin(value = "0.01", message = "{validation.unitPrice.min}")
     private BigDecimal unitPrice;
 
-    @Min(value = 0, message = "{validation.quantity.min}")
+    @Min(value = 1, message = "{validation.quantity.min}")
     private int quantityInStock;
 }

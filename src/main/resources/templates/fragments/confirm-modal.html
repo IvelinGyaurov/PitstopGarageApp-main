@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="confirmModal"
+     id="confirm-modal"
+     class="confirm-modal"
+     hidden
+     aria-hidden="true">
+    <div class="confirm-modal__backdrop" data-confirm-dismiss></div>
+    <div class="confirm-modal__dialog"
+         role="alertdialog"
+         aria-modal="true"
+         aria-labelledby="confirm-modal-title"
+         aria-describedby="confirm-modal-message">
+        <div class="confirm-modal__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                <path d="M12 3.2L21.5 20.2H2.5L12 3.2Z"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linejoin="round"/>
+                <path d="M12 9.2V13.6"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"/>
+                <circle cx="12" cy="16.8" r="1.1" fill="currentColor"/>
+            </svg>
+        </div>
+        <h2 id="confirm-modal-title" class="confirm-modal__title"></h2>
+        <p id="confirm-modal-message" class="confirm-modal__message"></p>
+        <div class="confirm-modal__actions">
+            <button type="button"
+                    class="confirm-modal__btn confirm-modal__btn--cancel"
+                    data-confirm-dismiss
+                    th:text="#{confirm.modal.cancel}">
+                Cancel
+            </button>
+            <button type="button"
+                    id="confirm-modal-accept"
+                    class="confirm-modal__btn confirm-modal__btn--danger">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

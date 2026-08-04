@@ -93,6 +93,7 @@ public class RepairController {
         ModelAndView modelAndView = new ModelAndView("repairs-history");
         modelAndView.addObject("completedRepairs", repairService.getCompletedRepairsForClient(clientId));
         modelAndView.addObject("rejectedRepairs", repairService.getRejectedRepairsForClient(clientId));
+        modelAndView.addObject("expiredRepairs", repairService.getExpiredRepairsForClient(clientId));
         return modelAndView;
     }
 

@@ -147,11 +147,12 @@
                 <td th:text="#{common.eur(${part.unitPrice})}">0.00</td>
                 <td th:text="${part.quantityInStock}">0</td>
                 <td>
-                    <form class="parts-delete-form"
+                    <form class="parts-delete-form js-confirm-form"
                           th:action="@{/admin/parts/{id}/delete(id=${part.id})}"
                           method="post"
-                          th:attr="data-confirm=#{confirm.deletePart}"
-                          onsubmit="return confirm(this.dataset.confirm);">
+                          th:attr="data-confirm-title=#{confirm.deletePart.title},
+                                   data-confirm-message=#{confirm.deletePart.body},
+                                   data-confirm-action=#{confirm.deletePart.action}">
                         <input type="hidden" th:if="${_csrf != null}"
                                th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="button secondary" th:text="#{adminParts.delete}">Delete</button>
@@ -169,5 +170,7 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/confirm-modal :: confirmModal}"></div>
+<script th:src="@{/js/confirm-modal.js}"></script>
 </body>
 </html>
