@@ -65,6 +65,34 @@
             line-height: 1.4;
         }
 
+        .part-presets {
+            margin: 1.25rem 0 0.35rem;
+        }
+
+        .part-presets-label {
+            display: block;
+            margin-bottom: 0.65rem;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .part-preset-btn {
+            min-height: 2.75rem;
+            padding: 0.7rem 1.1rem;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            background: rgba(15, 23, 42, 0.72);
+            color: var(--text);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.92rem;
+        }
+
+        .part-preset-btn:hover {
+            border-color: rgba(249, 115, 22, 0.72);
+            color: #fff;
+        }
+
         @media (max-width: 640px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -113,6 +141,16 @@
                 Please correct the highlighted fields.
             </p>
 
+            <div class="part-presets">
+                <span class="part-presets-label" th:text="#{adminPartsAdd.presetsLabel}">
+                    Fill the form with a random sample part
+                </span>
+                <button type="button" id="part-preset-random-btn" class="part-preset-btn"
+                        th:text="#{adminPartsAdd.presetsButton}">
+                    Fill random sample part
+                </button>
+            </div>
+
             <div class="form-grid">
                 <div class="full-width">
                     <label for="name" th:text="#{adminPartsAdd.name}">Part name</label>
@@ -156,5 +194,58 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<script>
+    (function () {
+        var nameInput = document.getElementById('name');
+        var skuInput = document.getElementById('sku');
+        var unitPriceInput = document.getElementById('unitPrice');
+        var quantityInput = document.getElementById('quantityInStock');
+        var randomBtn = document.getElementById('part-preset-random-btn');
+
+        var PRESETS = [
+            { name: 'Oil Filter', skuPrefix: 'OF', unitPrice: 18.50, quantityInStock: 40 },
+            { name: 'Air Filter', skuPrefix: 'AF', unitPrice: 22.00, quantityInStock: 35 },
+            { name: 'Spark Plug', skuPrefix: 'SP', unitPrice: 9.90, quantityInStock: 80 },
+            { name: 'Brake Pad Set', skuPrefix: 'BP', unitPrice: 65.00, quantityInStock: 20 },
+            { name: 'Turbocharger', skuPrefix: 'TB', unitPrice: 420.00, quantityInStock: 4 },
+            { name: 'Timing Belt', skuPrefix: 'TM', unitPrice: 55.00, quantityInStock: 15 },
+            { name: 'Fuel Pump', skuPrefix: 'FP', unitPrice: 145.00, quantityInStock: 8 },
+            { name: 'Radiator', skuPrefix: 'RD', unitPrice: 180.00, quantityInStock: 6 },
+            { name: 'Clutch Kit', skuPrefix: 'CK', unitPrice: 260.00, quantityInStock: 5 },
+            { name: 'Alternator', skuPrefix: 'AL', unitPrice: 210.00, quantityInStock: 7 }
+        ];
+
+        function setValue(el, value) {
+            if (!el) {
+                return;
+            }
+            el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function generateSku(prefix) {
+            var number = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            return prefix + '-' + number;
+        }
+
+        function applyPreset(preset) {
+            setValue(nameInput, preset.name);
+            setValue(skuInput, generateSku(preset.skuPrefix));
+            setValue(unitPriceInput, preset.unitPrice.toFixed(2));
+            setValue(quantityInput, preset.quantityInStock);
+        }
+
+        function pickRandomPreset() {
+            return PRESETS[Math.floor(Math.random() * PRESETS.length)];
+        }
+
+        if (randomBtn) {
+            randomBtn.addEventListener('click', function () {
+                applyPreset(pickRandomPreset());
+            });
+        }
+    })();
+</script>
 </body>
 </html>

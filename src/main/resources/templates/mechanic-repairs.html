@@ -273,7 +273,10 @@
                 <div class="repair-card-actions">
                     <form th:action="@{/mechanic/repairs/{id}/accept(id=${repair.id})}"
                           method="post"
-                          class="repair-action-form">
+                          class="repair-action-form js-confirm-form"
+                          th:attr="data-confirm-title=#{confirm.acceptRepair.title},
+                                   data-confirm-message=#{confirm.acceptRepair.body(${repair.car.brand + ' ' + repair.car.model})},
+                                   data-confirm-action=#{confirm.acceptRepair.action}">
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <button type="submit" class="button repair-accept-btn" th:text="#{mechanicQueue.accept}">Accept</button>
                     </form>

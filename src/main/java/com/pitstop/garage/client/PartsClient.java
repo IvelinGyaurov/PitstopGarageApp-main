@@ -16,6 +16,12 @@ public interface PartsClient {
     @PostMapping("/api/parts")
     PartResponse createPart(@RequestBody CreatePartRequest request);
 
+    @GetMapping("/api/parts/{id}")
+    PartResponse getPartById(@PathVariable("id") UUID id);
+
+    @PostMapping("/api/parts/{id}/restock")
+    PartResponse restockPart(@PathVariable("id") UUID id, @RequestBody RestockPartRequest request);
+
     @DeleteMapping("/api/parts/{id}")
     void deletePart(@PathVariable("id") UUID id);
 

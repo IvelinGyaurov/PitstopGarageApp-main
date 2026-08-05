@@ -69,6 +69,16 @@ class ExceptionAdviceTest {
     }
 
     @Test
+    void handleInsufficientPartStock_redirectsToCompleteForm() {
+        java.util.UUID repairId = java.util.UUID.randomUUID();
+        assertEquals("redirect:/mechanic/repairs/" + repairId + "/complete",
+                advice.handleInsufficientPartStock(
+                        redirectAttributes,
+                        new InsufficientPartStockException("flash.repair.insufficientStock", repairId)));
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "flash.repair.insufficientStock");
+    }
+
+    @Test
     void handleRepairNotFound_redirectsToRepairs() {
         assertEquals("redirect:/repairs",
                 advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));

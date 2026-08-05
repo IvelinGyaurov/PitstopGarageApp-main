@@ -2,7 +2,9 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.parts.PartsAdminService;
+import com.pitstop.garage.client.dto.PartResponse;
 import com.pitstop.garage.web.dto.AddPartRequest;
+import com.pitstop.garage.web.dto.RestockPartForm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -87,5 +90,45 @@ class PartsAdminControllerTest {
         ModelAndView mav = controller.deletePart(id, redirectAttributes);
         verify(partsAdminService).deletePart(id);
         assertEquals("redirect:/admin/parts", mav.getViewName());
+    }
+
+    @Test
+    void restockPartForm_returnsView() {
+        UUID id = UUID.randomUUID();
+        PartResponse part = new PartResponse();
+        part.setId(id);
+        when(partsAdminService.getPartById(id)).thenReturn(part);
+
+        ModelAndView mav = controller.restockPartForm(id);
+
+        assertEquals("admin-parts-restock", mav.getViewName());
+        assertEquals(part, mav.getModel().get("part"));
+    }
+
+    @Test
+    void restockPart_whenValid_redirects() {
+        UUID id = UUID.randomUUID();
+        RestockPartForm form = new RestockPartForm();
+        form.setQuantityToAdd(5);
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        ModelAndView mav = controller.restockPart(id, form, bindingResult, redirectAttributes);
+
+        verify(partsAdminService).restockPart(id, form);
+        assertEquals("redirect:/admin/parts", mav.getViewName());
+    }
+
+    @Test
+    void restockPart_whenInvalid_staysOnForm() {
+        UUID id = UUID.randomUUID();
+        RestockPartForm form = new RestockPartForm();
+        PartResponse part = new PartResponse();
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(partsAdminService.getPartById(id)).thenReturn(part);
+
+        ModelAndView mav = controller.restockPart(id, form, bindingResult, redirectAttributes);
+
+        assertEquals("admin-parts-restock", mav.getViewName());
+        verify(partsAdminService, never()).restockPart(any(), any());
     }
 }

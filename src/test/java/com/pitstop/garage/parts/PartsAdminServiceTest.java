@@ -3,8 +3,10 @@ package com.pitstop.garage.parts;
 import com.pitstop.garage.client.PartsClient;
 import com.pitstop.garage.client.dto.CreatePartRequest;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.client.dto.RestockPartRequest;
 import com.pitstop.garage.exceptions.PartSkuAlreadyExistsException;
 import com.pitstop.garage.web.dto.AddPartRequest;
+import com.pitstop.garage.web.dto.RestockPartForm;
 import feign.FeignException;
 import feign.Request;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -88,5 +91,28 @@ class PartsAdminServiceTest {
         partsAdminService.deletePart(id);
 
         verify(partsClient).deletePart(id);
+    }
+
+    @Test
+    void getPartById_delegatesToClient() {
+        UUID id = UUID.randomUUID();
+        PartResponse part = new PartResponse();
+        part.setId(id);
+        when(partsClient.getPartById(id)).thenReturn(part);
+
+        assertEquals(id, partsAdminService.getPartById(id).getId());
+    }
+
+    @Test
+    void restockPart_delegatesToClient() {
+        UUID id = UUID.randomUUID();
+        RestockPartForm form = new RestockPartForm();
+        form.setQuantityToAdd(12);
+
+        partsAdminService.restockPart(id, form);
+
+        ArgumentCaptor<RestockPartRequest> captor = ArgumentCaptor.forClass(RestockPartRequest.class);
+        verify(partsClient).restockPart(eq(id), captor.capture());
+        assertEquals(12, captor.getValue().getQuantityToAdd());
     }
 }

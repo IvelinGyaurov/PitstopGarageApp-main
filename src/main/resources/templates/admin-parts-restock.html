@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{adminPartsRestock.title}">Restock part - PitStop Garage</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
+    <style>
+        .add-part-page {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .add-part-card {
+            border: 1px solid var(--line);
+            border-radius: 1.8rem;
+            background:
+                    linear-gradient(155deg, rgba(255, 255, 255, 0.10), transparent 46%),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .add-part-card h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .add-part-card .auth-copy {
+            margin-bottom: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-actions .button {
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .auth-form input.input-error {
+            border-color: rgba(248, 113, 113, 0.85);
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+        }
+
+        .auth-form input[readonly] {
+            opacity: 0.85;
+            cursor: default;
+        }
+
+        .field-error {
+            display: block;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="dashboard-header">
+    <nav class="navbar">
+        <a class="brand" th:href="@{/home}">
+            <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
+            <span th:text="#{app.name}">PitStop Garage</span>
+        </a>
+
+        <div class="nav-links">
+            <a th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
+            <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
+        </div>
+    </nav>
+</header>
+
+<main class="add-part-page">
+    <section class="add-part-card">
+        <a class="brand auth-brand" th:href="@{/admin/parts}">
+            <img class="brand-logo" th:src="@{/images/logo-nav.png}" alt="PitStop Garage logo" width="42" height="42">
+            <span th:text="#{app.name}">PitStop Garage</span>
+        </a>
+
+        <p class="eyebrow" th:text="#{adminPartsRestock.eyebrow}">Inventory</p>
+        <h1 th:text="#{adminPartsRestock.heading}">Restock part</h1>
+        <p class="auth-copy" th:text="#{adminPartsRestock.copy}">Add quantity to an existing part. Name, SKU and price stay the same.</p>
+
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <form th:action="@{/admin/parts/{id}/restock(id=${part.id})}"
+              th:object="${restockPartForm}"
+              method="post"
+              class="auth-form"
+              novalidate>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
+                Please correct the highlighted fields.
+            </p>
+
+            <div class="form-grid">
+                <div class="full-width">
+                    <label for="name" th:text="#{adminPartsAdd.name}">Part name</label>
+                    <input id="name" type="text" th:value="${part.name}" readonly>
+                </div>
+
+                <div class="full-width">
+                    <label for="sku" th:text="#{adminParts.sku}">SKU</label>
+                    <input id="sku" type="text" th:value="${part.sku}" readonly>
+                </div>
+
+                <div>
+                    <label for="unitPrice" th:text="#{adminPartsAdd.unitPrice}">Unit price (EUR)</label>
+                    <input id="unitPrice" type="text" th:value="${part.unitPrice}" readonly>
+                </div>
+
+                <div>
+                    <label for="currentStock" th:text="#{adminPartsRestock.currentStock}">Current stock</label>
+                    <input id="currentStock" type="text" th:value="${part.quantityInStock}" readonly>
+                </div>
+
+                <div class="full-width">
+                    <label for="quantityToAdd" th:text="#{adminPartsRestock.quantityToAdd}">Quantity to add</label>
+                    <input id="quantityToAdd" type="number" th:field="*{quantityToAdd}" th:errorclass="input-error"
+                           th:placeholder="#{adminPartsRestock.qty.placeholder}" min="1" step="1">
+                    <small class="field-error" th:if="${#fields.hasErrors('quantityToAdd')}"
+                           th:text="${#strings.listJoin(#fields.errors('quantityToAdd'), ' and ')}"></small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="button primary" th:text="#{adminPartsRestock.submit}">Restock</button>
+                <a class="button secondary" th:href="@{/admin/parts}" th:text="#{action.cancel}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

@@ -100,6 +100,29 @@
             accent-color: #f97316;
         }
 
+        .parts-table input[type="checkbox"]:disabled,
+        .parts-table input[type="number"]:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .parts-table tr.part-row-out-of-stock td {
+            color: var(--muted);
+        }
+
+        .out-of-stock-badge {
+            display: inline-block;
+            margin-left: 0.45rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid rgba(248, 113, 113, 0.45);
+            color: #fca5a5;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
         .parts-empty-note {
             color: var(--muted);
             margin-bottom: 1.5rem;
@@ -165,8 +188,11 @@
         <form th:action="@{/mechanic/repairs/{id}/complete(id=${repair.id})}"
               th:object="${completeRepairRequest}"
               method="post"
-              class="auth-form"
-              novalidate>
+              class="auth-form js-confirm-form"
+              novalidate
+              th:attr="data-confirm-title=#{confirm.completeRepair.title},
+                       data-confirm-message=#{confirm.completeRepair.body(${repair.car.brand + ' ' + repair.car.model})},
+                       data-confirm-action=#{confirm.completeRepair.action}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
             <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
@@ -197,17 +223,28 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="part, stat : ${catalogParts}">
+                    <tr th:each="part, stat : ${catalogParts}"
+                        th:classappend="${part.quantityInStock <= 0} ? ' part-row-out-of-stock'">
                         <td>
-                            <input type="checkbox" th:field="*{parts[__${stat.index}__].selected}">
+                            <input type="checkbox"
+                                   th:field="*{parts[__${stat.index}__].selected}"
+                                   th:disabled="${part.quantityInStock <= 0}">
                         </td>
                         <td th:text="${part.name}">Part name</td>
                         <td th:text="${part.sku}">SKU</td>
-                        <td th:text="${part.quantityInStock}">0</td>
+                        <td>
+                            <span th:text="${part.quantityInStock}">0</span>
+                            <span class="out-of-stock-badge"
+                                  th:if="${part.quantityInStock <= 0}"
+                                  th:text="#{mechanicComplete.outOfStock}">Out of stock</span>
+                        </td>
                         <td>
                             <input type="hidden" th:field="*{parts[__${stat.index}__].partId}">
-                            <input type="number" th:field="*{parts[__${stat.index}__].quantity}"
-                                   min="1" th:attr="max=${part.quantityInStock}">
+                            <input type="number"
+                                   th:field="*{parts[__${stat.index}__].quantity}"
+                                   th:disabled="${part.quantityInStock <= 0}"
+                                   min="1"
+                                   th:attr="max=${part.quantityInStock > 0 ? part.quantityInStock : 1}">
                         </td>
                     </tr>
                     </tbody>
@@ -223,5 +260,7 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/confirm-modal :: confirmModal}"></div>
+<script th:src="@{/js/confirm-modal.js}"></script>
 </body>
 </html>

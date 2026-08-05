@@ -59,6 +59,13 @@ public class ExceptionAdvice {
         return "redirect:/admin/parts/add";
     }
 
+    @ExceptionHandler(InsufficientPartStockException.class)
+    public String handleInsufficientPartStock(RedirectAttributes redirectAttributes,
+                                              InsufficientPartStockException exception) {
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
+        return "redirect:/mechanic/repairs/" + exception.getRepairId() + "/complete";
+    }
+
     @ExceptionHandler(RepairNotFoundException.class)
     public String handleRepairNotFound(RedirectAttributes redirectAttributes,
                                        RepairNotFoundException exception) {

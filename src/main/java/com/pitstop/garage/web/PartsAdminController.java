@@ -1,8 +1,10 @@
 package com.pitstop.garage.web;
 
+import com.pitstop.garage.client.dto.PartResponse;
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.parts.PartsAdminService;
 import com.pitstop.garage.web.dto.AddPartRequest;
+import com.pitstop.garage.web.dto.RestockPartForm;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -54,6 +56,34 @@ public class PartsAdminController {
 
         partsAdminService.createPart(addPartRequest);
         redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.part.added"));
+        return new ModelAndView("redirect:/admin/parts");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}/restock")
+    public ModelAndView restockPartForm(@PathVariable UUID id) {
+        PartResponse part = partsAdminService.getPartById(id);
+        ModelAndView modelAndView = new ModelAndView("admin-parts-restock");
+        modelAndView.addObject("part", part);
+        modelAndView.addObject("restockPartForm", new RestockPartForm());
+        return modelAndView;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/restock")
+    public ModelAndView restockPart(@PathVariable UUID id,
+                                    @Valid @ModelAttribute("restockPartForm") RestockPartForm restockPartForm,
+                                    BindingResult bindingResult,
+                                    RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            ModelAndView modelAndView = new ModelAndView("admin-parts-restock");
+            modelAndView.addObject("part", partsAdminService.getPartById(id));
+            modelAndView.addObject("restockPartForm", restockPartForm);
+            return modelAndView;
+        }
+
+        partsAdminService.restockPart(id, restockPartForm);
+        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.part.restocked"));
         return new ModelAndView("redirect:/admin/parts");
     }
 

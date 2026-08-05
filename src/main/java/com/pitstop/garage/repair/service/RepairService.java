@@ -7,6 +7,8 @@ import com.pitstop.garage.client.dto.DeductPartItemRequest;
 import com.pitstop.garage.client.dto.DeductPartsRequest;
 import com.pitstop.garage.client.dto.DeductedPartResponse;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.exceptions.InsufficientPartStockException;
+import com.pitstop.garage.exceptions.InsufficientPartStockExceptionMessage;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairNotFoundExceptionMessage;
 import com.pitstop.garage.exceptions.RepairStatusException;
@@ -20,6 +22,7 @@ import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.CompleteRepairRequest;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -159,17 +162,23 @@ public class RepairService {
             DeductPartsRequest deductRequest = new DeductPartsRequest();
             deductRequest.setItems(deductItems);
 
-            List<DeductedPartResponse> deducted = partsClient.deductParts(deductRequest);
+            try {
+                List<DeductedPartResponse> deducted = partsClient.deductParts(deductRequest);
 
-            for (DeductedPartResponse d : deducted) {
-                UsedPart usedPart = UsedPart.builder()
-                        .partId(d.getPartId())
-                        .partName(d.getPartName())
-                        .quantity(d.getQuantity())
-                        .unitPrice(d.getUnitPrice())
-                        .serviceRepair(repair)
-                        .build();
-                repair.getUsedParts().add(usedPart);
+                for (DeductedPartResponse d : deducted) {
+                    UsedPart usedPart = UsedPart.builder()
+                            .partId(d.getPartId())
+                            .partName(d.getPartName())
+                            .quantity(d.getQuantity())
+                            .unitPrice(d.getUnitPrice())
+                            .serviceRepair(repair)
+                            .build();
+                    repair.getUsedParts().add(usedPart);
+                }
+            } catch (FeignException.BadRequest ex) {
+                throw new InsufficientPartStockException(
+                        InsufficientPartStockExceptionMessage.INSUFFICIENT_STOCK,
+                        repairId);
             }
         }
 

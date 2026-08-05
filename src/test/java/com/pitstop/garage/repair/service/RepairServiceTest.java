@@ -6,6 +6,8 @@ import com.pitstop.garage.client.PartsClient;
 import com.pitstop.garage.client.dto.DeductPartsRequest;
 import com.pitstop.garage.client.dto.DeductedPartResponse;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.exceptions.InsufficientPartStockException;
+import com.pitstop.garage.exceptions.InsufficientPartStockExceptionMessage;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairStatusException;
 import com.pitstop.garage.repair.model.RepairStatus;
@@ -16,6 +18,7 @@ import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.CompleteRepairRequest;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
+import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -272,6 +275,37 @@ class RepairServiceTest {
         assertEquals(partId, repair.getUsedParts().get(0).getPartId());
         verify(partsClient).deductParts(any(DeductPartsRequest.class));
         verify(serviceRepairRepository).save(repair);
+    }
+
+    @Test
+    void completeRepairByMechanic_whenInsufficientStock_throwsDomainException() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        UUID partId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, mechanic, RepairStatus.IN_PROGRESS);
+
+        CompleteRepairRequest.PartUsageForm selected = new CompleteRepairRequest.PartUsageForm();
+        selected.setPartId(partId);
+        selected.setSelected(true);
+        selected.setQuantity(2);
+
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setLaborCost(new BigDecimal("150.00"));
+        request.setParts(List.of(selected));
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+        when(partsClient.deductParts(any(DeductPartsRequest.class)))
+                .thenThrow(mock(FeignException.BadRequest.class));
+
+        InsufficientPartStockException ex = assertThrows(
+                InsufficientPartStockException.class,
+                () -> repairService.completeRepairByMechanic(mechanicId, repairId, new BigDecimal("150.00"), request));
+
+        assertEquals(repairId, ex.getRepairId());
+        assertEquals(InsufficientPartStockExceptionMessage.INSUFFICIENT_STOCK, ex.getMessage());
+        assertEquals(RepairStatus.IN_PROGRESS, repair.getStatus());
+        verify(serviceRepairRepository, never()).save(repair);
     }
 
     @Test

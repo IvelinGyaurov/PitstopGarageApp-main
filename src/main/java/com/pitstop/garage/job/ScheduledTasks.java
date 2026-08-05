@@ -24,8 +24,8 @@ public class ScheduledTasks {
 
     @Scheduled(cron = "0 0 0 1 * *")
     public void expirePendingRepairs() {
-        log.info("Monthly cron started: cancelling PENDING repairs older than 30 days");
+        log.info("Monthly cron started: expiring PENDING repairs older than 30 days");
         int expired = repairService.expireStalePendingRepairs(30);
-        log.info("Monthly cron finished: cancelled {} repair(s)", expired);
+        log.info("Monthly cron finished: expired {} repair(s)", expired);
     }
 }

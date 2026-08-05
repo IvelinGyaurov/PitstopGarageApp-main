@@ -82,6 +82,13 @@
             margin: 0;
         }
 
+        .parts-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
         .parts-empty {
             border: 1px solid var(--line);
             border-radius: 1.6rem;
@@ -147,16 +154,21 @@
                 <td th:text="#{common.eur(${part.unitPrice})}">0.00</td>
                 <td th:text="${part.quantityInStock}">0</td>
                 <td>
-                    <form class="parts-delete-form js-confirm-form"
-                          th:action="@{/admin/parts/{id}/delete(id=${part.id})}"
-                          method="post"
-                          th:attr="data-confirm-title=#{confirm.deletePart.title},
-                                   data-confirm-message=#{confirm.deletePart.body},
-                                   data-confirm-action=#{confirm.deletePart.action}">
-                        <input type="hidden" th:if="${_csrf != null}"
-                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" class="button secondary" th:text="#{adminParts.delete}">Delete</button>
-                    </form>
+                    <div class="parts-actions">
+                        <a class="button secondary"
+                           th:href="@{/admin/parts/{id}/restock(id=${part.id})}"
+                           th:text="#{adminParts.restock}">Restock</a>
+                        <form class="parts-delete-form js-confirm-form"
+                              th:action="@{/admin/parts/{id}/delete(id=${part.id})}"
+                              method="post"
+                              th:attr="data-confirm-title=#{confirm.deletePart.title},
+                                       data-confirm-message=#{confirm.deletePart.body},
+                                       data-confirm-action=#{confirm.deletePart.action}">
+                            <input type="hidden" th:if="${_csrf != null}"
+                                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="button secondary" th:text="#{adminParts.delete}">Delete</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             </tbody>
