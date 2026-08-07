@@ -192,7 +192,8 @@
               novalidate
               th:attr="data-confirm-title=#{confirm.completeRepair.title},
                        data-confirm-message=#{confirm.completeRepair.body(${repair.car.brand + ' ' + repair.car.model})},
-                       data-confirm-action=#{confirm.completeRepair.action}">
+                       data-confirm-action=#{confirm.completeRepair.action},
+                       data-submitting-label=#{mechanicComplete.submitting}">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
             <p class="alert error" th:if="${#fields.hasAnyErrors()}" th:text="#{form.correctFields}">
@@ -252,7 +253,8 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="button primary" th:text="#{mechanicComplete.submit}">Complete repair</button>
+                <button type="submit" class="button primary" id="complete-repair-submit"
+                        th:text="#{mechanicComplete.submit}">Complete repair</button>
                 <a class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{action.cancel}">Cancel</a>
             </div>
         </form>

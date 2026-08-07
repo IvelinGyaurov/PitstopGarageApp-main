@@ -18,4 +18,6 @@ public interface CarRepository extends JpaRepository<Car, UUID> {
 
     boolean existsByVinAndDeletedAtIsNull(String vin);
 
+    boolean existsByVin(String vin);
+
 }

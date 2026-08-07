@@ -30,6 +30,8 @@
 </header>
 
 <main class="dashboard">
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
     <section class="welcome-panel">
         <div>
             <p class="eyebrow" sec:authorize="hasRole('MECHANIC')" th:text="#{home.eyebrow.mechanic}">Mechanic workspace</p>

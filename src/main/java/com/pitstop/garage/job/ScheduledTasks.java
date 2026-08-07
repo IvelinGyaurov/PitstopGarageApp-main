@@ -22,10 +22,10 @@ public class ScheduledTasks {
         log.info("fixedDelay job finished: released {} repair(s) back to queue", released);
     }
 
-    @Scheduled(cron = "0 0 0 1 * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void expirePendingRepairs() {
-        log.info("Monthly cron started: expiring PENDING repairs older than 30 days");
+        log.info("Daily cron started: expiring PENDING repairs older than 30 days");
         int expired = repairService.expireStalePendingRepairs(30);
-        log.info("Monthly cron finished: expired {} repair(s)", expired);
+        log.info("Daily cron finished: expired {} repair(s)", expired);
     }
 }

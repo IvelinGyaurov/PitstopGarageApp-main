@@ -2,8 +2,10 @@ package com.pitstop.garage.car.service;
 
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.repository.CarRepository;
+import com.pitstop.garage.exceptions.CarHasActiveRepairException;
 import com.pitstop.garage.exceptions.CarNotFoundException;
 import com.pitstop.garage.exceptions.VinAlreadyExistsException;
+import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.service.UserService;
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +35,9 @@ class CarServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ServiceRepairRepository serviceRepairRepository;
 
     @InjectMocks
     private CarService carService;
@@ -44,6 +50,7 @@ class CarServiceTest {
 
         when(userService.getById(ownerId)).thenReturn(owner);
         when(carRepository.existsByVinAndDeletedAtIsNull(request.getVin())).thenReturn(false);
+        when(carRepository.existsByVin(request.getVin())).thenReturn(false);
         when(carRepository.save(any(Car.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         carService.addCar(ownerId, request);
@@ -70,8 +77,25 @@ class CarServiceTest {
         when(userService.getById(ownerId)).thenReturn(owner(ownerId));
         when(carRepository.existsByVinAndDeletedAtIsNull(request.getVin())).thenReturn(true);
 
-        assertThrows(VinAlreadyExistsException.class,
+        VinAlreadyExistsException ex = assertThrows(VinAlreadyExistsException.class,
                 () -> carService.addCar(ownerId, request));
+        assertEquals("error.vinAlreadyExists", ex.getMessage());
+        verify(carRepository, never()).save(any());
+        verify(carRepository, never()).existsByVin(any());
+    }
+
+    @Test
+    void addCar_whenVinBelongsToDeletedCar_throws() {
+        UUID ownerId = UUID.randomUUID();
+        AddCarRequest request = sampleRequest();
+
+        when(userService.getById(ownerId)).thenReturn(owner(ownerId));
+        when(carRepository.existsByVinAndDeletedAtIsNull(request.getVin())).thenReturn(false);
+        when(carRepository.existsByVin(request.getVin())).thenReturn(true);
+
+        VinAlreadyExistsException ex = assertThrows(VinAlreadyExistsException.class,
+                () -> carService.addCar(ownerId, request));
+        assertEquals("error.vinBelongsToDeletedCar", ex.getMessage());
         verify(carRepository, never()).save(any());
     }
 
@@ -130,12 +154,31 @@ class CarServiceTest {
         when(userService.getById(ownerId)).thenReturn(owner);
         when(carRepository.findByIdAndOwnerAndDeletedAtIsNull(carId, owner))
                 .thenReturn(Optional.of(car));
+        when(serviceRepairRepository.existsByCarAndStatusIn(eq(car), anyList())).thenReturn(false);
         when(carRepository.save(any(Car.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         carService.deleteCar(ownerId, carId);
 
         assertNotNull(car.getDeletedAt());
         verify(carRepository).save(car);
+    }
+
+    @Test
+    void deleteCar_whenHasActiveRepair_throws() {
+        UUID ownerId = UUID.randomUUID();
+        UUID carId = UUID.randomUUID();
+        User owner = owner(ownerId);
+        Car car = Car.builder().id(carId).vin("VIN12345678901234").owner(owner).build();
+
+        when(userService.getById(ownerId)).thenReturn(owner);
+        when(carRepository.findByIdAndOwnerAndDeletedAtIsNull(carId, owner))
+                .thenReturn(Optional.of(car));
+        when(serviceRepairRepository.existsByCarAndStatusIn(eq(car), anyList())).thenReturn(true);
+
+        CarHasActiveRepairException ex = assertThrows(CarHasActiveRepairException.class,
+                () -> carService.deleteCar(ownerId, carId));
+        assertEquals("error.carHasActiveRepair", ex.getMessage());
+        verify(carRepository, never()).save(any());
     }
 
     @Test

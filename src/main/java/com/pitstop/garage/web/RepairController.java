@@ -8,6 +8,7 @@ import com.pitstop.garage.repair.service.RepairService;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/repairs")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class RepairController {
 
     private final CarService carService;

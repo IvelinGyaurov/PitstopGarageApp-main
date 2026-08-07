@@ -19,6 +19,7 @@
         titleEl.textContent = form.getAttribute('data-confirm-title') || '';
         messageEl.textContent = form.getAttribute('data-confirm-message') || '';
         acceptBtn.textContent = form.getAttribute('data-confirm-action') || 'OK';
+        acceptBtn.disabled = false;
 
         modal.hidden = false;
         modal.setAttribute('aria-hidden', 'false');
@@ -31,10 +32,27 @@
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('confirm-modal-open');
         pendingForm = null;
+        acceptBtn.disabled = false;
         if (lastFocus && typeof lastFocus.focus === 'function') {
             lastFocus.focus();
         }
         lastFocus = null;
+    }
+
+    function markFormSubmitting(form) {
+        var label = form.getAttribute('data-submitting-label');
+        if (!label) {
+            return;
+        }
+        var buttons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+        Array.prototype.forEach.call(buttons, function (btn) {
+            btn.disabled = true;
+            if (btn.tagName === 'BUTTON') {
+                btn.textContent = label;
+            } else {
+                btn.value = label;
+            }
+        });
     }
 
     function acceptModal() {
@@ -44,9 +62,11 @@
             return;
         }
         pendingForm = null;
+        acceptBtn.disabled = true;
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('confirm-modal-open');
+        markFormSubmitting(form);
         HTMLFormElement.prototype.submit.call(form);
     }
 

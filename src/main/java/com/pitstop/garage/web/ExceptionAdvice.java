@@ -5,6 +5,9 @@ import com.pitstop.garage.exceptions.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -52,6 +55,13 @@ public class ExceptionAdvice {
         return "redirect:/cars";
     }
 
+    @ExceptionHandler(CarHasActiveRepairException.class)
+    public String handleCarHasActiveRepair(RedirectAttributes redirectAttributes,
+                                           CarHasActiveRepairException exception) {
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
+        return "redirect:/cars";
+    }
+
     @ExceptionHandler(PartSkuAlreadyExistsException.class)
     public String handlePartSkuAlreadyExists(RedirectAttributes redirectAttributes,
                                              PartSkuAlreadyExistsException exception) {
@@ -71,7 +81,7 @@ public class ExceptionAdvice {
                                        RepairNotFoundException exception) {
 
         redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
-        return "redirect:/repairs";
+        return redirectAfterRepairError();
     }
 
     @ExceptionHandler(RepairStatusException.class)
@@ -79,7 +89,7 @@ public class ExceptionAdvice {
                                      RepairStatusException exception) {
 
         redirectAttributes.addFlashAttribute("errorMessage", messages.get(exception.getMessage()));
-        return "redirect:/repairs";
+        return redirectAfterRepairError();
     }
 
     @ExceptionHandler(UserInactiveException.class)
@@ -120,8 +130,8 @@ public class ExceptionAdvice {
     @ExceptionHandler(AccessDeniedException.class)
     public ModelAndView handleAccessDenied(AccessDeniedException exception) {
         ModelAndView modelAndView = new ModelAndView("error");
-        modelAndView.setStatus(HttpStatus.FORBIDDEN);
-        modelAndView.addObject("status", 500);
+        modelAndView.setStatus(HttpStatus.NOT_FOUND);
+        modelAndView.addObject("status", 404);
         return modelAndView;
     }
 
@@ -131,5 +141,19 @@ public class ExceptionAdvice {
         modelAndView.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         modelAndView.addObject("status", 500);
         return modelAndView;
+    }
+
+    private String redirectAfterRepairError() {
+        return isMechanic() ? "redirect:/mechanic/repairs" : "redirect:/repairs";
+    }
+
+    private boolean isMechanic() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_MECHANIC"::equals);
     }
 }

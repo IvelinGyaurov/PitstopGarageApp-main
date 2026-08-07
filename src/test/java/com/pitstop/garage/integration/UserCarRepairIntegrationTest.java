@@ -3,6 +3,7 @@ package com.pitstop.garage.integration;
 import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.car.repository.CarRepository;
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.exceptions.CarHasActiveRepairException;
 import com.pitstop.garage.exceptions.VinAlreadyExistsException;
 import com.pitstop.garage.repair.model.RepairStatus;
 import com.pitstop.garage.repair.model.ServiceRepair;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -87,7 +89,8 @@ class UserCarRepairIntegrationTest {
         assertThrows(VinAlreadyExistsException.class,
                 () -> carService.addCar(second.getId(), carRequest));
 
-        repairService.requestRepair(second.getId(), cars.get(0).getId(),
+        Car saved = cars.get(0);
+        repairService.requestRepair(second.getId(), saved.getId(),
                 RequestRepairRequest.builder()
                         .problemDescription("Strange knocking noise from engine")
                         .build());
@@ -96,5 +99,21 @@ class UserCarRepairIntegrationTest {
         assertEquals(1, repairs.size());
         assertEquals(RepairStatus.PENDING, repairs.get(0).getStatus());
         assertEquals(1, serviceRepairRepository.count());
+
+        CarHasActiveRepairException activeRepairEx = assertThrows(CarHasActiveRepairException.class,
+                () -> carService.deleteCar(second.getId(), saved.getId()));
+        assertEquals("error.carHasActiveRepair", activeRepairEx.getMessage());
+        assertTrue(carRepository.existsByVinAndDeletedAtIsNull("WBA3A5C50EK123456"));
+
+        UUID repairId = repairs.get(0).getId();
+        repairService.cancelRepairByClient(second.getId(), repairId);
+
+        carService.deleteCar(second.getId(), saved.getId());
+        assertFalse(carRepository.existsByVinAndDeletedAtIsNull("WBA3A5C50EK123456"));
+        assertTrue(carRepository.existsByVin("WBA3A5C50EK123456"));
+
+        VinAlreadyExistsException deletedVinEx = assertThrows(VinAlreadyExistsException.class,
+                () -> carService.addCar(second.getId(), carRequest));
+        assertEquals("error.vinBelongsToDeletedCar", deletedVinEx.getMessage());
     }
 }

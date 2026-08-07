@@ -3,6 +3,7 @@ package com.pitstop.garage.api;
 import com.pitstop.garage.car.repository.CarRepository;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
+import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.repository.UserRepository;
 import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.RegisterRequest;
@@ -68,6 +69,30 @@ class CarApiTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("cars"))
                 .andExpect(model().attributeExists("cars"));
+    }
+
+    @Test
+    void getCars_whenMechanic_isForbiddenAsNotFound() throws Exception {
+        userService.registerUser(RegisterRequest.builder()
+                .username("mech1")
+                .password("pass")
+                .email("mech1@mail.com")
+                .build());
+        User mechanic = userRepository.findByUsername("mech1").orElseThrow();
+        userService.changeRole(mechanic.getId(), UserRole.MECHANIC);
+        mechanic = userRepository.findByUsername("mech1").orElseThrow();
+
+        PitstopUserDetails mechanicPrincipal = new PitstopUserDetails(
+                mechanic.getId(),
+                mechanic.getUsername(),
+                mechanic.getPassword(),
+                mechanic.getRole(),
+                mechanic.isActive()
+        );
+
+        mockMvc.perform(get("/cars").with(user(mechanicPrincipal)))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error"));
     }
 
     @Test

@@ -2,6 +2,9 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.*;
+import com.pitstop.garage.security.PitstopUserDetails;
+import com.pitstop.garage.user.model.UserRole;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,12 +13,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +43,12 @@ class ExceptionAdviceTest {
     void setUp() {
         lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         advice = new ExceptionAdvice(messages);
+        SecurityContextHolder.clearContext();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -63,6 +78,14 @@ class ExceptionAdviceTest {
     }
 
     @Test
+    void handleCarHasActiveRepair_redirectsToCars() {
+        assertEquals("redirect:/cars",
+                advice.handleCarHasActiveRepair(
+                        redirectAttributes, new CarHasActiveRepairException("error.carHasActiveRepair")));
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "error.carHasActiveRepair");
+    }
+
+    @Test
     void handlePartSkuAlreadyExists_redirectsToPartsAdd() {
         assertEquals("redirect:/admin/parts/add",
                 advice.handlePartSkuAlreadyExists(redirectAttributes, new PartSkuAlreadyExistsException("sku")));
@@ -70,7 +93,7 @@ class ExceptionAdviceTest {
 
     @Test
     void handleInsufficientPartStock_redirectsToCompleteForm() {
-        java.util.UUID repairId = java.util.UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
         assertEquals("redirect:/mechanic/repairs/" + repairId + "/complete",
                 advice.handleInsufficientPartStock(
                         redirectAttributes,
@@ -79,14 +102,30 @@ class ExceptionAdviceTest {
     }
 
     @Test
-    void handleRepairNotFound_redirectsToRepairs() {
+    void handleRepairNotFound_whenClient_redirectsToRepairs() {
+        authenticateAs(UserRole.USER);
         assertEquals("redirect:/repairs",
                 advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));
     }
 
     @Test
-    void handleRepairStatus_redirectsToRepairs() {
+    void handleRepairNotFound_whenMechanic_redirectsToMechanicQueue() {
+        authenticateAs(UserRole.MECHANIC);
+        assertEquals("redirect:/mechanic/repairs",
+                advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));
+    }
+
+    @Test
+    void handleRepairStatus_whenClient_redirectsToRepairs() {
+        authenticateAs(UserRole.USER);
         assertEquals("redirect:/repairs",
+                advice.handleRepairStatus(redirectAttributes, new RepairStatusException("bad")));
+    }
+
+    @Test
+    void handleRepairStatus_whenMechanic_redirectsToMechanicQueue() {
+        authenticateAs(UserRole.MECHANIC);
+        assertEquals("redirect:/mechanic/repairs",
                 advice.handleRepairStatus(redirectAttributes, new RepairStatusException("bad")));
     }
 
@@ -109,6 +148,23 @@ class ExceptionAdviceTest {
     }
 
     @Test
+    void handleRepairNotFound_whenNoAuthentication_redirectsToRepairs() {
+        SecurityContextHolder.clearContext();
+        assertEquals("redirect:/repairs",
+                advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));
+    }
+
+    @Test
+    void handleRepairNotFound_whenAuthoritiesNull_redirectsToRepairs() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getAuthorities()).thenReturn(null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        assertEquals("redirect:/repairs",
+                advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));
+    }
+
+    @Test
     void handleNotFound_returnsError404() {
         ModelAndView mav = advice.handleNotFound(new RuntimeException("nf"));
         assertEquals("error", mav.getViewName());
@@ -117,11 +173,11 @@ class ExceptionAdviceTest {
     }
 
     @Test
-    void handleAccessDenied_returnsErrorWith500StatusObject() {
+    void handleAccessDenied_returnsErrorWith404Status() {
         ModelAndView mav = advice.handleAccessDenied(new AccessDeniedException("denied"));
         assertEquals("error", mav.getViewName());
-        assertEquals(HttpStatus.FORBIDDEN, mav.getStatus());
-        assertEquals(500, mav.getModel().get("status"));
+        assertEquals(HttpStatus.NOT_FOUND, mav.getStatus());
+        assertEquals(404, mav.getModel().get("status"));
     }
 
     @Test
@@ -130,5 +186,12 @@ class ExceptionAdviceTest {
         assertEquals("error", mav.getViewName());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, mav.getStatus());
         assertEquals(500, mav.getModel().get("status"));
+    }
+
+    private void authenticateAs(UserRole role) {
+        PitstopUserDetails principal = new PitstopUserDetails(
+                UUID.randomUUID(), "user", "pass", role, true);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
     }
 }

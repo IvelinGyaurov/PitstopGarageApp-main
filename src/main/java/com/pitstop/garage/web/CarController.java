@@ -5,6 +5,7 @@ import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.AddCarRequest;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/cars")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class CarController {
 
     private final CarService carService;

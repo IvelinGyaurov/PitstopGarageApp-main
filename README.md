@@ -34,7 +34,7 @@ The platform consists of two independent Spring Boot applications:
 ### 2) REST Microservice — Spare Parts Inventory
 - Separate repository: [pitstop-parts](https://github.com/IvelinGyaurov/pitstop-parts)
 - Owns the parts catalog (MySQL) and exposes REST endpoints
-- Supports create / list / soft-delete / stock deduction
+- Supports create / list / soft-delete / stock deduction / restock
 - Consumed by the main app through `PartsClient`
 
 ### Technologies & Architecture Highlights
@@ -94,13 +94,16 @@ Main app Feign client base URL: `http://localhost:8081`
 - **User**
 - **Car**
 - **ServiceRepair**
-- **UsedPart**
+- **UsedPart** (child entity — see note below)
 
 > Spare **Part** entities live in the microservice database (`pitstop_parts`), not in the main app schema.
 
 **ID Strategy**
 - UUID identifiers
-- Each entity has its own Repository and Service layer
+- **User**, **Car**, and **ServiceRepair** each have their own Repository and Service layer
+
+**About `UsedPart` (child entity)**  
+`UsedPart` is intentionally modeled as a **child entity** of `ServiceRepair`, not as a standalone aggregate. It stores which spare parts were used on a completed repair (snapshot of part id, name, quantity, and unit price). Lifecycle is managed through the parent repair via `@OneToMany` with `CascadeType.ALL` and `orphanRemoval = true`. For that reason `UsedPart` has **no** dedicated Repository or Service — create/read happens through `RepairService` / `ServiceRepair`. This still satisfies the “minimum 3 entities with repository and service” expectation via **User**, **Car**, and **ServiceRepair**.
 
 **Repair statuses**
 `PENDING` → `ACCEPTED` → `IN_PROGRESS` → `COMPLETED`  
@@ -114,12 +117,12 @@ Dynamic pages include:
 - Index / Home
 - Login / Register
 - Profile menu
-- Cars (list / add)
+- Cars (list / add — with random sample-car preset on the add form)
 - Repair request, repairs list, repair details
 - Client service history (completed / cancelled / expired)
 - Mechanic queue, accepted repairs, complete repair, mechanic history
 - Admin repairs overview + admin history
-- Admin parts inventory + add part
+- Admin parts inventory, add part (with random sample-part preset), and restock
 - Users management
 - Custom error page
 
@@ -130,7 +133,9 @@ Dynamic pages include:
 | Call from main app | Description |
 |--------------------|-------------|
 | `GET /api/parts` | List inventory |
+| `GET /api/parts/{id}` | Get one part |
 | `POST /api/parts` | Create part |
+| `POST /api/parts/{id}/restock` | Add quantity to an existing part |
 | `DELETE /api/parts/{id}` | Soft-delete part |
 | `POST /api/parts/deduct` | Deduct stock when completing a repair |
 
@@ -142,13 +147,20 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 
 - Register / login / logout
 - Manage own cars (create / delete)
+- Soft-deleted car VIN stays unique forever — the same VIN cannot be reused for a new car
+- Cannot delete a car that has an active repair (`PENDING` / `ACCEPTED` / `IN_PROGRESS`)
 - Create repair request for a car
 - Cancel pending repair (client)
 - Mechanic: accept / reject queue requests
 - Mechanic: start repair, add used parts, complete repair
+- Out-of-stock parts are disabled on the complete-repair form (cannot be selected)
 - Admin: manage users (activate / deactivate / change role)
 - Admin: manage parts inventory through the microservice
-- Admin / mechanic / client: view repair history (incl. expired)
+- Admin: **restock** an existing part when stock reaches 0 (or any quantity) — name, SKU, and price stay the same; only quantity is increased (no need to recreate the same SKU)
+- Demo helpers: random **sample car** preset on car add, and random **sample part** preset on part add, to fill forms quickly during testing/demo
+- Client: own repair history (completed / cancelled / expired)
+- Mechanic history: own completed / rejected; **expired = all** garage expired requests (same shared queue idea as PENDING)
+- Admin: full repair history (incl. all expired)
 - Release stale ACCEPTED repairs back to queue (scheduled)
 - Expire old PENDING repairs (scheduled)
 - EN/BG language switch (persists via cookie)
@@ -161,21 +173,21 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 | Feature / Action | USER | MECHANIC | ADMIN |
 |------------------|:---:|:--------:|:-----:|
 | Register & Login | ✔ | ✔ | ✔ |
-| Manage own cars | ✔ | ✖ | ✔* |
-| Create repair request | ✔ | ✖ | ✔* |
-| View own repairs / history | ✔ | assigned/all | ✔ |
+| Manage own cars (`/cars`) | ✔ | ✖ | ✔ |
+| Create repair request (`/repairs`) | ✔ | ✖ | ✔ |
+| View own repairs / history | ✔ | own completed/rejected; all expired | ✔ (own + admin overview) |
 | Accept / reject repair queue | ✖ | ✔ | ✖ |
 | Complete repair + deduct parts | ✖ | ✔ | ✖ |
 | Manage users | ✖ | ✖ | ✔ |
 | Manage parts inventory | ✖ | ✖ | ✔ |
 | View all repairs | ✖ | ✖ | ✔ |
 
-\* Admin UI focuses on garage management; client car/repair flows are primarily for **USER**.
+\* `/cars` and `/repairs` are restricted to **USER** and **ADMIN** (`@PreAuthorize`). **MECHANIC** cannot access those client portals.
 
 **Role notes**
-- **USER** — client portal
-- **MECHANIC** — repair queue and job completion
-- **ADMIN** — users, inventory, full repair oversight
+- **USER** — client portal (cars + repair requests + own history)
+- **MECHANIC** — repair queue and job completion (`/mechanic/**` only for repair work)
+- **ADMIN** — users, inventory, full repair oversight, plus the same client car/repair flows as USER
 - Last active admin cannot be demoted/deactivated (protection rule)
 - Passwords stored with BCrypt
 
@@ -196,6 +208,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - Custom domain exceptions
 - Global `@ControllerAdvice` (`ExceptionAdvice`)
 - Custom error page (no white-label for handled flows)
+- Access denied is shown as the custom error page with **HTTP 404** (not 500)
 - Flash messages + i18n message keys
 
 ---
@@ -204,7 +217,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 
 **Scheduling**
 - Fixed-delay job: release ACCEPTED repairs not started within 7 days
-- Monthly cron: expire PENDING repairs older than 30 days (`EXPIRED`)
+- Daily cron (`0 0 0 * * *`): expire PENDING repairs older than 30 days (`EXPIRED`)
 
 **Caching**
 - Spring Cache on user lookups (`@Cacheable`)

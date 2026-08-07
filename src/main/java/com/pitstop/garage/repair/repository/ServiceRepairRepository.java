@@ -1,5 +1,6 @@
 package com.pitstop.garage.repair.repository;
 
+import com.pitstop.garage.car.model.Car;
 import com.pitstop.garage.repair.model.RepairStatus;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.user.model.User;
@@ -38,4 +39,6 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
     List<ServiceRepair> findAllByStatusInOrderByCreatedOnDesc(List<RepairStatus> statuses);
 
     List<ServiceRepair> findAllByStatusOrderByCreatedOnDesc(RepairStatus status);
+
+    boolean existsByCarAndStatusIn(Car car, List<RepairStatus> statuses);
 }
