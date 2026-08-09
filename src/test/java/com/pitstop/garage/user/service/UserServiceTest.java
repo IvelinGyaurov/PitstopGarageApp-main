@@ -324,7 +324,7 @@ class UserServiceTest {
 
     @Test
     void getAll_and_countUsers_delegateToRepository() {
-        when(userRepository.findAll()).thenReturn(List.of());
+        when(userRepository.findAllByOrderByUsernameAsc()).thenReturn(List.of());
         when(userRepository.count()).thenReturn(3L);
 
         assertTrue(userService.getAll().isEmpty());

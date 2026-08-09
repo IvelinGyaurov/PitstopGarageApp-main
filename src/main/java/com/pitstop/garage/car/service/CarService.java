@@ -76,7 +76,7 @@ public class CarService {
 
     public List<Car> getMyCars(UUID ownerId) {
         User owner = userService.getById(ownerId);
-        return carRepository.findAllByOwnerAndDeletedAtIsNull(owner);
+        return carRepository.findAllByOwnerAndDeletedAtIsNullOrderByBrandAscModelAsc(owner);
     }
 
     public Car getMyCar(UUID ownerId, UUID carId) {

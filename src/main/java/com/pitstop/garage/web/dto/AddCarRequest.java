@@ -52,7 +52,7 @@ public class AddCarRequest {
 
     @NotNull(message = "{validation.year.required}")
     @Min(value = 1900, message = "{validation.year.min}")
-    @Max(value = 2030, message = "{validation.year.max}")
+    @Max(value = 2050, message = "{validation.year.max}")
     private Integer year;
 
     @NotNull(message = "{validation.mileage.required}")

@@ -213,7 +213,18 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 
 ---
 
-### 2.10 Scheduling & Caching
+### 2.10 Logging
+
+Log statements around:
+- Car create / soft-delete
+- Repair request, cancel, accept, reject, start, complete
+- Parts admin create / restock / soft-delete (via Feign flows)
+- Scheduled release of stale ACCEPTED repairs and daily expire of PENDING
+- Domain / validation error paths where relevant
+
+---
+
+### 2.11 Scheduling & Caching
 
 **Scheduling**
 - Fixed-delay job: release ACCEPTED repairs not started within 7 days
@@ -224,7 +235,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 
 ---
 
-### 2.11 Testing
+### 2.12 Testing
 
 - Unit tests
 - Controller / web-layer tests
@@ -233,7 +244,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 
 ---
 
-### 2.12 Code Quality
+### 2.13 Code Quality
 
 - Thin controllers
 - Feature-based package structure (`user`, `car`, `repair`, `parts`, `web`, …)

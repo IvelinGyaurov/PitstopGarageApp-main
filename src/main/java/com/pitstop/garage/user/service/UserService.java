@@ -121,7 +121,7 @@ public class UserService implements UserDetailsService  {
 
     @Cacheable(value = "users", key = "'all'")
     public List<User> getAll() {
-        return userRepository.findAll();
+        return userRepository.findAllByOrderByUsernameAsc();
     }
 
     public long countUsers() {

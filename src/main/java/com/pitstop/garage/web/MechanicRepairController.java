@@ -105,6 +105,8 @@ public class MechanicRepairController {
                                        @Valid @ModelAttribute("completeRepairRequest") CompleteRepairRequest completeRepairRequest,
                                        BindingResult bindingResult,
                                        RedirectAttributes redirectAttributes) {
+        repairService.rejectInvalidSelectedPartQuantities(completeRepairRequest, bindingResult);
+
         if (bindingResult.hasErrors()) {
             ModelAndView modelAndView = new ModelAndView("mechanic-complete-repair");
             modelAndView.addObject("repair", repairService.getInProgressRepairForMechanic(userData.getUserId(), id));

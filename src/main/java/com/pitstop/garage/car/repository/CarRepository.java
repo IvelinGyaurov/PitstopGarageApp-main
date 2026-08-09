@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface CarRepository extends JpaRepository<Car, UUID> {
 
-    List<Car> findAllByOwnerAndDeletedAtIsNull(User owner);
+    List<Car> findAllByOwnerAndDeletedAtIsNullOrderByBrandAscModelAsc(User owner);
 
     Optional<Car> findByIdAndOwnerAndDeletedAtIsNull(UUID id, User owner);
 

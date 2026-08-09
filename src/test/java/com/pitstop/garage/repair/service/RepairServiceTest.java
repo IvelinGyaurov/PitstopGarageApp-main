@@ -6,6 +6,7 @@ import com.pitstop.garage.client.PartsClient;
 import com.pitstop.garage.client.dto.DeductPartsRequest;
 import com.pitstop.garage.client.dto.DeductedPartResponse;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.InsufficientPartStockException;
 import com.pitstop.garage.exceptions.InsufficientPartStockExceptionMessage;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
@@ -19,12 +20,15 @@ import com.pitstop.garage.user.service.UserService;
 import com.pitstop.garage.web.dto.CompleteRepairRequest;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 import feign.FeignException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,6 +39,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -53,8 +58,16 @@ class RepairServiceTest {
     @Mock
     private PartsClient partsClient;
 
+    @Mock
+    private MessageHelper messages;
+
     @InjectMocks
     private RepairService repairService;
+
+    @BeforeEach
+    void stubMessages() {
+        lenient().when(messages.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
 
     @Test
     void requestRepair_savesPendingRepair() {
@@ -647,6 +660,55 @@ class RepairServiceTest {
 
         assertThrows(RepairNotFoundException.class,
                 () -> repairService.getRepairForClient(clientId, repairId));
+    }
+
+    @Test
+    void rejectInvalidSelectedPartQuantities_whenPartsNull_noErrors() {
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setParts(null);
+        BindingResult bindingResult = new BeanPropertyBindingResult(request, "completeRepairRequest");
+
+        repairService.rejectInvalidSelectedPartQuantities(request, bindingResult);
+
+        assertFalse(bindingResult.hasErrors());
+    }
+
+    @Test
+    void rejectInvalidSelectedPartQuantities_whenSelectedQtyInvalid_addsFieldError() {
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        CompleteRepairRequest.PartUsageForm invalid = new CompleteRepairRequest.PartUsageForm();
+        invalid.setPartId(UUID.randomUUID());
+        invalid.setSelected(true);
+        invalid.setQuantity(0);
+
+        CompleteRepairRequest.PartUsageForm unselected = new CompleteRepairRequest.PartUsageForm();
+        unselected.setPartId(UUID.randomUUID());
+        unselected.setSelected(false);
+        unselected.setQuantity(0);
+
+        request.setParts(List.of(invalid, unselected));
+        BindingResult bindingResult = new BeanPropertyBindingResult(request, "completeRepairRequest");
+
+        repairService.rejectInvalidSelectedPartQuantities(request, bindingResult);
+
+        assertTrue(bindingResult.hasFieldErrors("parts[0].quantity"));
+        assertFalse(bindingResult.hasFieldErrors("parts[1].quantity"));
+        assertEquals("validation.partQty.min", bindingResult.getFieldError("parts[0].quantity").getDefaultMessage());
+    }
+
+    @Test
+    void rejectInvalidSelectedPartQuantities_whenSelectedQtyValid_noErrors() {
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        CompleteRepairRequest.PartUsageForm valid = new CompleteRepairRequest.PartUsageForm();
+        valid.setPartId(UUID.randomUUID());
+        valid.setSelected(true);
+        valid.setQuantity(2);
+        request.setParts(List.of(valid));
+        BindingResult bindingResult = new BeanPropertyBindingResult(request, "completeRepairRequest");
+
+        repairService.rejectInvalidSelectedPartQuantities(request, bindingResult);
+
+        assertFalse(bindingResult.hasErrors());
     }
 
     @Test

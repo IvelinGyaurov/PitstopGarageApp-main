@@ -243,9 +243,13 @@
                             <input type="hidden" th:field="*{parts[__${stat.index}__].partId}">
                             <input type="number"
                                    th:field="*{parts[__${stat.index}__].quantity}"
+                                   th:errorclass="input-error"
                                    th:disabled="${part.quantityInStock <= 0}"
                                    min="1"
                                    th:attr="max=${part.quantityInStock > 0 ? part.quantityInStock : 1}">
+                            <small class="field-error"
+                                   th:if="${#fields.hasErrors('parts[__${stat.index}__].quantity')}"
+                                   th:text="${#strings.listJoin(#fields.errors('parts[__${stat.index}__].quantity'), ' and ')}"></small>
                         </td>
                     </tr>
                     </tbody>

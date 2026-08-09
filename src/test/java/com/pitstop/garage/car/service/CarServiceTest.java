@@ -106,7 +106,7 @@ class CarServiceTest {
         List<Car> cars = List.of(Car.builder().vin("VIN12345678901234").owner(owner).build());
 
         when(userService.getById(ownerId)).thenReturn(owner);
-        when(carRepository.findAllByOwnerAndDeletedAtIsNull(owner)).thenReturn(cars);
+        when(carRepository.findAllByOwnerAndDeletedAtIsNullOrderByBrandAscModelAsc(owner)).thenReturn(cars);
 
         List<Car> result = carService.getMyCars(ownerId);
 

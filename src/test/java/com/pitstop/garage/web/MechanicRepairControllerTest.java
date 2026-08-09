@@ -146,6 +146,31 @@ class MechanicRepairControllerTest {
     }
 
     @Test
+    void completeRepair_whenSelectedPartQuantityInvalid_staysOnForm() {
+        PitstopUserDetails user = principal();
+        UUID id = UUID.randomUUID();
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setLaborCost(new BigDecimal("50.00"));
+
+        CompleteRepairRequest.PartUsageForm part = new CompleteRepairRequest.PartUsageForm();
+        part.setPartId(UUID.randomUUID());
+        part.setSelected(true);
+        part.setQuantity(0);
+        request.setParts(List.of(part));
+
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(repairService.getInProgressRepairForMechanic(user.getUserId(), id))
+                .thenReturn(ServiceRepair.builder().id(id).build());
+        when(repairService.getCatalogParts()).thenReturn(List.of());
+
+        ModelAndView mav = controller.completeRepair(id, user, request, bindingResult, redirectAttributes);
+
+        verify(repairService).rejectInvalidSelectedPartQuantities(request, bindingResult);
+        assertEquals("mechanic-complete-repair", mav.getViewName());
+        verify(repairService, never()).completeRepairByMechanic(any(), any(), any(), any());
+    }
+
+    @Test
     void completeRepair_whenInvalid_staysOnForm() {
         PitstopUserDetails user = principal();
         UUID id = UUID.randomUUID();

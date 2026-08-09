@@ -119,7 +119,7 @@ class CarApiTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/cars"));
 
-        assertEquals(1, carRepository.findAllByOwnerAndDeletedAtIsNull(owner).size());
+        assertEquals(1, carRepository.findAllByOwnerAndDeletedAtIsNullOrderByBrandAscModelAsc(owner).size());
         assertTrue(carRepository.existsByVinAndDeletedAtIsNull("WBA3A5C50EK123456"));
     }
 

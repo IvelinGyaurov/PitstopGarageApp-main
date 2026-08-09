@@ -233,7 +233,7 @@
                 <div>
                     <label for="year" th:text="#{carAdd.year}">Year</label>
                     <input id="year" type="number" th:field="*{year}" th:errorclass="input-error"
-                           th:placeholder="#{carAdd.year.placeholder}" min="1900" max="2030" step="1">
+                           th:placeholder="#{carAdd.year.placeholder}" min="1900" max="2050" step="1">
                     <small class="field-error" th:if="${#fields.hasErrors('year')}"
                            th:text="${#strings.listJoin(#fields.errors('year'), ' and ')}"></small>
                 </div>

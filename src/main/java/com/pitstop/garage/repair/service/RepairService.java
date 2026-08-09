@@ -7,6 +7,7 @@ import com.pitstop.garage.client.dto.DeductPartItemRequest;
 import com.pitstop.garage.client.dto.DeductPartsRequest;
 import com.pitstop.garage.client.dto.DeductedPartResponse;
 import com.pitstop.garage.client.dto.PartResponse;
+import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.InsufficientPartStockException;
 import com.pitstop.garage.exceptions.InsufficientPartStockExceptionMessage;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,13 +44,19 @@ public class RepairService {
     private final UserService userService;
     private final CarService carService;
     private final PartsClient partsClient;
+    private final MessageHelper messages;
 
     @Autowired
-    public RepairService(ServiceRepairRepository serviceRepairRepository, UserService userService, CarService carService, PartsClient partsClient) {
+    public RepairService(ServiceRepairRepository serviceRepairRepository,
+                         UserService userService,
+                         CarService carService,
+                         PartsClient partsClient,
+                         MessageHelper messages) {
         this.serviceRepairRepository = serviceRepairRepository;
         this.userService = userService;
         this.carService = carService;
         this.partsClient = partsClient;
+        this.messages = messages;
     }
 
     public void requestRepair(UUID clientId, UUID carId, RequestRepairRequest requestRepair) {
@@ -139,6 +147,22 @@ public class RepairService {
         repair.setStartedAt(LocalDateTime.now());
         serviceRepairRepository.save(repair);
         log.info("Repair {} started by mechanic {}", repairId, mechanicId);
+    }
+
+    public void rejectInvalidSelectedPartQuantities(CompleteRepairRequest request, BindingResult bindingResult) {
+        List<CompleteRepairRequest.PartUsageForm> parts = request.getParts();
+        if (parts == null) {
+            return;
+        }
+        for (int i = 0; i < parts.size(); i++) {
+            CompleteRepairRequest.PartUsageForm part = parts.get(i);
+            if (part.isSelected() && part.getQuantity() < 1) {
+                bindingResult.rejectValue(
+                        "parts[" + i + "].quantity",
+                        "validation.partQty.min",
+                        messages.get("validation.partQty.min"));
+            }
+        }
     }
 
     @Transactional
