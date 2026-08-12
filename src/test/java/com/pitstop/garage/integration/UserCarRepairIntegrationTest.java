@@ -98,6 +98,9 @@ class UserCarRepairIntegrationTest {
         List<ServiceRepair> repairs = repairService.getMyRepairs(second.getId());
         assertEquals(1, repairs.size());
         assertEquals(RepairStatus.PENDING, repairs.get(0).getStatus());
+        assertEquals(1, repairService.getPendingRepairsForClient(second.getId()).size());
+        assertTrue(repairService.getWaitingAcceptedRepairsForClient(second.getId()).isEmpty());
+        assertTrue(repairService.getInProgressRepairsForClient(second.getId()).isEmpty());
         assertEquals(1, serviceRepairRepository.count());
 
         CarHasActiveRepairException activeRepairEx = assertThrows(CarHasActiveRepairException.class,

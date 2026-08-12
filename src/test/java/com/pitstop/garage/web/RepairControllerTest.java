@@ -54,12 +54,34 @@ class RepairControllerTest {
     @Test
     void repairsPreview_returnsRepairsView() {
         PitstopUserDetails user = principal(UserRole.USER);
-        when(repairService.getMyRepairs(user.getUserId())).thenReturn(List.of());
+        when(repairService.getInProgressRepairsForClient(user.getUserId())).thenReturn(List.of());
+        when(repairService.getWaitingAcceptedRepairsForClient(user.getUserId())).thenReturn(List.of());
+        when(repairService.getPendingRepairsForClient(user.getUserId())).thenReturn(List.of());
 
         ModelAndView mav = repairController.repairsPreview(user);
 
         assertEquals("repairs", mav.getViewName());
-        assertEquals(List.of(), mav.getModel().get("repairs"));
+        assertEquals(List.of(), mav.getModel().get("inProgressRepairs"));
+        assertEquals(List.of(), mav.getModel().get("acceptedRepairs"));
+        assertEquals(List.of(), mav.getModel().get("pendingRepairs"));
+    }
+
+    @Test
+    void repairsPreview_loadsSeparatedListsFromService() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        ServiceRepair inProgress = ServiceRepair.builder().id(UUID.randomUUID()).build();
+        ServiceRepair accepted = ServiceRepair.builder().id(UUID.randomUUID()).build();
+        ServiceRepair pending = ServiceRepair.builder().id(UUID.randomUUID()).build();
+
+        when(repairService.getInProgressRepairsForClient(user.getUserId())).thenReturn(List.of(inProgress));
+        when(repairService.getWaitingAcceptedRepairsForClient(user.getUserId())).thenReturn(List.of(accepted));
+        when(repairService.getPendingRepairsForClient(user.getUserId())).thenReturn(List.of(pending));
+
+        ModelAndView mav = repairController.repairsPreview(user);
+
+        assertEquals(List.of(inProgress), mav.getModel().get("inProgressRepairs"));
+        assertEquals(List.of(accepted), mav.getModel().get("acceptedRepairs"));
+        assertEquals(List.of(pending), mav.getModel().get("pendingRepairs"));
     }
 
     @Test
@@ -135,6 +157,27 @@ class RepairControllerTest {
         ModelAndView mav = repairController.repairHistory(user);
 
         assertEquals("repairs-history", mav.getViewName());
+        assertEquals(List.of(), mav.getModel().get("completedRepairs"));
+        assertEquals(List.of(), mav.getModel().get("rejectedRepairs"));
+        assertEquals(List.of(), mav.getModel().get("expiredRepairs"));
+    }
+
+    @Test
+    void repairHistory_loadsListsFromService() {
+        PitstopUserDetails user = principal(UserRole.USER);
+        ServiceRepair completed = ServiceRepair.builder().id(UUID.randomUUID()).build();
+        ServiceRepair rejected = ServiceRepair.builder().id(UUID.randomUUID()).build();
+        ServiceRepair expired = ServiceRepair.builder().id(UUID.randomUUID()).build();
+
+        when(repairService.getCompletedRepairsForClient(user.getUserId())).thenReturn(List.of(completed));
+        when(repairService.getRejectedRepairsForClient(user.getUserId())).thenReturn(List.of(rejected));
+        when(repairService.getExpiredRepairsForClient(user.getUserId())).thenReturn(List.of(expired));
+
+        ModelAndView mav = repairController.repairHistory(user);
+
+        assertEquals(List.of(completed), mav.getModel().get("completedRepairs"));
+        assertEquals(List.of(rejected), mav.getModel().get("rejectedRepairs"));
+        assertEquals(List.of(expired), mav.getModel().get("expiredRepairs"));
     }
 
     @Test

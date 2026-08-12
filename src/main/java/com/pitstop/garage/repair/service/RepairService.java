@@ -32,6 +32,7 @@ import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -342,16 +343,39 @@ public class RepairService {
 
 
     public List<ServiceRepair> getMyRepairs(UUID clientId) {
+        List<ServiceRepair> repairs = new ArrayList<>(getInProgressRepairsForClient(clientId));
+        repairs.addAll(getWaitingAcceptedRepairsForClient(clientId));
+        repairs.addAll(getPendingRepairsForClient(clientId));
+        return repairs;
+    }
+
+    public List<ServiceRepair> getInProgressRepairsForClient(UUID clientId) {
         User client = userService.getById(clientId);
         List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(client,
-                List.of(RepairStatus.PENDING,
-                        RepairStatus.ACCEPTED,
-                        RepairStatus.IN_PROGRESS));
+                List.of(RepairStatus.IN_PROGRESS));
 
         return repairs.stream()
-                .sorted(Comparator
-                        .comparingInt((ServiceRepair repair) -> statusPriority(repair.getStatus()))
-                        .thenComparing(ServiceRepair::getCreatedOn, Comparator.reverseOrder()))
+                .sorted(Comparator.comparing(this::clientActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getWaitingAcceptedRepairsForClient(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(client,
+                List.of(RepairStatus.ACCEPTED));
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(this::clientActiveRepairDate, Comparator.reverseOrder()))
+                .toList();
+    }
+
+    public List<ServiceRepair> getPendingRepairsForClient(UUID clientId) {
+        User client = userService.getById(clientId);
+        List<ServiceRepair> repairs = serviceRepairRepository.findAllByClientAndStatusIn(client,
+                List.of(RepairStatus.PENDING));
+
+        return repairs.stream()
+                .sorted(Comparator.comparing(ServiceRepair::getCreatedOn, Comparator.reverseOrder()))
                 .toList();
     }
 
@@ -395,6 +419,16 @@ public class RepairService {
 
     public List<ServiceRepair> getExpiredRepairsForMechanic() {
         return getExpiredRepairsForAdmin();
+    }
+
+    private LocalDateTime clientActiveRepairDate(ServiceRepair repair) {
+        if (repair.getStatus() == RepairStatus.IN_PROGRESS && repair.getStartedAt() != null) {
+            return repair.getStartedAt();
+        }
+        if (repair.getAcceptedAt() != null) {
+            return repair.getAcceptedAt();
+        }
+        return repair.getCreatedOn();
     }
 
     private LocalDateTime clientRejectedDate(ServiceRepair repair) {

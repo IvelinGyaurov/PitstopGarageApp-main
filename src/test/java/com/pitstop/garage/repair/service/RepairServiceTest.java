@@ -207,6 +207,48 @@ class RepairServiceTest {
     }
 
     @Test
+    void rejectRepairByMechanic_whenNotPending_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        ServiceRepair repair = pendingRepair(repairId, user(UUID.randomUUID(), UserRole.USER));
+        repair.setStatus(RepairStatus.ACCEPTED);
+
+        when(userService.getById(mechanicId)).thenReturn(user(mechanicId, UserRole.MECHANIC));
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.rejectRepairByMechanic(mechanicId, repairId));
+        verify(serviceRepairRepository, never()).save(any());
+    }
+
+    @Test
+    void rejectRepairByMechanic_whenAlreadyTaken_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        ServiceRepair repair = pendingRepair(repairId, user(UUID.randomUUID(), UserRole.USER));
+        repair.setMechanic(user(UUID.randomUUID(), UserRole.MECHANIC));
+
+        when(userService.getById(mechanicId)).thenReturn(user(mechanicId, UserRole.MECHANIC));
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.rejectRepairByMechanic(mechanicId, repairId));
+        verify(serviceRepairRepository, never()).save(any());
+    }
+
+    @Test
+    void rejectRepairByMechanic_whenMissing_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+
+        when(userService.getById(mechanicId)).thenReturn(user(mechanicId, UserRole.MECHANIC));
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.empty());
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.rejectRepairByMechanic(mechanicId, repairId));
+    }
+
+    @Test
     void startRepairByMechanic_whenAccepted_starts() {
         UUID mechanicId = UUID.randomUUID();
         UUID repairId = UUID.randomUUID();
@@ -361,6 +403,78 @@ class RepairServiceTest {
     }
 
     @Test
+    void completeRepairByMechanic_whenNotAssigned_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User otherMechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, otherMechanic, RepairStatus.IN_PROGRESS);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setParts(List.of());
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.completeRepairByMechanic(
+                        mechanicId, repairId, BigDecimal.TEN, request));
+        verify(partsClient, never()).deductParts(any());
+    }
+
+    @Test
+    void completeRepairByMechanic_whenMissing_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.empty());
+
+        CompleteRepairRequest request = new CompleteRepairRequest();
+        request.setParts(List.of());
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.completeRepairByMechanic(
+                        mechanicId, repairId, BigDecimal.TEN, request));
+        verify(partsClient, never()).deductParts(any());
+    }
+
+    @Test
+    void getInProgressRepairForMechanic_whenInProgress_returns() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, mechanic, RepairStatus.IN_PROGRESS);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getInProgressRepairForMechanic(mechanicId, repairId).getId());
+    }
+
+    @Test
+    void getInProgressRepairForMechanic_whenNotInProgress_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, mechanic, RepairStatus.ACCEPTED);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.getInProgressRepairForMechanic(mechanicId, repairId));
+    }
+
+    @Test
+    void getInProgressRepairForMechanic_whenNotAssigned_throws() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User otherMechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        ServiceRepair repair = assignedRepair(repairId, otherMechanic, RepairStatus.IN_PROGRESS);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairStatusException.class,
+                () -> repairService.getInProgressRepairForMechanic(mechanicId, repairId));
+    }
+
+    @Test
     void expireStalePendingRepairs_cancelsOldPending() {
         ServiceRepair stale = pendingRepair(UUID.randomUUID(), user(UUID.randomUUID(), UserRole.USER));
         when(serviceRepairRepository.findAllByStatusAndCreatedOnBefore(eq(RepairStatus.PENDING), any()))
@@ -423,7 +537,7 @@ class RepairServiceTest {
     }
 
     @Test
-    void getMyRepairs_sortsByStatusPriority() {
+    void getMyRepairs_combinesActiveClientRepairsInOrder() {
         UUID clientId = UUID.randomUUID();
         User client = user(clientId, UserRole.USER);
         LocalDateTime now = LocalDateTime.now();
@@ -434,14 +548,181 @@ class RepairServiceTest {
         inProgress.setStartedAt(now.minusMinutes(30));
 
         when(userService.getById(clientId)).thenReturn(client);
-        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), any()))
-                .thenReturn(new ArrayList<>(List.of(pending, accepted, inProgress)));
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>(List.of(inProgress)));
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>(List.of(accepted)));
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.PENDING))))
+                .thenReturn(new ArrayList<>(List.of(pending)));
 
         List<ServiceRepair> result = repairService.getMyRepairs(clientId);
 
+        assertEquals(3, result.size());
         assertEquals(RepairStatus.IN_PROGRESS, result.get(0).getStatus());
         assertEquals(RepairStatus.ACCEPTED, result.get(1).getStatus());
         assertEquals(RepairStatus.PENDING, result.get(2).getStatus());
+    }
+
+    @Test
+    void getPendingRepairsForClient_returnsOnlyPendingSortedByCreatedOnDesc() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair newer = repairWithStatus(client, null, RepairStatus.PENDING, now.minusHours(1));
+        ServiceRepair older = repairWithStatus(client, null, RepairStatus.PENDING, now.minusHours(3));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.PENDING))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getPendingRepairsForClient(clientId);
+
+        assertEquals(2, result.size());
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getInProgressAndWaitingAcceptedRepairsForClient_returnSeparateLists() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair inProgress = repairWithStatus(client, mechanic, RepairStatus.IN_PROGRESS, now.minusHours(2));
+        inProgress.setStartedAt(now.minusMinutes(30));
+        ServiceRepair accepted = repairWithStatus(client, mechanic, RepairStatus.ACCEPTED, now.minusHours(3));
+        accepted.setAcceptedAt(now.minusHours(1));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>(List.of(inProgress)));
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>(List.of(accepted)));
+
+        assertEquals(1, repairService.getInProgressRepairsForClient(clientId).size());
+        assertEquals(RepairStatus.IN_PROGRESS,
+                repairService.getInProgressRepairsForClient(clientId).get(0).getStatus());
+        assertEquals(1, repairService.getWaitingAcceptedRepairsForClient(clientId).size());
+        assertEquals(RepairStatus.ACCEPTED,
+                repairService.getWaitingAcceptedRepairsForClient(clientId).get(0).getStatus());
+    }
+
+    @Test
+    void getInProgressRepairsForClient_sortsByStartedAtDesc() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair older = repairWithStatus(client, mechanic, RepairStatus.IN_PROGRESS, now.minusHours(4));
+        older.setStartedAt(now.minusHours(2));
+        ServiceRepair newer = repairWithStatus(client, mechanic, RepairStatus.IN_PROGRESS, now.minusHours(5));
+        newer.setStartedAt(now.minusMinutes(20));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getInProgressRepairsForClient(clientId);
+
+        assertEquals(2, result.size());
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getWaitingAcceptedRepairsForClient_sortsByAcceptedAtDesc() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair older = repairWithStatus(client, mechanic, RepairStatus.ACCEPTED, now.minusHours(4));
+        older.setAcceptedAt(now.minusHours(3));
+        ServiceRepair newer = repairWithStatus(client, mechanic, RepairStatus.ACCEPTED, now.minusHours(5));
+        newer.setAcceptedAt(now.minusHours(1));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getWaitingAcceptedRepairsForClient(clientId);
+
+        assertEquals(2, result.size());
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getInProgressRepairsForClient_whenStartedAtMissing_usesAcceptedAtForSorting() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair withAcceptedAt = repairWithStatus(client, mechanic, RepairStatus.IN_PROGRESS, now.minusHours(5));
+        withAcceptedAt.setStartedAt(null);
+        withAcceptedAt.setAcceptedAt(now.minusHours(1));
+
+        ServiceRepair fallbackCreatedOn = repairWithStatus(client, mechanic, RepairStatus.IN_PROGRESS, now.minusHours(2));
+        fallbackCreatedOn.setStartedAt(null);
+        fallbackCreatedOn.setAcceptedAt(null);
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>(List.of(fallbackCreatedOn, withAcceptedAt)));
+
+        List<ServiceRepair> result = repairService.getInProgressRepairsForClient(clientId);
+
+        assertEquals(2, result.size());
+        assertEquals(withAcceptedAt.getId(), result.get(0).getId());
+        assertEquals(fallbackCreatedOn.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getWaitingAcceptedRepairsForClient_whenAcceptedAtMissing_usesCreatedOnForSorting() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair newer = repairWithStatus(client, mechanic, RepairStatus.ACCEPTED, now.minusHours(1));
+        newer.setAcceptedAt(null);
+        ServiceRepair older = repairWithStatus(client, mechanic, RepairStatus.ACCEPTED, now.minusHours(3));
+        older.setAcceptedAt(null);
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getWaitingAcceptedRepairsForClient(clientId);
+
+        assertEquals(2, result.size());
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getAcceptedRepairsForMechanic_usesDefaultStatusPriorityForUnknownStatuses() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair inProgress = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        inProgress.setStartedAt(now);
+        ServiceRepair completed = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.COMPLETED);
+        completed.setAcceptedAt(now.minusHours(1));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(eq(mechanic), any()))
+                .thenReturn(new ArrayList<>(List.of(completed, inProgress)));
+
+        List<ServiceRepair> result = repairService.getAcceptedRepairsForMechanic(mechanicId);
+
+        assertEquals(RepairStatus.IN_PROGRESS, result.get(0).getStatus());
+        assertEquals(RepairStatus.COMPLETED, result.get(1).getStatus());
     }
 
     @Test
@@ -542,6 +823,30 @@ class RepairServiceTest {
         List<ServiceRepair> result = repairService.getAcceptedRepairsForMechanic(mechanicId);
 
         assertEquals(RepairStatus.IN_PROGRESS, result.get(0).getStatus());
+    }
+
+    @Test
+    void getAcceptedRepairsForMechanic_sortsPendingAfterInProgressAndAccepted() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair pending = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.PENDING);
+        ServiceRepair accepted = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        accepted.setAcceptedAt(now.minusHours(2));
+        ServiceRepair inProgress = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        inProgress.setStartedAt(now.minusMinutes(30));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(eq(mechanic), any()))
+                .thenReturn(new ArrayList<>(List.of(pending, accepted, inProgress)));
+
+        List<ServiceRepair> result = repairService.getAcceptedRepairsForMechanic(mechanicId);
+
+        assertEquals(3, result.size());
+        assertEquals(RepairStatus.IN_PROGRESS, result.get(0).getStatus());
+        assertEquals(RepairStatus.ACCEPTED, result.get(1).getStatus());
+        assertEquals(RepairStatus.PENDING, result.get(2).getStatus());
     }
 
     @Test
@@ -827,22 +1132,174 @@ class RepairServiceTest {
     }
 
     @Test
-    void getMyRepairs_usesDefaultStatusPriorityForUnknownStatuses() {
+    void getCompletedRepairsForClient_sortsByCompletedAtDesc() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        LocalDateTime older = LocalDateTime.now().minusDays(2);
+        LocalDateTime newer = LocalDateTime.now().minusHours(3);
+
+        ServiceRepair olderCompleted = repairWithStatus(client, null, RepairStatus.COMPLETED, older);
+        olderCompleted.setCompletedAt(older);
+
+        ServiceRepair newerCompleted = repairWithStatus(client, null, RepairStatus.COMPLETED, newer);
+        newerCompleted.setCompletedAt(newer);
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.COMPLETED))))
+                .thenReturn(new ArrayList<>(List.of(olderCompleted, newerCompleted)));
+
+        List<ServiceRepair> result = repairService.getCompletedRepairsForClient(clientId);
+
+        assertEquals(newerCompleted.getId(), result.get(0).getId());
+        assertEquals(olderCompleted.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getExpiredRepairsForClient_sortsByCreatedOnDesc() {
+        UUID clientId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        LocalDateTime older = LocalDateTime.now().minusDays(5);
+        LocalDateTime newer = LocalDateTime.now().minusDays(1);
+
+        ServiceRepair olderExpired = repairWithStatus(client, null, RepairStatus.EXPIRED, older);
+        ServiceRepair newerExpired = repairWithStatus(client, null, RepairStatus.EXPIRED, newer);
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.EXPIRED))))
+                .thenReturn(new ArrayList<>(List.of(olderExpired, newerExpired)));
+
+        List<ServiceRepair> result = repairService.getExpiredRepairsForClient(clientId);
+
+        assertEquals(newerExpired.getId(), result.get(0).getId());
+        assertEquals(olderExpired.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getInProgressRepairsForMechanic_sortsByMechanicActiveDate() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair newer = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        newer.setStartedAt(now.minusMinutes(20));
+        ServiceRepair older = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        older.setStartedAt(now.minusHours(2));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                eq(mechanic), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getInProgressRepairsForMechanic(mechanicId);
+
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getWaitingAcceptedRepairsForMechanic_whenAcceptedAtMissing_usesCreatedOnForSorting() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime now = LocalDateTime.now();
+
+        ServiceRepair newer = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        newer.setAcceptedAt(null);
+        newer.setCreatedOn(now.minusHours(1));
+
+        ServiceRepair older = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        older.setAcceptedAt(null);
+        older.setCreatedOn(now.minusHours(4));
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                eq(mechanic), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>(List.of(older, newer)));
+
+        List<ServiceRepair> result = repairService.getWaitingAcceptedRepairsForMechanic(mechanicId);
+
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getCompletedRepairsForMechanic_sortsByCompletedAtWithNullsLast() {
+        UUID mechanicId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        LocalDateTime completedAt = LocalDateTime.now().minusDays(1);
+
+        ServiceRepair withCompletedAt = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.COMPLETED);
+        withCompletedAt.setCompletedAt(completedAt);
+
+        ServiceRepair withoutCompletedAt = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.COMPLETED);
+        withoutCompletedAt.setCompletedAt(null);
+
+        when(userService.getById(mechanicId)).thenReturn(mechanic);
+        when(serviceRepairRepository.findAllByMechanicAndStatusInOrderByCreatedOnDesc(
+                eq(mechanic), eq(List.of(RepairStatus.COMPLETED))))
+                .thenReturn(new ArrayList<>(List.of(withoutCompletedAt, withCompletedAt)));
+
+        List<ServiceRepair> result = repairService.getCompletedRepairsForMechanic(mechanicId);
+
+        assertEquals(withCompletedAt.getId(), result.get(0).getId());
+        assertEquals(withoutCompletedAt.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void getAdminRepairLists_sortsByActiveAndCompletedDates() {
+        LocalDateTime now = LocalDateTime.now();
+        User mechanic = user(UUID.randomUUID(), UserRole.MECHANIC);
+
+        ServiceRepair olderAccepted = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        olderAccepted.setAcceptedAt(now.minusHours(4));
+        ServiceRepair newerAccepted = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.ACCEPTED);
+        newerAccepted.setAcceptedAt(now.minusHours(1));
+
+        ServiceRepair olderInProgress = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        olderInProgress.setStartedAt(now.minusHours(3));
+        ServiceRepair newerInProgress = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.IN_PROGRESS);
+        newerInProgress.setStartedAt(now.minusMinutes(30));
+
+        ServiceRepair olderCompleted = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.COMPLETED);
+        olderCompleted.setCompletedAt(now.minusDays(2));
+        ServiceRepair newerCompleted = assignedRepair(UUID.randomUUID(), mechanic, RepairStatus.COMPLETED);
+        newerCompleted.setCompletedAt(now.minusHours(6));
+
+        when(serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.ACCEPTED))
+                .thenReturn(new ArrayList<>(List.of(olderAccepted, newerAccepted)));
+        when(serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.IN_PROGRESS))
+                .thenReturn(new ArrayList<>(List.of(olderInProgress, newerInProgress)));
+        when(serviceRepairRepository.findAllByStatusOrderByCreatedOnDesc(RepairStatus.COMPLETED))
+                .thenReturn(new ArrayList<>(List.of(olderCompleted, newerCompleted)));
+
+        List<ServiceRepair> accepted = repairService.getAcceptedRepairsForAdmin();
+        List<ServiceRepair> inProgress = repairService.getInProgressRepairsForAdmin();
+        List<ServiceRepair> completed = repairService.getCompletedRepairsForAdmin();
+
+        assertEquals(newerAccepted.getId(), accepted.get(0).getId());
+        assertEquals(newerInProgress.getId(), inProgress.get(0).getId());
+        assertEquals(newerCompleted.getId(), completed.get(0).getId());
+    }
+
+    @Test
+    void getMyRepairs_excludesNonActiveStatuses() {
         UUID clientId = UUID.randomUUID();
         User client = user(clientId, UserRole.USER);
         LocalDateTime now = LocalDateTime.now();
 
         ServiceRepair pending = repairWithStatus(client, null, RepairStatus.PENDING, now.minusHours(1));
-        ServiceRepair cancelled = repairWithStatus(client, null, RepairStatus.CANCELLED, now);
 
         when(userService.getById(clientId)).thenReturn(client);
-        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), any()))
-                .thenReturn(new ArrayList<>(List.of(cancelled, pending)));
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.IN_PROGRESS))))
+                .thenReturn(new ArrayList<>());
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.ACCEPTED))))
+                .thenReturn(new ArrayList<>());
+        when(serviceRepairRepository.findAllByClientAndStatusIn(eq(client), eq(List.of(RepairStatus.PENDING))))
+                .thenReturn(new ArrayList<>(List.of(pending)));
 
         List<ServiceRepair> result = repairService.getMyRepairs(clientId);
 
+        assertEquals(1, result.size());
         assertEquals(RepairStatus.PENDING, result.get(0).getStatus());
-        assertEquals(RepairStatus.CANCELLED, result.get(1).getStatus());
     }
 
     private User user(UUID id, UserRole role) {

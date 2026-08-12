@@ -36,8 +36,11 @@ public class RepairController {
     @GetMapping
     public ModelAndView repairsPreview(@AuthenticationPrincipal PitstopUserDetails userData) {
 
+        UUID clientId = userData.getUserId();
         ModelAndView modelAndView = new ModelAndView("repairs");
-        modelAndView.addObject("repairs", repairService.getMyRepairs(userData.getUserId()));
+        modelAndView.addObject("inProgressRepairs", repairService.getInProgressRepairsForClient(clientId));
+        modelAndView.addObject("acceptedRepairs", repairService.getWaitingAcceptedRepairsForClient(clientId));
+        modelAndView.addObject("pendingRepairs", repairService.getPendingRepairsForClient(clientId));
         return modelAndView;
     }
 
