@@ -14,7 +14,7 @@ import java.util.UUID;
 public class CompleteRepairRequest {
 
     @NotNull(message = "{validation.laborCost.required}")
-    @DecimalMin(value = "0.00", message = "{validation.laborCost.min}")
+    @DecimalMin(value = "1.00", message = "{validation.laborCost.min}")
     private BigDecimal laborCost;
 
     private List<PartUsageForm> parts = new ArrayList<>();

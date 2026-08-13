@@ -153,6 +153,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - Cancel pending repair (client)
 - Mechanic: accept / reject queue requests
 - Mechanic: start repair, add used parts, complete repair
+- Mechanic complete: labor cost is required (minimum **1.00 EUR**); used parts are optional
 - Out-of-stock parts are disabled on the complete-repair form (cannot be selected)
 - Admin: manage users (activate / deactivate / change role)
 - Admin: manage parts inventory through the microservice
@@ -188,6 +189,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - **USER** — client portal (cars + repair requests + own history)
 - **MECHANIC** — repair queue and job completion (`/mechanic/**` only for repair work)
 - **ADMIN** — users, inventory, full repair oversight, plus the same client car/repair flows as USER
+- There are no seeded accounts. The first registered user becomes **ADMIN**; later registrations are **USER**. Use the Users page as admin to promote a mechanic or another admin.
 - Last active admin cannot be demoted/deactivated (protection rule)
 - Passwords stored with BCrypt
 

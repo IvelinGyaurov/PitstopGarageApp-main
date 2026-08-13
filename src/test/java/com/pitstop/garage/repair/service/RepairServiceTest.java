@@ -529,7 +529,7 @@ class RepairServiceTest {
 
         CompleteRepairRequest form = repairService.buildCompleteRepairForm();
 
-        assertEquals(BigDecimal.ZERO, form.getLaborCost());
+        assertNull(form.getLaborCost());
         assertEquals(1, form.getParts().size());
         assertEquals(partId, form.getParts().get(0).getPartId());
         assertEquals(1, form.getParts().get(0).getQuantity());

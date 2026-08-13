@@ -329,7 +329,6 @@ public class RepairService {
         List<PartResponse> catalogParts = getCatalogParts();
 
         CompleteRepairRequest request = new CompleteRepairRequest();
-        request.setLaborCost(BigDecimal.ZERO);
         request.setParts(catalogParts.stream().map(part -> {
             CompleteRepairRequest.PartUsageForm form = new CompleteRepairRequest.PartUsageForm();
             form.setPartId(part.getId());
