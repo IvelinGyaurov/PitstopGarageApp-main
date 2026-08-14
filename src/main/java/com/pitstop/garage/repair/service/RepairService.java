@@ -31,10 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -534,5 +536,66 @@ public class RepairService {
     public ServiceRepair getRepairForAdmin(UUID repairId) {
         return serviceRepairRepository.findById(repairId)
                 .orElseThrow(() -> new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceRepair getCompletedRepairForClientInvoice(UUID clientId, UUID repairId) {
+        ServiceRepair repair = getRepairForClient(clientId, repairId);
+        requireCompletedForInvoice(repair);
+        initializeInvoiceGraph(repair);
+        log.info("Invoice downloaded for repair {} by client {}", repairId, clientId);
+        return repair;
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceRepair getCompletedRepairForMechanicInvoice(UUID mechanicId, UUID repairId) {
+        ServiceRepair repair = getRepairAssignedToMechanic(mechanicId, repairId);
+        requireCompletedForInvoice(repair);
+        initializeInvoiceGraph(repair);
+        log.info("Invoice downloaded for repair {} by mechanic {}", repairId, mechanicId);
+        return repair;
+    }
+
+    @Transactional(readOnly = true)
+    public ServiceRepair getCompletedRepairForAdminInvoice(UUID repairId) {
+        ServiceRepair repair = getRepairForAdmin(repairId);
+        requireCompletedForInvoice(repair);
+        initializeInvoiceGraph(repair);
+        log.info("Invoice downloaded for repair {} by admin", repairId);
+        return repair;
+    }
+
+    private void requireCompletedForInvoice(ServiceRepair repair) {
+        if (repair.getStatus() != RepairStatus.COMPLETED) {
+            throw new RepairNotFoundException(RepairNotFoundExceptionMessage.REPAIR_NOT_FOUND);
+        }
+    }
+
+    private void initializeInvoiceGraph(ServiceRepair repair) {
+        Objects.requireNonNull(repair.getCar().getBrand());
+        Objects.requireNonNull(repair.getClient().getUsername());
+        if (repair.getMechanic() != null) {
+            Objects.requireNonNull(repair.getMechanic().getUsername());
+        }
+        repair.getUsedParts().forEach(part -> Objects.requireNonNull(part.getPartName()));
+    }
+
+    public BigDecimal calculatePartsTotal(ServiceRepair repair) {
+        if (repair.getUsedParts() == null || repair.getUsedParts().isEmpty()) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        return repair.getUsedParts().stream()
+                .map(part -> part.getUnitPrice()
+                        .multiply(BigDecimal.valueOf(part.getQuantity()))
+                        .setScale(2, RoundingMode.HALF_UP))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateGrandTotal(ServiceRepair repair) {
+        BigDecimal labor = repair.getLaborCost() == null
+                ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
+                : repair.getLaborCost().setScale(2, RoundingMode.HALF_UP);
+        return labor.add(calculatePartsTotal(repair)).setScale(2, RoundingMode.HALF_UP);
     }
 }

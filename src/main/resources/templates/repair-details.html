@@ -233,6 +233,41 @@
             text-align: right;
         }
 
+        .cost-summary {
+            margin-top: 1rem;
+            padding: 1rem 1.15rem;
+            border: 1px solid var(--line);
+            border-radius: 1.1rem;
+            background: rgba(15, 23, 42, 0.45);
+            display: grid;
+            gap: 0.55rem;
+        }
+
+        .cost-summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            color: var(--muted);
+        }
+
+        .cost-summary-row strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .cost-summary-row.total {
+            margin-top: 0.25rem;
+            padding-top: 0.7rem;
+            border-top: 1px solid var(--line);
+            color: var(--text);
+            font-weight: 800;
+        }
+
+        .cost-summary-row.total strong {
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
         @media (max-width: 640px) {
             .car-summary,
             .timeline {
@@ -447,7 +482,30 @@
             <p class="problem-text" th:text="#{repairDetails.noPartsRecorded}">No parts were recorded for this repair.</p>
         </div>
 
+        <div class="details-section" th:if="${repair.status.name() == 'COMPLETED'}">
+            <h2 th:text="#{repairDetails.costSummary}">Cost summary</h2>
+            <div class="cost-summary">
+                <div class="cost-summary-row">
+                    <span th:text="#{repairCard.laborCost}">Labor cost</span>
+                    <strong th:text="#{common.eur(${repair.laborCost})}">80.00 EUR</strong>
+                </div>
+                <div class="cost-summary-row"
+                     th:if="${repair.usedParts != null and !repair.usedParts.isEmpty()}">
+                    <span th:text="#{repairDetails.partsSubtotal}">Parts subtotal</span>
+                    <strong th:text="#{common.eur(${partsTotal})}">50.00 EUR</strong>
+                </div>
+                <div class="cost-summary-row total">
+                    <span th:text="#{repairDetails.grandTotal}">Total</span>
+                    <strong th:text="#{common.eur(${grandTotal})}">130.00 EUR</strong>
+                </div>
+            </div>
+        </div>
+
         <div class="details-actions" th:if="${detailsAudience == null or detailsAudience == 'CLIENT'}">
+            <a class="button invoice"
+               th:if="${repair.status.name() == 'COMPLETED'}"
+               th:href="@{/repairs/{id}/invoice(id=${repair.id})}"
+               th:text="#{action.downloadInvoice}">Download invoice</a>
             <a class="button primary"
                th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/repairs/history}" th:text="#{action.backToServiceHistory}">Back to service history</a>
@@ -458,11 +516,19 @@
         </div>
 
         <div class="details-actions" th:if="${detailsAudience == 'MECHANIC'}">
+            <a class="button invoice"
+               th:if="${repair.status.name() == 'COMPLETED'}"
+               th:href="@{/mechanic/repairs/{id}/invoice(id=${repair.id})}"
+               th:text="#{action.downloadInvoice}">Download invoice</a>
             <a class="button primary" th:href="@{/mechanic/repairs/history}" th:text="#{action.backToRepairHistory}">Back to repair history</a>
             <a class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
         </div>
 
         <div class="details-actions" th:if="${detailsAudience == 'ADMIN'}">
+            <a class="button invoice"
+               th:if="${repair.status.name() == 'COMPLETED'}"
+               th:href="@{/admin/repairs/{id}/invoice(id=${repair.id})}"
+               th:text="#{action.downloadInvoice}">Download invoice</a>
             <a class="button primary"
                th:if="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'CANCELLED' or repair.status.name() == 'USER_CANCELLED' or repair.status.name() == 'EXPIRED'}"
                th:href="@{/admin/repairs/history}" th:text="#{action.backToRepairHistory}">Back to repair history</a>

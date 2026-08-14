@@ -48,6 +48,8 @@ public class AdminRepairController {
 
         ModelAndView modelAndView = new ModelAndView("repair-details");
         modelAndView.addObject("repair", repair);
+        modelAndView.addObject("partsTotal", repairService.calculatePartsTotal(repair));
+        modelAndView.addObject("grandTotal", repairService.calculateGrandTotal(repair));
         modelAndView.addObject("detailsAudience", "ADMIN");
         return modelAndView;
     }

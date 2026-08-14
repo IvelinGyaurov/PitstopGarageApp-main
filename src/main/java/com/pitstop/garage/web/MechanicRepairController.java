@@ -94,6 +94,8 @@ public class MechanicRepairController {
 
         ModelAndView mav = new ModelAndView("repair-details");
         mav.addObject("repair", repair);
+        mav.addObject("partsTotal", repairService.calculatePartsTotal(repair));
+        mav.addObject("grandTotal", repairService.calculateGrandTotal(repair));
         mav.addObject("detailsAudience", "MECHANIC");
         return mav;
     }

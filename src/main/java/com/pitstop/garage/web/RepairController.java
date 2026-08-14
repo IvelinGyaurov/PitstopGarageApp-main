@@ -110,6 +110,8 @@ public class RepairController {
 
         ModelAndView modelAndView = new ModelAndView("repair-details");
         modelAndView.addObject("repair", repair);
+        modelAndView.addObject("partsTotal", repairService.calculatePartsTotal(repair));
+        modelAndView.addObject("grandTotal", repairService.calculateGrandTotal(repair));
         modelAndView.addObject("detailsAudience", "CLIENT");
         return modelAndView;
     }

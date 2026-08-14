@@ -13,6 +13,7 @@ import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairStatusException;
 import com.pitstop.garage.repair.model.RepairStatus;
 import com.pitstop.garage.repair.model.ServiceRepair;
+import com.pitstop.garage.repair.model.UsedPart;
 import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
@@ -1302,6 +1303,135 @@ class RepairServiceTest {
         assertEquals(RepairStatus.PENDING, result.get(0).getStatus());
     }
 
+    @Test
+    void getCompletedRepairForClientInvoice_whenCompleted_returns() {
+        UUID clientId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        ServiceRepair repair = completedInvoiceRepair(repairId, client, user(UUID.randomUUID(), UserRole.MECHANIC));
+        UsedPart part = UsedPart.builder()
+                .id(UUID.randomUUID())
+                .partId(UUID.randomUUID())
+                .partName("Oil filter")
+                .quantity(1)
+                .unitPrice(new BigDecimal("12.00"))
+                .serviceRepair(repair)
+                .build();
+        repair.setUsedParts(new ArrayList<>(List.of(part)));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findByIdAndClient(repairId, client)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getCompletedRepairForClientInvoice(clientId, repairId).getId());
+    }
+
+    @Test
+    void getCompletedRepairForAdminInvoice_whenMechanicMissing_stillInitializesGraph() {
+        UUID repairId = UUID.randomUUID();
+        User client = user(UUID.randomUUID(), UserRole.USER);
+        ServiceRepair repair = completedInvoiceRepair(repairId, client, null);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getCompletedRepairForAdminInvoice(repairId).getId());
+    }
+
+    @Test
+    void getCompletedRepairForClientInvoice_whenNotCompleted_throws() {
+        UUID clientId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User client = user(clientId, UserRole.USER);
+        ServiceRepair repair = pendingRepair(repairId, client);
+        repair.setCar(car(client));
+
+        when(userService.getById(clientId)).thenReturn(client);
+        when(serviceRepairRepository.findByIdAndClient(repairId, client)).thenReturn(Optional.of(repair));
+
+        assertThrows(RepairNotFoundException.class,
+                () -> repairService.getCompletedRepairForClientInvoice(clientId, repairId));
+    }
+
+    @Test
+    void getCompletedRepairForMechanicInvoice_whenCompleted_returns() {
+        UUID mechanicId = UUID.randomUUID();
+        UUID repairId = UUID.randomUUID();
+        User mechanic = user(mechanicId, UserRole.MECHANIC);
+        User client = user(UUID.randomUUID(), UserRole.USER);
+        ServiceRepair repair = completedInvoiceRepair(repairId, client, mechanic);
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getCompletedRepairForMechanicInvoice(mechanicId, repairId).getId());
+    }
+
+    @Test
+    void getCompletedRepairForAdminInvoice_whenCompleted_returns() {
+        UUID repairId = UUID.randomUUID();
+        User client = user(UUID.randomUUID(), UserRole.USER);
+        ServiceRepair repair = completedInvoiceRepair(repairId, client, user(UUID.randomUUID(), UserRole.MECHANIC));
+
+        when(serviceRepairRepository.findById(repairId)).thenReturn(Optional.of(repair));
+
+        assertEquals(repairId, repairService.getCompletedRepairForAdminInvoice(repairId).getId());
+    }
+
+    @Test
+    void calculatePartsTotal_andGrandTotal_sumLaborAndParts() {
+        ServiceRepair repair = ServiceRepair.builder()
+                .problemDescription("Brake noise problem description")
+                .laborCost(new BigDecimal("80.00"))
+                .usedParts(new ArrayList<>())
+                .build();
+
+        UsedPart pads = UsedPart.builder()
+                .id(UUID.randomUUID())
+                .partId(UUID.randomUUID())
+                .partName("Brake pads")
+                .quantity(2)
+                .unitPrice(new BigDecimal("45.00"))
+                .serviceRepair(repair)
+                .build();
+        repair.setUsedParts(List.of(pads));
+
+        assertEquals(new BigDecimal("90.00"), repairService.calculatePartsTotal(repair));
+        assertEquals(new BigDecimal("170.00"), repairService.calculateGrandTotal(repair));
+    }
+
+    @Test
+    void calculateGrandTotal_whenNoParts_equalsLabor() {
+        ServiceRepair repair = ServiceRepair.builder()
+                .problemDescription("Diagnostics only repair description")
+                .laborCost(new BigDecimal("50.00"))
+                .usedParts(new ArrayList<>())
+                .build();
+
+        assertEquals(new BigDecimal("0.00"), repairService.calculatePartsTotal(repair));
+        assertEquals(new BigDecimal("50.00"), repairService.calculateGrandTotal(repair));
+    }
+
+    @Test
+    void calculatePartsTotal_whenUsedPartsNull_returnsZero() {
+        ServiceRepair repair = ServiceRepair.builder()
+                .problemDescription("Diagnostics only repair description")
+                .laborCost(new BigDecimal("40.00"))
+                .usedParts(null)
+                .build();
+
+        assertEquals(new BigDecimal("0.00"), repairService.calculatePartsTotal(repair));
+        assertEquals(new BigDecimal("40.00"), repairService.calculateGrandTotal(repair));
+    }
+
+    @Test
+    void calculateGrandTotal_whenLaborNull_usesZeroLabor() {
+        ServiceRepair repair = ServiceRepair.builder()
+                .problemDescription("Legacy completed repair without labor")
+                .laborCost(null)
+                .usedParts(new ArrayList<>())
+                .build();
+
+        assertEquals(new BigDecimal("0.00"), repairService.calculateGrandTotal(repair));
+    }
+
     private User user(UUID id, UserRole role) {
         return User.builder()
                 .id(id)
@@ -1343,6 +1473,38 @@ class RepairServiceTest {
                 .mechanic(mechanic)
                 .createdOn(createdOn)
                 .usedParts(new ArrayList<>())
+                .build();
+    }
+
+    private ServiceRepair completedInvoiceRepair(UUID id, User client, User mechanic) {
+        ServiceRepair repair = ServiceRepair.builder()
+                .id(id)
+                .problemDescription("Completed repair for invoice")
+                .status(RepairStatus.COMPLETED)
+                .laborCost(new BigDecimal("80.00"))
+                .client(client)
+                .mechanic(mechanic)
+                .car(car(client))
+                .createdOn(LocalDateTime.now().minusDays(2))
+                .acceptedAt(LocalDateTime.now().minusDays(1))
+                .startedAt(LocalDateTime.now().minusHours(5))
+                .completedAt(LocalDateTime.now())
+                .usedParts(new ArrayList<>())
+                .build();
+        return repair;
+    }
+
+    private Car car(User owner) {
+        return Car.builder()
+                .id(UUID.randomUUID())
+                .vin("WVWZZZ1JZXW000099")
+                .plateNumber("CA9999XX")
+                .brand("VW")
+                .model("Golf")
+                .year(2018)
+                .engineType("PETROL")
+                .transmission("MANUAL")
+                .owner(owner)
                 .build();
     }
 }

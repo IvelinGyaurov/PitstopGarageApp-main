@@ -62,6 +62,7 @@ The platform consists of two independent Spring Boot applications:
 - Spring Cache
 - OpenFeign
 - Spring Actuator
+- OpenPDF (completed-repair invoices)
 
 **Frontend**
 - Thymeleaf (+ Spring Security extras)
@@ -166,6 +167,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - Expire old PENDING repairs (scheduled)
 - EN/BG language switch (persists via cookie)
 - Custom confirm dialogs for destructive actions
+- Download PDF invoice for **COMPLETED** repairs (EN/BG follows UI language); client and mechanic for own jobs, admin for any completed repair
 
 ---
 
@@ -223,6 +225,7 @@ Log statements around:
 - Parts admin create / restock / soft-delete (via Feign flows)
 - Scheduled release of stale ACCEPTED repairs and daily expire of PENDING
 - Domain / validation error paths where relevant
+- PDF invoice download for completed repairs
 
 ---
 
