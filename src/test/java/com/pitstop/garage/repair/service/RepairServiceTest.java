@@ -11,6 +11,7 @@ import com.pitstop.garage.exceptions.InsufficientPartStockException;
 import com.pitstop.garage.exceptions.InsufficientPartStockExceptionMessage;
 import com.pitstop.garage.exceptions.RepairNotFoundException;
 import com.pitstop.garage.exceptions.RepairStatusException;
+import com.pitstop.garage.repair.event.RepairCompletedEvent;
 import com.pitstop.garage.repair.model.RepairStatus;
 import com.pitstop.garage.repair.model.ServiceRepair;
 import com.pitstop.garage.repair.model.UsedPart;
@@ -28,6 +29,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 
@@ -61,6 +63,9 @@ class RepairServiceTest {
 
     @Mock
     private MessageHelper messages;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private RepairService repairService;
@@ -362,6 +367,7 @@ class RepairServiceTest {
         assertEquals(InsufficientPartStockExceptionMessage.INSUFFICIENT_STOCK, ex.getMessage());
         assertEquals(RepairStatus.IN_PROGRESS, repair.getStatus());
         verify(serviceRepairRepository, never()).save(repair);
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -383,6 +389,7 @@ class RepairServiceTest {
         assertTrue(repair.getUsedParts().isEmpty());
         verify(partsClient, never()).deductParts(any());
         verify(serviceRepairRepository).save(repair);
+        verify(eventPublisher).publishEvent(any(RepairCompletedEvent.class));
     }
 
     @Test

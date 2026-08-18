@@ -42,6 +42,8 @@ The platform consists of two independent Spring Boot applications:
 - **OpenFeign** for inter-service REST communication
 - **Spring Scheduling** for stale / expired repair cleanup
 - **Spring Cache** for user lookups
+- **Spring Events** on repair completion (listener logs completion details)
+- **Spring AOP** for service-layer execution logging
 - **DTO validation**, custom exceptions, and global exception handling
 - **JaCoCo** test coverage for the main application
 
@@ -60,6 +62,7 @@ The platform consists of two independent Spring Boot applications:
 - Spring Validation
 - Spring Scheduling
 - Spring Cache
+- Spring AOP
 - OpenFeign
 - Spring Actuator
 - OpenPDF (completed-repair invoices)
@@ -168,6 +171,8 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - EN/BG language switch (persists via cookie)
 - Custom confirm dialogs for destructive actions
 - Download PDF invoice for **COMPLETED** repairs (EN/BG follows UI language); client and mechanic for own jobs, admin for any completed repair
+- **Bonus:** Spring Events published when a mechanic completes a repair; listener records completion details in the log
+- **Bonus:** AOP advice logs execution time for service methods (car, repair, user, parts admin)
 
 ---
 

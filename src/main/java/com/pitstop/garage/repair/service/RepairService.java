@@ -24,8 +24,10 @@ import com.pitstop.garage.web.dto.CompleteRepairRequest;
 import com.pitstop.garage.web.dto.RequestRepairRequest;
 
 import feign.FeignException;
+import com.pitstop.garage.repair.event.RepairCompletedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -48,18 +50,21 @@ public class RepairService {
     private final CarService carService;
     private final PartsClient partsClient;
     private final MessageHelper messages;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public RepairService(ServiceRepairRepository serviceRepairRepository,
                          UserService userService,
                          CarService carService,
                          PartsClient partsClient,
-                         MessageHelper messages) {
+                         MessageHelper messages,
+                         ApplicationEventPublisher eventPublisher) {
         this.serviceRepairRepository = serviceRepairRepository;
         this.userService = userService;
         this.carService = carService;
         this.partsClient = partsClient;
         this.messages = messages;
+        this.eventPublisher = eventPublisher;
     }
 
     public void requestRepair(UUID clientId, UUID carId, RequestRepairRequest requestRepair) {
@@ -215,6 +220,13 @@ public class RepairService {
         serviceRepairRepository.save(repair);
         log.info("Repair {} completed by mechanic {} with {} part(s)",
                 repairId, mechanicId, deductItems.size());
+        eventPublisher.publishEvent(new RepairCompletedEvent(
+                repair.getId(),
+                repair.getClient().getId(),
+                mechanicId,
+                laborCost,
+                deductItems.size(),
+                repair.getCompletedAt()));
     }
 
     @Transactional
