@@ -109,6 +109,21 @@
             white-space: nowrap;
         }
 
+        .vin-decode-btn {
+            flex-shrink: 0;
+            min-height: 3rem;
+            padding: 0.85rem 1rem;
+            white-space: nowrap;
+            border-color: rgba(249, 115, 22, 0.72);
+            background: rgba(249, 115, 22, 0.12);
+            color: #fff;
+        }
+
+        .vin-decode-btn:hover {
+            border-color: rgba(249, 115, 22, 0.95);
+            background: rgba(249, 115, 22, 0.22);
+        }
+
         .car-presets {
             margin: 1.25rem 0 0.35rem;
         }
@@ -202,6 +217,13 @@
                         <button type="button" id="vin-generate-btn" class="button secondary vin-generate-btn"
                                 th:text="#{carAdd.generateVin}">
                             Generate VIN
+                        </button>
+                        <button type="submit"
+                                class="button secondary vin-decode-btn"
+                                th:formaction="@{/cars/add/decode-vin}"
+                                formmethod="post"
+                                th:text="#{carAdd.decodeVin}">
+                            Decode VIN
                         </button>
                     </div>
                     <small class="field-error" th:if="${#fields.hasErrors('vin')}"

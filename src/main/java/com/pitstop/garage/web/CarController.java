@@ -1,6 +1,8 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.car.vin.VinDecodeOutcome;
+import com.pitstop.garage.car.vin.VinDecodeService;
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.web.dto.AddCarRequest;
@@ -21,11 +23,20 @@ import java.util.UUID;
 public class CarController {
 
     private final CarService carService;
+    private final VinDecodeService vinDecodeService;
     private final MessageHelper messages;
 
-    public CarController(CarService carService, MessageHelper messages) {
+    public CarController(CarService carService,
+                         VinDecodeService vinDecodeService,
+                         MessageHelper messages) {
         this.carService = carService;
+        this.vinDecodeService = vinDecodeService;
         this.messages = messages;
+    }
+
+    @ModelAttribute("addCarRequest")
+    public AddCarRequest addCarRequest() {
+        return new AddCarRequest();
     }
 
     @GetMapping
@@ -37,10 +48,16 @@ public class CarController {
 
     @GetMapping("/add")
     public ModelAndView addCarForm() {
+        return new ModelAndView("car-add");
+    }
 
-        ModelAndView modelAndView = new ModelAndView("car-add");
-        modelAndView.addObject("addCarRequest", new AddCarRequest());
-        return modelAndView;
+    @PostMapping("/add/decode-vin")
+    public ModelAndView decodeVin(@ModelAttribute AddCarRequest addCarRequest,
+                                  RedirectAttributes redirectAttributes) {
+        VinDecodeOutcome outcome = vinDecodeService.applyToAddCarRequest(addCarRequest);
+        redirectAttributes.addFlashAttribute(outcome.flashAttribute(), messages.get(outcome.messageKey()));
+        redirectAttributes.addFlashAttribute("addCarRequest", addCarRequest);
+        return new ModelAndView("redirect:/cars/add");
     }
 
     @PostMapping("/add")

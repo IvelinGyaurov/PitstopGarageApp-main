@@ -1,6 +1,8 @@
 package com.pitstop.garage.web;
 
 import com.pitstop.garage.car.service.CarService;
+import com.pitstop.garage.car.vin.VinDecodeOutcome;
+import com.pitstop.garage.car.vin.VinDecodeService;
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.UserRole;
@@ -27,6 +29,9 @@ class CarControllerTest {
 
     @Mock
     private CarService carService;
+
+    @Mock
+    private VinDecodeService vinDecodeService;
 
     @Mock
     private MessageHelper messages;
@@ -84,5 +89,19 @@ class CarControllerTest {
 
         verify(carService).addCar(userId, request);
         assertEquals("redirect:/cars", mav.getViewName());
+    }
+
+    @Test
+    void decodeVin_delegatesToServiceAndRedirects() {
+        AddCarRequest request = new AddCarRequest();
+        request.setVin("1HGCM82633A004352");
+        when(vinDecodeService.applyToAddCarRequest(request)).thenReturn(VinDecodeOutcome.success());
+
+        ModelAndView mav = controller.decodeVin(request, redirectAttributes);
+
+        verify(vinDecodeService).applyToAddCarRequest(request);
+        verify(redirectAttributes).addFlashAttribute("successMessage", "flash.car.vinDecoded");
+        verify(redirectAttributes).addFlashAttribute("addCarRequest", request);
+        assertEquals("redirect:/cars/add", mav.getViewName());
     }
 }

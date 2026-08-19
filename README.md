@@ -44,6 +44,7 @@ The platform consists of two independent Spring Boot applications:
 - **Spring Cache** for user lookups
 - **Spring Events** on repair completion (listener logs completion details)
 - **Spring AOP** for service-layer execution logging
+- **NHTSA VPIC REST API** for optional VIN decode on the add-car form (brand / model / year)
 - **DTO validation**, custom exceptions, and global exception handling
 - **JaCoCo** test coverage for the main application
 
@@ -173,6 +174,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - Download PDF invoice for **COMPLETED** repairs (EN/BG follows UI language); client and mechanic for own jobs, admin for any completed repair
 - **Bonus:** Spring Events published when a mechanic completes a repair; listener records completion details in the log
 - **Bonus:** AOP advice logs execution time for service methods (car, repair, user, parts admin)
+- **Bonus:** NHTSA VIN decode on add car — optional lookup fills brand, model, and year via `RestClient` (no API key)
 
 ---
 
