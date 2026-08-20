@@ -7,4 +7,7 @@ public class PrimaryUserExceptionMessage {
     public static final String CANNOT_CHANGE_LAST_ADMIN_STATUS = "error.cannotDeactivateLastAdmin";
 
     public static final String CANNOT_CHANGE_LAST_ADMIN_ROLE = "error.cannotChangeLastAdminRole";
+
+    public static final String CANNOT_DEACTIVATE_MECHANIC_WITH_OPEN_REPAIRS =
+            "error.cannotDeactivateMechanicWithOpenRepairs";
 }

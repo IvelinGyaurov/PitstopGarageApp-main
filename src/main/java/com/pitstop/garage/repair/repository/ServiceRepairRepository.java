@@ -41,4 +41,6 @@ public interface ServiceRepairRepository extends JpaRepository<ServiceRepair, UU
     List<ServiceRepair> findAllByStatusOrderByCreatedOnDesc(RepairStatus status);
 
     boolean existsByCarAndStatusIn(Car car, List<RepairStatus> statuses);
+
+    boolean existsByMechanicAndStatusIn(User mechanic, List<RepairStatus> statuses);
 }

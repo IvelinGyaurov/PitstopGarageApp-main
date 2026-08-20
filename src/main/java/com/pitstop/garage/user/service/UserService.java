@@ -1,6 +1,8 @@
 package com.pitstop.garage.user.service;
 
 import com.pitstop.garage.exceptions.*;
+import com.pitstop.garage.repair.model.RepairStatus;
+import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.repository.UserRepository;
@@ -27,12 +29,21 @@ import static com.pitstop.garage.exceptions.UserAlreadyExistExceptionMessage.*;
 @Service
 public class UserService implements UserDetailsService  {
 
+    private static final List<RepairStatus> OPEN_MECHANIC_REPAIR_STATUSES = List.of(
+            RepairStatus.ACCEPTED,
+            RepairStatus.IN_PROGRESS
+    );
+
     private final UserRepository userRepository;
+    private final ServiceRepairRepository serviceRepairRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       ServiceRepairRepository serviceRepairRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.serviceRepairRepository = serviceRepairRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -88,7 +99,7 @@ public class UserService implements UserDetailsService  {
         userRepository.save(user);
     }
 
-    public long countActiveAdmins() {
+    private long countActiveAdmins() {
         return userRepository.countByRoleAndIsActiveTrue(UserRole.ADMIN);
     }
 
@@ -112,6 +123,11 @@ public class UserService implements UserDetailsService  {
 
         if (!active && isSoleActiveAdmin(user)) {
             throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_LAST_ADMIN_STATUS);
+        }
+
+        if (!active && serviceRepairRepository.existsByMechanicAndStatusIn(user, OPEN_MECHANIC_REPAIR_STATUSES)) {
+            throw new PrimaryUserException(
+                    PrimaryUserExceptionMessage.CANNOT_DEACTIVATE_MECHANIC_WITH_OPEN_REPAIRS);
         }
 
         user.setActive(active);

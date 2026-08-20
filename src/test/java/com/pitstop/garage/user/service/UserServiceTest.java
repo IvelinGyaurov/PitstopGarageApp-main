@@ -4,6 +4,8 @@ import com.pitstop.garage.exceptions.PrimaryUserException;
 import com.pitstop.garage.exceptions.UserAlreadyExistException;
 import com.pitstop.garage.exceptions.UserInactiveException;
 import com.pitstop.garage.exceptions.UserNotFoundException;
+import com.pitstop.garage.repair.model.RepairStatus;
+import com.pitstop.garage.repair.repository.ServiceRepairRepository;
 import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
@@ -26,6 +28,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +36,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ServiceRepairRepository serviceRepairRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -193,12 +199,47 @@ class UserServiceTest {
 
         when(userRepository.findById(id)).thenReturn(Optional.of(admin));
         when(userRepository.countByRoleAndIsActiveTrue(UserRole.ADMIN)).thenReturn(2L);
+        when(serviceRepairRepository.existsByMechanicAndStatusIn(
+                eq(admin), eq(List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS))))
+                .thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         userService.changeActiveStatus(id, false);
 
         assertFalse(admin.isActive());
         verify(userRepository).save(admin);
+    }
+
+    @Test
+    void changeActiveStatus_whenDeactivatingMechanicWithOpenRepairs_throws() {
+        UUID id = UUID.randomUUID();
+        User mechanic = activeUser(id, "mech", UserRole.MECHANIC);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(mechanic));
+        when(serviceRepairRepository.existsByMechanicAndStatusIn(
+                eq(mechanic), eq(List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS))))
+                .thenReturn(true);
+
+        assertThrows(PrimaryUserException.class,
+                () -> userService.changeActiveStatus(id, false));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changeActiveStatus_whenDeactivatingMechanicWithoutOpenRepairs_updates() {
+        UUID id = UUID.randomUUID();
+        User mechanic = activeUser(id, "mech", UserRole.MECHANIC);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(mechanic));
+        when(serviceRepairRepository.existsByMechanicAndStatusIn(
+                eq(mechanic), eq(List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS))))
+                .thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.changeActiveStatus(id, false);
+
+        assertFalse(mechanic.isActive());
+        verify(userRepository).save(mechanic);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.pitstop.garage.web;
 
 import com.pitstop.garage.config.MessageHelper;
 import com.pitstop.garage.exceptions.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+@Slf4j
 @ControllerAdvice
 public class ExceptionAdvice {
 
@@ -137,6 +139,7 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(Exception.class)
     public ModelAndView handleUnexpected(Exception exception) {
+        log.error("Unexpected error", exception);
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         modelAndView.addObject("status", 500);
@@ -144,16 +147,22 @@ public class ExceptionAdvice {
     }
 
     private String redirectAfterRepairError() {
-        return isMechanic() ? "redirect:/mechanic/repairs" : "redirect:/repairs";
+        if (hasRole("ROLE_ADMIN")) {
+            return "redirect:/admin/repairs";
+        }
+        if (hasRole("ROLE_MECHANIC")) {
+            return "redirect:/mechanic/repairs";
+        }
+        return "redirect:/repairs";
     }
 
-    private boolean isMechanic() {
+    private boolean hasRole(String role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getAuthorities() == null) {
             return false;
         }
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_MECHANIC"::equals);
+                .anyMatch(role::equals);
     }
 }

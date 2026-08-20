@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -116,6 +115,13 @@ class ExceptionAdviceTest {
     }
 
     @Test
+    void handleRepairNotFound_whenAdmin_redirectsToAdminRepairs() {
+        authenticateAs(UserRole.ADMIN);
+        assertEquals("redirect:/admin/repairs",
+                advice.handleRepairNotFound(redirectAttributes, new RepairNotFoundException("missing")));
+    }
+
+    @Test
     void handleRepairStatus_whenClient_redirectsToRepairs() {
         authenticateAs(UserRole.USER);
         assertEquals("redirect:/repairs",
@@ -126,6 +132,13 @@ class ExceptionAdviceTest {
     void handleRepairStatus_whenMechanic_redirectsToMechanicQueue() {
         authenticateAs(UserRole.MECHANIC);
         assertEquals("redirect:/mechanic/repairs",
+                advice.handleRepairStatus(redirectAttributes, new RepairStatusException("bad")));
+    }
+
+    @Test
+    void handleRepairStatus_whenAdmin_redirectsToAdminRepairs() {
+        authenticateAs(UserRole.ADMIN);
+        assertEquals("redirect:/admin/repairs",
                 advice.handleRepairStatus(redirectAttributes, new RepairStatusException("bad")));
     }
 
