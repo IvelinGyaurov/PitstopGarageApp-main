@@ -107,6 +107,14 @@
             min-height: 3rem;
             padding: 0.85rem 1rem;
             white-space: nowrap;
+            border-color: rgba(56, 189, 248, 0.72);
+            background: rgba(56, 189, 248, 0.12);
+            color: #fff;
+        }
+
+        .vin-generate-btn:hover {
+            border-color: rgba(56, 189, 248, 0.95);
+            background: rgba(56, 189, 248, 0.22);
         }
 
         .vin-decode-btn {
@@ -135,21 +143,20 @@
             font-size: 0.92rem;
         }
 
-        .car-preset-btn {
+        .button.car-preset-btn {
             min-height: 2.75rem;
             padding: 0.7rem 1.1rem;
-            border: 1px solid var(--line);
-            border-radius: 0.9rem;
-            background: rgba(15, 23, 42, 0.72);
-            color: var(--text);
-            cursor: pointer;
-            font: inherit;
             font-size: 0.92rem;
+            color: #ecfdf5;
+            border: 1px solid rgba(110, 231, 183, 0.45);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.88) 0%, rgba(5, 150, 105, 0.92) 100%);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.22);
         }
 
-        .car-preset-btn:hover {
-            border-color: rgba(249, 115, 22, 0.72);
+        .button.car-preset-btn:hover {
             color: #fff;
+            border-color: rgba(167, 243, 208, 0.65);
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.95) 0%, rgba(16, 185, 129, 0.95) 100%);
         }
 
         @media (max-width: 640px) {
@@ -202,7 +209,7 @@
 
             <div class="car-presets">
                 <span class="car-presets-label" th:text="#{carAdd.presetsLabel}">Fill the form with a random sample car</span>
-                <button type="button" id="car-preset-random-btn" class="car-preset-btn"
+                <button type="button" id="car-preset-random-btn" class="button secondary car-preset-btn"
                         th:text="#{carAdd.presetsButton}">
                     Fill random sample car
                 </button>

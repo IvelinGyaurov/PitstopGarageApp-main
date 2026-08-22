@@ -76,21 +76,20 @@
             font-size: 0.92rem;
         }
 
-        .part-preset-btn {
+        .button.part-preset-btn {
             min-height: 2.75rem;
             padding: 0.7rem 1.1rem;
-            border: 1px solid var(--line);
-            border-radius: 0.9rem;
-            background: rgba(15, 23, 42, 0.72);
-            color: var(--text);
-            cursor: pointer;
-            font: inherit;
             font-size: 0.92rem;
+            color: #ecfdf5;
+            border: 1px solid rgba(110, 231, 183, 0.45);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.88) 0%, rgba(5, 150, 105, 0.92) 100%);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.22);
         }
 
-        .part-preset-btn:hover {
-            border-color: rgba(249, 115, 22, 0.72);
+        .button.part-preset-btn:hover {
             color: #fff;
+            border-color: rgba(167, 243, 208, 0.65);
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.95) 0%, rgba(16, 185, 129, 0.95) 100%);
         }
 
         @media (max-width: 640px) {
@@ -145,7 +144,7 @@
                 <span class="part-presets-label" th:text="#{adminPartsAdd.presetsLabel}">
                     Fill the form with a random sample part
                 </span>
-                <button type="button" id="part-preset-random-btn" class="part-preset-btn"
+                <button type="button" id="part-preset-random-btn" class="button secondary part-preset-btn"
                         th:text="#{adminPartsAdd.presetsButton}">
                     Fill random sample part
                 </button>
