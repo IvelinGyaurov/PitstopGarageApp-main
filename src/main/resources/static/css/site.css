@@ -100,13 +100,44 @@ a {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.65rem;
     color: var(--muted);
     font-size: 0.95rem;
 }
 
-.nav-links a:hover {
+.nav-links > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.88rem;
     color: var(--text);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    transition: 180ms ease;
+}
+
+.nav-links > a:hover {
+    color: var(--text);
+    transform: translateY(-2px);
+    border-color: rgba(248, 250, 252, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-links > a.button.primary {
+    color: #111827;
+    background: var(--orange);
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.25);
+}
+
+.nav-links > a.button.primary:hover {
+    background: #fb923c;
+    border-color: transparent;
 }
 
 .lang-switcher {

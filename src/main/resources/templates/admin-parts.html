@@ -114,7 +114,7 @@
             <span th:text="#{app.name}">PitStop Garage</span>
         </a>
         <div class="nav-links">
-            <a class="button secondary" th:href="@{/home}" th:text="#{nav.home}">Home</a>
+            <a th:href="@{/home}" th:text="#{nav.home}">Home</a>
             <a class="button primary" th:href="@{/admin/parts/add}" th:text="#{adminParts.add}">Add part</a>
             <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
             <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>

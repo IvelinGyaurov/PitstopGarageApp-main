@@ -16,13 +16,16 @@
         </a>
 
         <div class="nav-links">
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/users}" th:text="#{nav.allUsers}">All users</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs}" th:text="#{nav.activeRepairs}">Active repairs</a>
-            <a sec:authorize="hasRole('ADMIN')" class="button secondary" th:href="@{/admin/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs}" th:text="#{nav.repairQueue}">Repair queue</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
-            <a sec:authorize="hasRole('MECHANIC')" class="button secondary" th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/users}" th:text="#{nav.allUsers}">All users</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/parts}" th:text="#{nav.partsInventory}">Parts inventory</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/repairs}" th:text="#{nav.activeRepairs}">Active repairs</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a sec:authorize="hasRole('MECHANIC')" th:href="@{/mechanic/repairs}" th:text="#{nav.repairQueue}">Repair queue</a>
+            <a sec:authorize="hasRole('MECHANIC')" th:href="@{/mechanic/repairs/accepted}" th:text="#{nav.acceptedRepairs}">Accepted repairs</a>
+            <a sec:authorize="hasRole('MECHANIC')" th:href="@{/mechanic/repairs/history}" th:text="#{nav.repairHistory}">Repair history</a>
+            <a sec:authorize="hasRole('USER')" th:href="@{/cars}" th:text="#{nav.myCars}">My cars</a>
+            <a sec:authorize="hasRole('USER')" th:href="@{/repairs}" th:text="#{nav.myRepairs}">My repairs</a>
+            <a sec:authorize="hasRole('USER')" th:href="@{/repairs/history}" th:text="#{repairs.history}">Service history</a>
             <a th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
             <span th:replace="~{fragments/lang-switcher :: langSwitcher}"></span>
         </div>
