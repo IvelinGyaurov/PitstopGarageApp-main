@@ -7,13 +7,17 @@ import com.pitstop.garage.security.PitstopUserDetails;
 import com.pitstop.garage.user.model.User;
 import com.pitstop.garage.user.model.UserRole;
 import com.pitstop.garage.user.service.UserService;
+import com.pitstop.garage.web.dto.RegisterRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -130,6 +135,46 @@ class IndexControllerHomeTest {
         assertFalse(mav.getModel().containsKey("carsCount"));
         assertFalse(mav.getModel().containsKey("bayCount"));
         assertFalse(mav.getModel().containsKey("usersCount"));
+    }
+
+    @Test
+    void registerNewUser_whenFirstUser_setsFirstAdminFlashMessage() {
+        RegisterRequest request = RegisterRequest.builder()
+                .username("admin1")
+                .password("pass1234")
+                .email("admin1@mail.com")
+                .build();
+        BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(request, "registerRequest");
+        RedirectAttributes redirectAttributes = new RedirectAttributesModelMap();
+
+        when(userService.registerUser(request)).thenReturn(true);
+        when(messages.get("flash.register.firstAdmin")).thenReturn("First admin message");
+
+        ModelAndView mav = indexController.registerNewUser(request, bindingResult, redirectAttributes);
+
+        assertEquals("redirect:/login", mav.getViewName());
+        assertEquals("First admin message", redirectAttributes.getFlashAttributes().get("successMessage"));
+        verify(messages).get("flash.register.firstAdmin");
+    }
+
+    @Test
+    void registerNewUser_whenNotFirstUser_setsSuccessFlashMessage() {
+        RegisterRequest request = RegisterRequest.builder()
+                .username("user1")
+                .password("pass1234")
+                .email("user1@mail.com")
+                .build();
+        BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(request, "registerRequest");
+        RedirectAttributes redirectAttributes = new RedirectAttributesModelMap();
+
+        when(userService.registerUser(request)).thenReturn(false);
+        when(messages.get("flash.register.success")).thenReturn("Success message");
+
+        ModelAndView mav = indexController.registerNewUser(request, bindingResult, redirectAttributes);
+
+        assertEquals("redirect:/login", mav.getViewName());
+        assertEquals("Success message", redirectAttributes.getFlashAttributes().get("successMessage"));
+        verify(messages).get("flash.register.success");
     }
 
     private User user(UUID id, UserRole role) {

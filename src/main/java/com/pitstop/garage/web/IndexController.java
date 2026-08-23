@@ -106,8 +106,9 @@ public class IndexController {
             return modelAndView;
         }
 
-        userService.registerUser(registerRequest);
-        redirectAttributes.addFlashAttribute("successMessage", messages.get("flash.register.success"));
+        boolean firstUser = userService.registerUser(registerRequest);
+        String successKey = firstUser ? "flash.register.firstAdmin" : "flash.register.success";
+        redirectAttributes.addFlashAttribute("successMessage", messages.get(successKey));
         return new ModelAndView("redirect:/login");
     }
 }

@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService  {
 
 
     @CacheEvict(value = "users", allEntries = true)
-    public void registerUser(RegisterRequest registerRequest) {
+    public boolean registerUser(RegisterRequest registerRequest) {
 
         String username = registerRequest.getUsername().trim();
         String email = registerRequest.getEmail().trim().toLowerCase();
@@ -74,12 +74,13 @@ public class UserService implements UserDetailsService  {
                 .updatedOn(LocalDateTime.now())
                 .build();
 
-        int usersCount = userRepository.findAll().size();
-        if (usersCount == 0) {
+        boolean firstUser = userRepository.findAll().isEmpty();
+        if (firstUser) {
             user.setRole(UserRole.ADMIN);
         }
 
         userRepository.save(user);
+        return firstUser;
     }
 
     @CacheEvict(value = "users", allEntries = true)

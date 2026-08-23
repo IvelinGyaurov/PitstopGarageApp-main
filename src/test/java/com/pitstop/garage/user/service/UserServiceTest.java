@@ -60,11 +60,12 @@ class UserServiceTest {
         when(userRepository.findAll()).thenReturn(List.of());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        userService.registerUser(request);
+        boolean firstUser = userService.registerUser(request);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
+        assertTrue(firstUser);
         assertEquals("admin1", saved.getUsername());
         assertEquals("admin1@mail.com", saved.getEmail());
         assertEquals("encoded", saved.getPassword());
@@ -86,10 +87,11 @@ class UserServiceTest {
         when(userRepository.findAll()).thenReturn(List.of(User.builder().username("existing").build()));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        userService.registerUser(request);
+        boolean firstUser = userService.registerUser(request);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
+        assertFalse(firstUser);
         assertEquals(UserRole.USER, captor.getValue().getRole());
     }
 
