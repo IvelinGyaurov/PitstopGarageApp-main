@@ -95,6 +95,11 @@ public class UserService implements UserDetailsService  {
             throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_LAST_ADMIN_ROLE);
         }
 
+        if (newRole != user.getRole()
+                && serviceRepairRepository.existsByMechanicAndStatusIn(user, OPEN_MECHANIC_REPAIR_STATUSES)) {
+            throw new PrimaryUserException(PrimaryUserExceptionMessage.CANNOT_CHANGE_ROLE_WITH_OPEN_REPAIRS);
+        }
+
         user.setRole(newRole);
         user.setUpdatedOn(LocalDateTime.now());
         userRepository.save(user);

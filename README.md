@@ -200,7 +200,7 @@ Full microservice details are documented in the [pitstop-parts](https://github.c
 - **ADMIN** — users, inventory, full repair oversight, plus the same client car/repair flows as USER
 - There are no seeded accounts. The first registered user becomes **ADMIN**; later registrations are **USER**. Use the Users page as admin to promote a mechanic or another admin.
 - Last active admin cannot be demoted/deactivated (protection rule)
-- Cannot deactivate a user who still has **ACCEPTED** or **IN_PROGRESS** repairs assigned as mechanic
+- Cannot deactivate or change the role of a user who still has **ACCEPTED** or **IN_PROGRESS** repairs assigned as mechanic
 - Passwords stored with BCrypt
 
 ---

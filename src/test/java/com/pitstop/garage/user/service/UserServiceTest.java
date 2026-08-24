@@ -182,6 +182,38 @@ class UserServiceTest {
     }
 
     @Test
+    void changeRole_whenMechanicHasOpenRepairs_throws() {
+        UUID id = UUID.randomUUID();
+        User mechanic = activeUser(id, "mech", UserRole.MECHANIC);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(mechanic));
+        when(serviceRepairRepository.existsByMechanicAndStatusIn(
+                eq(mechanic), eq(List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS))))
+                .thenReturn(true);
+
+        assertThrows(PrimaryUserException.class,
+                () -> userService.changeRole(id, UserRole.USER));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changeRole_whenMechanicHasNoOpenRepairs_updatesRole() {
+        UUID id = UUID.randomUUID();
+        User mechanic = activeUser(id, "mech", UserRole.MECHANIC);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(mechanic));
+        when(serviceRepairRepository.existsByMechanicAndStatusIn(
+                eq(mechanic), eq(List.of(RepairStatus.ACCEPTED, RepairStatus.IN_PROGRESS))))
+                .thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.changeRole(id, UserRole.USER);
+
+        assertEquals(UserRole.USER, mechanic.getRole());
+        verify(userRepository).save(mechanic);
+    }
+
+    @Test
     void changeActiveStatus_whenDeactivatingSoleAdmin_throws() {
         UUID id = UUID.randomUUID();
         User admin = activeUser(id, "admin", UserRole.ADMIN);

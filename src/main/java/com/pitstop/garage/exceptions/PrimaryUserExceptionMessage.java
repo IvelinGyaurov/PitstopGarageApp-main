@@ -10,4 +10,7 @@ public class PrimaryUserExceptionMessage {
 
     public static final String CANNOT_DEACTIVATE_MECHANIC_WITH_OPEN_REPAIRS =
             "error.cannotDeactivateMechanicWithOpenRepairs";
+
+    public static final String CANNOT_CHANGE_ROLE_WITH_OPEN_REPAIRS =
+            "error.cannotChangeRoleWithOpenRepairs";
 }
