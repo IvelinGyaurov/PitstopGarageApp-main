@@ -64,10 +64,10 @@ class ExceptionAdviceTest {
     }
 
     @Test
-    void handleDataIntegrityViolation_redirectsToRegister() {
-        assertEquals("redirect:/register",
+    void handleDataIntegrityViolation_redirectsToHome() {
+        assertEquals("redirect:/home",
                 advice.handleDataIntegrityViolation(redirectAttributes));
-        verify(redirectAttributes).addFlashAttribute("errorMessage", "error.usernameOrEmailExists");
+        verify(redirectAttributes).addFlashAttribute("errorMessage", "error.dataIntegrity");
     }
 
     @Test

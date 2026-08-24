@@ -1,6 +1,7 @@
 package com.pitstop.garage.web.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class CompleteRepairRequest {
 
     @NotNull(message = "{validation.laborCost.required}")
     @DecimalMin(value = "1.00", message = "{validation.laborCost.min}")
+    @DecimalMax(value = "99999999.99", message = "{validation.laborCost.max}")
     private BigDecimal laborCost;
 
     private List<PartUsageForm> parts = new ArrayList<>();

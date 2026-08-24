@@ -18,6 +18,7 @@ public class AddPartRequest {
 
     @NotNull(message = "{validation.unitPrice.required}")
     @DecimalMin(value = "0.01", message = "{validation.unitPrice.min}")
+    @DecimalMax(value = "99999999.99", message = "{validation.unitPrice.max}")
     private BigDecimal unitPrice;
 
     @Min(value = 1, message = "{validation.quantity.min}")

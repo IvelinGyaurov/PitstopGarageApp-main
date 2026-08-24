@@ -44,9 +44,8 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String handleDataIntegrityViolation(RedirectAttributes redirectAttributes) {
-
-        redirectAttributes.addFlashAttribute("errorMessage", messages.get("error.usernameOrEmailExists"));
-        return "redirect:/register";
+        redirectAttributes.addFlashAttribute("errorMessage", messages.get("error.dataIntegrity"));
+        return "redirect:/home";
     }
 
     @ExceptionHandler(CarNotFoundException.class)
